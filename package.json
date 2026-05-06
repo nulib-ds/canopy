@@ -1,6 +1,6 @@
 {
   "name": "@canopy-iiif/app-root",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "An open-source static site generator designed for fast creation, contextualization, and customization of a discovery-focused digital scholarship and collections website using IIIF APIs.",
   "private": true,
   "main": "app/scripts/canopy-build.mjs",
@@ -27,9 +27,9 @@
     "release": "node packages/helpers/guard-publish.js && node packages/helpers/run-changeset.js publish"
   },
   "dependencies": {
-    "@canopy-iiif/app": "^1.11.0",
-    "@samvera/clover-iiif": "^3.6.0",
-    "swiper": "^11.2.10"
+    "@canopy-iiif/app": "^1.11.1",
+    "@samvera/clover-iiif": "^3.7.0",
+    "embla-carousel": "^8.6.0"
   },
   "optionalDependencies": {
     "@parcel/watcher-linux-x64-glibc": "^2.5.1",

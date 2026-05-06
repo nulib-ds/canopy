@@ -1,9 +1,4 @@
-import Swiper from 'swiper';
-import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import 'swiper/css/effect-fade';
+import EmblaCarousel from 'embla-carousel';
 
 function ready(fn) {
   if (typeof document === 'undefined') return;
@@ -16,61 +11,85 @@ function ready(fn) {
 
 function initSlider(host) {
   if (!host || host.__canopyHeroBound) return;
-  const slider = host.querySelector('.canopy-interstitial__slider');
-  if (!slider) return;
-  const prev = host.querySelector('.canopy-interstitial__nav-btn--prev');
-  const next = host.querySelector('.canopy-interstitial__nav-btn--next');
-  const pagination = host.querySelector('.canopy-interstitial__pagination');
-  const transitionAttr = (host.getAttribute && host.getAttribute('data-transition')) || 'fade';
-  const transition = transitionAttr && transitionAttr.toLowerCase() === 'slide' ? 'slide' : 'fade';
+  const viewport = host.querySelector('.canopy-interstitial__slider');
+  if (!viewport) return;
 
-  try {
-    const baseModules = [Navigation, Pagination, Autoplay];
-    if (transition === 'fade') baseModules.push(EffectFade);
-    const swiperInstance = new Swiper(slider, {
-      modules: baseModules,
-      loop: true,
-      slidesPerView: 1,
-      effect: transition,
-      fadeEffect: transition === 'fade' ? { crossFade: true } : undefined,
-      navigation: {
-        prevEl: prev || undefined,
-        nextEl: next || undefined,
-      },
-      pagination: {
-        el: pagination || undefined,
-        clickable: true,
-      },
-      autoplay: {
-        delay: 6000,
-        disableOnInteraction: false,
-      },
-    });
+  const slides = Array.from(viewport.querySelectorAll('.canopy-interstitial__slide'));
+  if (slides.length <= 1) {
     host.__canopyHeroBound = true;
-    host.__canopyHeroSwiper = swiperInstance;
-  } catch (error) {
-    try {
-      console.warn('[canopy][hero] failed to initialise slider', error);
-    } catch (_) {}
+    return;
   }
+
+  const paginationEl = host.querySelector('.canopy-interstitial__pagination');
+  const prevBtn = host.querySelector('.canopy-interstitial__nav-btn--prev');
+  const nextBtn = host.querySelector('.canopy-interstitial__nav-btn--next');
+
+  // Live region for screen-reader slide announcements
+  const liveEl = document.createElement('div');
+  liveEl.setAttribute('aria-live', 'polite');
+  liveEl.setAttribute('aria-atomic', 'true');
+  liveEl.className = 'canopy-interstitial__sr-live';
+  host.appendChild(liveEl);
+
+  const embla = EmblaCarousel(viewport, { loop: true, duration: 0 });
+
+  const announce = (idx) => {
+    liveEl.textContent = `Slide ${idx + 1} of ${slides.length}`;
+  };
+
+  if (paginationEl) {
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className =
+        'canopy-interstitial__dot' +
+        (i === 0 ? ' canopy-interstitial__dot--active' : '');
+      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+      dot.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+      dot.addEventListener('click', () => embla.scrollTo(i));
+      paginationEl.appendChild(dot);
+    });
+
+    embla.on('select', () => {
+      const idx = embla.selectedScrollSnap();
+      announce(idx);
+      paginationEl.querySelectorAll('.canopy-interstitial__dot').forEach((dot, i) => {
+        const active = i === idx;
+        dot.classList.toggle('canopy-interstitial__dot--active', active);
+        dot.setAttribute('aria-current', active ? 'true' : 'false');
+      });
+    });
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', () => embla.scrollPrev());
+  if (nextBtn) nextBtn.addEventListener('click', () => embla.scrollNext());
+
+  let timer = setInterval(() => embla.scrollNext(), 6000);
+  const stopAutoplay = () => { clearInterval(timer); timer = null; };
+  const startAutoplay = () => { if (!timer) timer = setInterval(() => embla.scrollNext(), 6000); };
+
+  embla.on('pointerDown', stopAutoplay);
+  embla.on('pointerUp', startAutoplay);
+
+  host.__canopyHeroBound = true;
 }
 
 function observeHosts() {
   try {
-    const observer = new MutationObserver((mutations) => {
+    new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes &&
           mutation.addedNodes.forEach((node) => {
             if (!(node instanceof Element)) return;
-            if (node.matches && node.matches('[data-canopy-hero-slider]')) initSlider(node);
+            if (node.matches && node.matches('[data-canopy-hero-slider]'))
+              initSlider(node);
             const inner = node.querySelectorAll
               ? node.querySelectorAll('[data-canopy-hero-slider]')
               : [];
             inner && inner.forEach && inner.forEach((el) => initSlider(el));
           });
       });
-    });
-    observer.observe(document.documentElement || document.body, {
+    }).observe(document.documentElement || document.body, {
       childList: true,
       subtree: true,
     });
@@ -79,7 +98,6 @@ function observeHosts() {
 
 ready(() => {
   if (typeof document === 'undefined') return;
-  const hosts = document.querySelectorAll('[data-canopy-hero-slider]');
-  hosts.forEach((host) => initSlider(host));
+  document.querySelectorAll('[data-canopy-hero-slider]').forEach((host) => initSlider(host));
   observeHosts();
 });

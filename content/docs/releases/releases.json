@@ -1,5 +1,11 @@
 [
   {
+    "version": "1.11.2",
+    "date": "2026-05-06",
+    "summary": "Update Clover to account for Swiper removal and use of Embla.",
+    "highlights": []
+  },
+  {
     "version": "1.11.1",
     "date": "2026-04-29",
     "summary": "Update Clover dependency to slimmer version.",

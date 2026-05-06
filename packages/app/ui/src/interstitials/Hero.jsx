@@ -159,7 +159,6 @@ export default function Hero({
   item,
   index,
   random = true,
-  transition = "fade",
   headline,
   description,
   links = [],
@@ -336,16 +335,6 @@ export default function Hero({
     .filter(Boolean)
     .join(" ");
 
-  const normalizedTransition = (() => {
-    try {
-      const raw = transition == null ? "" : String(transition);
-      const normalized = raw.trim().toLowerCase();
-      return normalized === "slide" ? "slide" : "fade";
-    } catch (_) {
-      return "fade";
-    }
-  })();
-
   const renderSlide = (
     slide,
     idx,
@@ -390,7 +379,13 @@ export default function Hero({
 
     if (isStaticCaption) {
       return (
-        <div className="swiper-slide" key={safeHref || idx}>
+        <div
+          className="canopy-interstitial__slide"
+          key={safeHref || idx}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${idx + 1} of ${orderedSlides.length}`}
+        >
           {wrapWithLink(
             <article className={paneClassName}>
               {slide.thumbnail ? (
@@ -416,7 +411,13 @@ export default function Hero({
     }
 
     return (
-      <div className="swiper-slide" key={safeHref || idx}>
+      <div
+        className="canopy-interstitial__slide"
+        key={safeHref || idx}
+        role="group"
+        aria-roledescription="slide"
+        aria-label={`${idx + 1} of ${orderedSlides.length}`}
+      >
         {wrapWithLink(
           <article className={paneClassName}>
             {slide.thumbnail ? (
@@ -439,27 +440,31 @@ export default function Hero({
   };
 
   const renderSlider = (options = {}) => (
-    <div className="canopy-interstitial__slider swiper">
-      <div className="swiper-wrapper">
+    <div
+      className="canopy-interstitial__slider"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={overlayTitle || "Featured content"}
+    >
+      <div className="canopy-interstitial__slide-wrapper">
         {orderedSlides.map((slide, idx) => renderSlide(slide, idx, options))}
       </div>
       <div className="canopy-interstitial__nav">
         <button
           type="button"
           aria-label="Previous slide"
-          className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--prev swiper-button-prev"
+          className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--prev"
         >
           <PrevArrowIcon />
         </button>
         <button
           type="button"
           aria-label="Next slide"
-          className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--next swiper-button-next"
+          className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--next"
         >
           <NextArrowIcon />
         </button>
       </div>
-      <div className="canopy-interstitial__pagination swiper-pagination" />
     </div>
   );
 
@@ -495,7 +500,6 @@ export default function Hero({
   };
   if (!isBreadcrumbVariant) {
     sectionProps["data-canopy-hero-slider"] = "1";
-    sectionProps["data-transition"] = normalizedTransition;
   } else {
     sectionProps["data-canopy-hero-variant"] = "breadcrumb";
   }
@@ -518,6 +522,7 @@ export default function Hero({
           </div>
           <div className="canopy-interstitial__media-group">
             {renderSlider({showVeil: false, captionVariant: "static"})}
+            <div className="canopy-interstitial__pagination" />
           </div>
         </div>
       )}
