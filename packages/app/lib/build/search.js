@@ -138,7 +138,7 @@ async function writeFacetCollections(labelWhitelist, combined) {
       }
       const selfId = absoluteUrl(`/api/facet/${labelSlug}/${valueSlug}.json`);
       const parentId = absoluteUrl(`/api/facet/${labelSlug}.json`);
-      const homepage = absoluteUrl(`/search?${encodeURIComponent(labelSlug)}=${encodeURIComponent(valueSlug)}`);
+      const homepage = absoluteUrl(`/search/index.html?${encodeURIComponent(labelSlug)}=${encodeURIComponent(valueSlug)}`);
       const col = {
         '@context': 'https://iiif.io/api/presentation/3/context.json',
         id: selfId,

@@ -42,7 +42,7 @@ function collectAbsoluteUrls(iiifRecords, pageRecords) {
     push(record.href);
   });
   // Ensure the search page is always present even though it is generated separately
-  push('/search.html');
+  push('/search/index.html');
   return Array.from(urls.values()).sort((a, b) => a.localeCompare(b));
 }
 

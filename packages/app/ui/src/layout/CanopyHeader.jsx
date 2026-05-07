@@ -419,7 +419,7 @@ export default function CanopyHeader(props = {}) {
     trimmedSearchRoute && trimmedSearchRoute !== (defaultSearchRoute || "search");
   const normalizedSearchRoute = usesDirectorySearchRoute
     ? `/${trimmedSearchRoute}/`
-    : `/${(trimmedSearchRoute || defaultSearchRoute || "search").replace(/^\/+/, "")}`;
+    : `/${(trimmedSearchRoute || defaultSearchRoute || "search").replace(/^\/+/, "")}/index.html`;
   const resolvedLanguageToggle =
     languageToggleProp === false
       ? null

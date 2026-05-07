@@ -114,10 +114,7 @@ function getSearchRouteEntries() {
 function resolveSearchOutputRelative(routeValue) {
   const defaultRoute = getDefaultRoute('search') || 'search';
   const trimmed = typeof routeValue === 'string' ? routeValue.trim().replace(/^\/+|\/+$/g, '') : '';
-  if (!trimmed || trimmed === defaultRoute) {
-    return `${trimmed || defaultRoute}.html`;
-  }
-  return path.join(trimmed, 'index.html');
+  return path.join(trimmed || defaultRoute, 'index.html');
 }
 
 async function ensureSearchRuntime() {

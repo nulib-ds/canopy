@@ -105,7 +105,7 @@ function isOnSearchPage() {
     let path = String(location.pathname || '');
     if (base && path.startsWith(base)) path = path.slice(base.length);
     if (path.endsWith('/')) path = path.slice(0, -1);
-    return path === '/search';
+    return path === '/search' || path === '/search/index.html';
   } catch (_) {
     return false;
   }

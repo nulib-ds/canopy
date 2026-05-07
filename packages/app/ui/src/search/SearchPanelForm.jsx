@@ -46,7 +46,7 @@ function isAbsoluteUrl(href) {
 
 export function resolveSearchPath(pathValue) {
   let raw = typeof pathValue === "string" ? pathValue.trim() : "";
-  if (!raw) raw = "/search";
+  if (!raw) raw = "/search/index.html";
   if (isAbsoluteUrl(raw)) return raw;
   const normalizedPath = raw.startsWith("/") ? raw : `/${raw}`;
   const base = readBasePath();
@@ -69,7 +69,7 @@ export default function SearchPanelForm(props = {}) {
     placeholder,
     buttonLabel,
     label,
-    searchPath = "/search",
+    searchPath = "/search/index.html",
     inputId: inputIdProp,
     clearLabel,
   } = props || {};

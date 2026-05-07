@@ -15,7 +15,7 @@ export default function SearchPanel(props = {}) {
     button = true, // eslint-disable-line no-unused-vars
     buttonLabel: buttonLabelProp,
     label,
-    searchPath = '/search',
+    searchPath = '/search/index.html',
   } = props || {};
   const {getString} = useLocale();
   const placeholder =

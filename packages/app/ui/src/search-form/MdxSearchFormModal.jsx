@@ -14,7 +14,7 @@ export default function MdxSearchFormModal(props = {}) {
     button = true, // kept for backward compat; ignored by teaser form
     buttonLabel: buttonLabelProp,
     label,
-    searchPath = '/search',
+    searchPath = '/search/index.html',
   } = props || {};
   const {getString} = useLocale();
   const placeholder =
