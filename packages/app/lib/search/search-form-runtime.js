@@ -49,6 +49,7 @@ function withBase(href) {
       return '/' + cleaned;
     }
     if (/^https?:/i.test(raw)) return raw;
+    if (raw === basePath || raw.startsWith(`${basePath}/`)) return raw;
     const cleaned = raw.replace(/^\/+/, '');
     return `${basePath}/${cleaned}`;
   } catch (_) {

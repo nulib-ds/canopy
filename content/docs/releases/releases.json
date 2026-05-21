@@ -1,5 +1,11 @@
 [
   {
+    "version": "1.12.1",
+    "date": "2026-05-21",
+    "summary": "Address path issue from search autocomplete listings.",
+    "highlights": []
+  },
+  {
     "version": "1.12.0",
     "date": "2026-05-06",
     "summary": "Resolve mixed extension ending on search route.",
