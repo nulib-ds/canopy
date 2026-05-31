@@ -1783,8 +1783,10 @@ async function buildIiifCollectionPages(CONFIG) {
         trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-") ||
         trimmed;
       if (!valueSlug) continue;
-      if (!valueMap.has(valueSlug)) {
-        valueMap.set(valueSlug, {value: trimmed, slug: valueSlug});
+      if (valueMap.has(valueSlug)) {
+        valueMap.get(valueSlug).count += 1;
+      } else {
+        valueMap.set(valueSlug, {value: trimmed, slug: valueSlug, count: 1});
       }
     }
   }

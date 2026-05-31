@@ -1,5 +1,11 @@
 [
   {
+    "version": "1.12.2",
+    "date": "2026-05-31",
+    "summary": "Update Index component to reflect counts.",
+    "highlights": []
+  },
+  {
     "version": "1.12.1",
     "date": "2026-05-21",
     "summary": "Address path issue from search autocomplete listings.",

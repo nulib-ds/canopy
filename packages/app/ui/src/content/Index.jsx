@@ -48,7 +48,11 @@ function normalizeEntries(entries) {
       const dedupeKey = `${labelSlug}__${slug}`;
       if (seen.has(dedupeKey)) return;
       seen.add(dedupeKey);
-      values.push({value: trimmed, slug});
+      const count =
+        valueEntry && typeof valueEntry === "object" && typeof valueEntry.count === "number"
+          ? valueEntry.count
+          : undefined;
+      values.push({value: trimmed, slug, ...(count !== undefined && {count})});
     });
     if (!values.length) return;
     normalized.push({label, slug: labelSlug, values});
@@ -174,6 +178,8 @@ export default function Index({
   limit = 15,
   expandLabel = "Show more",
   collapseLabel = "Show less",
+  sortOrder = "alphabetically",
+  showCount = false,
   className = "",
   ...rest
 }) {
@@ -194,6 +200,8 @@ export default function Index({
           limit={limit}
           expandLabel={expandLabel}
           collapseLabel={collapseLabel}
+          sortOrder={sortOrder}
+          showCount={showCount}
         />
       ))}
       <script
@@ -204,15 +212,28 @@ export default function Index({
   );
 }
 
-function IndexGroup({label, labelSlug, values, limit, expandLabel, collapseLabel}) {
+function sortValues(values, sortOrder) {
+  const copy = [...values];
+  if (sortOrder === "count") {
+    copy.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  } else {
+    copy.sort((a, b) =>
+      String(a.value).localeCompare(String(b.value), undefined, {sensitivity: "base"}),
+    );
+  }
+  return copy;
+}
+
+function IndexGroup({label, labelSlug, values, limit, expandLabel, collapseLabel, sortOrder, showCount}) {
   const parsedLimit = Number(limit);
+  const showAll = Number.isFinite(parsedLimit) && Math.floor(parsedLimit) === 0;
   const clampedLimit = Number.isFinite(parsedLimit)
     ? Math.max(1, Math.floor(parsedLimit))
     : 15;
-  const maxVisible = clampedLimit;
-  const hasOverflow = values.length > maxVisible;
-  const visibleValues = hasOverflow ? values.slice(0, maxVisible) : values;
-  const hiddenValues = hasOverflow ? values.slice(maxVisible) : [];
+  const sorted = sortValues(values, sortOrder);
+  const hasOverflow = !showAll && sorted.length > clampedLimit;
+  const visibleValues = hasOverflow ? sorted.slice(0, clampedLimit) : sorted;
+  const hiddenValues = hasOverflow ? sorted.slice(clampedLimit) : [];
   const labelCollapsed = typeof expandLabel === "string" && expandLabel.trim()
     ? expandLabel.trim()
     : "Show more";
@@ -226,6 +247,10 @@ function IndexGroup({label, labelSlug, values, limit, expandLabel, collapseLabel
         {visibleValues.map((value) => {
           const href = buildSearchHref(labelSlug, value.slug);
           const key = `${labelSlug || label}-${value.slug || value.value}`;
+          const displayText =
+            showCount && value.count != null
+              ? `${value.value} (${value.count})`
+              : value.value;
           return (
             <dd key={key}>
               {href ? (
@@ -235,10 +260,10 @@ function IndexGroup({label, labelSlug, values, limit, expandLabel, collapseLabel
                   data-index-label={labelSlug}
                   data-index-value={value.slug}
                 >
-                  {value.value}
+                  {displayText}
                 </a>
               ) : (
-                value.value
+                displayText
               )}
             </dd>
           );
@@ -246,6 +271,10 @@ function IndexGroup({label, labelSlug, values, limit, expandLabel, collapseLabel
         {hiddenValues.map((value) => {
           const href = buildSearchHref(labelSlug, value.slug);
           const key = `${labelSlug || label}-hidden-${value.slug || value.value}`;
+          const displayText =
+            showCount && value.count != null
+              ? `${value.value} (${value.count})`
+              : value.value;
           return (
             <dd key={key} data-canopy-index-hidden="" hidden>
               {href ? (
@@ -255,10 +284,10 @@ function IndexGroup({label, labelSlug, values, limit, expandLabel, collapseLabel
                   data-index-label={labelSlug}
                   data-index-value={value.slug}
                 >
-                  {value.value}
+                  {displayText}
                 </a>
               ) : (
-                value.value
+                displayText
               )}
             </dd>
           );

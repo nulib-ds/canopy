@@ -62,13 +62,62 @@ By default each list shows up to 15 values before revealing a "Show more" button
 />
 ```
 
+Pass `limit={0}` to show all values at once with no toggle button.
+
+```mdx {3}
+<Index
+  label="Subject"
+  limit={0}
+/>
+```
+
+### Sort Order
+
+Values within each label group can be ordered alphabetically (the default) or by frequency — most common value first. Use `sortOrder="count"` to surface the most-used terms at the top.
+
+```mdx {3}
+<Index
+  label="Subject"
+  sortOrder="count"
+/>
+```
+
+<Index label="Subject" sortOrder="count" />
+
+### Show Count
+
+Pass `showCount` to display the number of items that carry each value alongside the term, e.g. `Nepal (6)`.
+
+```mdx {3}
+<Index
+  label="Subject"
+  showCount
+/>
+```
+
+<Index label="Subject" showCount />
+
+Both options can be combined:
+
+```mdx {3-4}
+<Index
+  label="Subject"
+  sortOrder="count"
+  showCount
+/>
+```
+
+<Index label="Subject" sortOrder="count" showCount />
+
 ## API
 
-| Prop            | Type   | Default     | Notes                                                                                              |
-| --------------- | ------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| `label`         | string |             | Restrict the index to a single metadata label (case-insensitive match on the configured labels).   |
-| `metadata`      | array  | global      | Optional override (array of `{label, values}`) to render a curated subset instead of the full set. |
-| `limit`         | number | `15`        | Maximum number of values to show before revealing the toggle inside each `<dl>`.                   |
-| `expandLabel`   | string | `Show more` | Text for the expand button when additional values are hidden.                                      |
-| `collapseLabel` | string | `Show less` | Text used after expanding the list.                                                                |
-| `className`     | string |             | Extra classes applied to the wrapping `<div>`. Each label always renders as its own `<dl>`.        |
+| Prop            | Type                          | Default           | Notes                                                                                              |
+| --------------- | ----------------------------- | ----------------- | -------------------------------------------------------------------------------------------------- |
+| `label`         | string                        |                   | Restrict the index to a single metadata label (case-insensitive match on the configured labels).   |
+| `metadata`      | array                         | global            | Optional override (array of `{label, values}`) to render a curated subset instead of the full set. |
+| `limit`         | number                        | `15`              | Maximum number of values to show before revealing the toggle inside each `<dl>`. Pass `0` to show all values with no toggle. |
+| `sortOrder`     | `"alphabetically"` \| `"count"` | `"alphabetically"` | Order values alphabetically or by descending occurrence count. Sorting is applied before the limit, so the most relevant values are always visible first when using `"count"`. |
+| `showCount`     | boolean                       | `false`           | When `true`, appends the occurrence count in parentheses after each value, e.g. `Nepal (6)`.       |
+| `expandLabel`   | string                        | `Show more`       | Text for the expand button when additional values are hidden.                                      |
+| `collapseLabel` | string                        | `Show less`       | Text used after expanding the list.                                                                |
+| `className`     | string                        |                   | Extra classes applied to the wrapping `<div>`. Each label always renders as its own `<dl>`.        |
