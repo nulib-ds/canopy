@@ -1,5 +1,7 @@
 # Canopy IIIF
 
+A project of [Northwestern University Libraries](https://www.library.northwestern.edu/).
+
 Create fast, light digital projects from IIIF collections. Canopy IIIF helps libraries, archives, museums, and researchers add narrative context to IIIF material without worrying about derivatives or storage. Author in Markdown, publish static sites, and keep maintenance low while showcasing interoperable collections.
 
 [![Deploy to GitHub Pages](https://github.com/nulib-ds/canopy/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/nulib-ds/canopy/actions/workflows/deploy-pages.yml) [![Release and Template](https://github.com/nulib-ds/canopy/actions/workflows/release-and-template.yml/badge.svg)](https://github.com/nulib-ds/canopy/actions/workflows/release-and-template.yml)
@@ -55,4 +57,4 @@ Each page links to deeper guides (assets, works layouts, Search composition, etc
 
 ## License
 
-Canopy IIIF (Canopy) is an open-source project by Mat Jordan, released under the MIT License. Anyone may adapt its features and deploy digital projects without restriction. By working directly with IIIF resources, Canopy keeps materials with the libraries, museums, and archives that serve them, along with their metadata, rights statements, and terms of use. Implementers should be aware of the rights and terms governing the materials they reference, publish, and deploy to the web using Canopy.
+Canopy IIIF (Canopy) is an open-source project of [Northwestern University Libraries](https://www.library.northwestern.edu/), by Mat Jordan, released under the MIT License. Anyone may adapt its features and deploy digital projects without restriction. By working directly with IIIF resources, Canopy keeps materials with the libraries, museums, and archives that serve them, along with their metadata, rights statements, and terms of use. Implementers should be aware of the rights and terms governing the materials they reference, publish, and deploy to the web using Canopy.

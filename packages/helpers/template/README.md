@@ -1,5 +1,7 @@
 # Canopy Template
 
+A project of [Northwestern University Libraries](https://www.library.northwestern.edu/).
+
 This repository offers a trimmed down starting point for new Canopy IIIF projects. When you need deeper documentation, examples, or release notes, vist the main project at https://nulib-ds.github.io/canopy/.
 
 ## Getting Started
@@ -20,4 +22,4 @@ All development happens in https://github.com/nulib-ds/canopy. If you are intere
 
 ## License
 
-Canopy IIIF (Canopy) is an open-source project by Mat Jordan, released under the MIT License. By working directly with IIIF resources, Canopy keeps materials with the libraries, museums, and archives that serve them, along with their metadata, rights statements, and terms of use. Implementers should be aware of the rights and terms governing the materials they reference, publish, and deploy to the web using Canopy.
+Canopy IIIF (Canopy) is an open-source project of [Northwestern University Libraries](https://www.library.northwestern.edu/), created by Mat Jordan and Mark Baggett, released under the MIT License. By working directly with IIIF resources, Canopy keeps materials with the libraries, museums, and archives that serve them, along with their metadata, rights statements, and terms of use. Implementers should be aware of the rights and terms governing the materials they reference, publish, and deploy to the web using Canopy.

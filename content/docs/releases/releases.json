@@ -1,5 +1,11 @@
 [
   {
+    "version": "1.12.6",
+    "date": "2026-07-20",
+    "summary": "Update organizational information.",
+    "highlights": []
+  },
+  {
     "version": "1.12.5",
     "date": "2026-07-20",
     "summary": "Verify the release pipeline pushes correctly to the migrated nulib-ds template repositories.",
