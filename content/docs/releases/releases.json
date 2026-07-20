@@ -1,5 +1,11 @@
 [
   {
+    "version": "1.12.7",
+    "date": "2026-07-20",
+    "summary": "Update dates in footer.",
+    "highlights": []
+  },
+  {
     "version": "1.12.6",
     "date": "2026-07-20",
     "summary": "Update organizational information.",
