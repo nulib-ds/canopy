@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.12.5",
+    "date": "2026-07-20",
+    "summary": "Verify the release pipeline pushes correctly to the migrated nulib-ds template repositories.",
+    "highlights": []
+  },
+  {
+    "version": "1.12.4",
+    "date": "2026-07-20",
+    "summary": "Migrate repository and template ownership from canopy-iiif to nulib-ds.",
+    "highlights": []
+  },
+  {
     "version": "1.12.3",
     "date": "2026-07-20",
     "summary": "Improve navigation locale detection.",
