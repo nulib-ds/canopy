@@ -1,4 +1,10 @@
-const {fs, path, CONTENT_DIR, rootRelativeHref} = require("../common");
+const {
+  fs,
+  path,
+  CONTENT_DIR,
+  rootRelativeHref,
+  canonicalizeLocaleCode,
+} = require("../common");
 const mdx = require("../build/mdx.js");
 const {getPageContext} = require("../page-context");
 
@@ -36,6 +42,33 @@ function slugFromRelative(relativePath) {
   const segments = isIndex ? dirSegments : dirSegments.concat(baseName);
   const slug = segments.join("/");
   return {slug, segments, isIndex};
+}
+
+// Returns true when the segment is a configured (non-default) locale code that
+// prefixes content routes, e.g. "fr" for content/fr/...
+function isLocaleSegment(segment) {
+  if (!segment) return false;
+  try {
+    return !!canonicalizeLocaleCode(segment);
+  } catch (_) {
+    return false;
+  }
+}
+
+// Depth (number of leading segments) that identifies a navigation section root
+// for a page. Locale-prefixed routes root at <locale>/<section>; everything else
+// roots at <section>.
+function rootDepthForSegments(segments) {
+  if (!Array.isArray(segments) || !segments.length) return 0;
+  if (segments.length > 1 && isLocaleSegment(segments[0])) return 2;
+  return 1;
+}
+
+// Slug of the section root for a page's segments (locale-aware).
+function rootSegmentForSegments(segments) {
+  const depth = rootDepthForSegments(segments);
+  if (!depth) return "";
+  return segments.slice(0, depth).join("/");
 }
 
 function pageSortKey(relativePath) {
@@ -210,7 +243,11 @@ function getNavigationCache() {
 
   const roots = new Map();
   for (const node of nodes.values()) {
-    if (node.segments.length === 1) {
+    // A section root is either a top-level node (<section>) or, for
+    // locale-prefixed content, a <locale>/<section> node. Rooting a
+    // locale-prefixed sidebar at the locale segment alone would list every
+    // section under that locale instead of just the current one.
+    if (rootDepthForSegments(node.segments) === node.segments.length) {
       roots.set(node.slug, node);
     }
   }
@@ -266,7 +303,7 @@ function getPageInfo(relativePath) {
       slug: page.slug,
       segments: page.segments.slice(),
       relativePath: page.relativePath,
-      rootSegment: page.segments[0] || "",
+      rootSegment: rootSegmentForSegments(page.segments),
       isIndex: page.isIndex,
     };
   }
@@ -278,7 +315,7 @@ function getPageInfo(relativePath) {
     slug,
     segments,
     relativePath: normalized,
-    rootSegment: segments[0] || "",
+    rootSegment: rootSegmentForSegments(segments),
     isIndex: false,
   };
 }
@@ -289,10 +326,12 @@ function buildNavigationForFile(relativePath) {
   const page = cache.pagesByRelative.get(normalized);
   const fallback = slugFromRelative(normalized);
   const slug = page ? page.slug : fallback.slug;
-  const rootSegment = page
-    ? page.segments[0] || ""
-    : fallback.segments[0] || "";
-  if (!slug || !rootSegment || EXCLUDED_ROOTS.has(rootSegment)) {
+  const segments = page ? page.segments : fallback.segments;
+  const rootSegment = rootSegmentForSegments(segments);
+  // The section name is the last segment of the root (the segment after an
+  // optional locale prefix), e.g. "works" for both "works" and "fr/works".
+  const sectionName = rootSegment.split("/").pop() || "";
+  if (!slug || !rootSegment || EXCLUDED_ROOTS.has(sectionName)) {
     return null;
   }
   const rootNode = cache.roots.get(rootSegment);
@@ -312,7 +351,8 @@ function buildNavigationRoots(currentSlug) {
   const result = {};
   const normalizedSlug = typeof currentSlug === "string" ? currentSlug : "";
   for (const [segment, rootNode] of cache.roots.entries()) {
-    if (!segment || EXCLUDED_ROOTS.has(segment)) continue;
+    const sectionName = segment.split("/").pop() || "";
+    if (!segment || EXCLUDED_ROOTS.has(sectionName)) continue;
     const shouldExpand =
       normalizedSlug &&
       (normalizedSlug === segment || normalizedSlug.startsWith(segment + "/"));
