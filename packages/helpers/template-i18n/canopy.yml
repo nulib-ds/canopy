@@ -6,14 +6,14 @@ locales:
   - lang: es
     label: Español
 collection:
-  - https://canopy-iiif.github.io/fixtures/iiif/presentation/3/i18n/collection.json
+  - https://nulib-ds.github.io/canopy-fixtures/iiif/presentation/3/i18n/collection.json
 metadata:
   - Date
   - Colors
 featured:
-  - https://canopy-iiif.github.io/fixtures/iiif/presentation/3/i18n/manifest-01.json
-  - https://canopy-iiif.github.io/fixtures/iiif/presentation/3/i18n/manifest-02.json
-  - https://canopy-iiif.github.io/fixtures/iiif/presentation/3/i18n/manifest-03.json
+  - https://nulib-ds.github.io/canopy-fixtures/iiif/presentation/3/i18n/manifest-01.json
+  - https://nulib-ds.github.io/canopy-fixtures/iiif/presentation/3/i18n/manifest-02.json
+  - https://nulib-ds.github.io/canopy-fixtures/iiif/presentation/3/i18n/manifest-03.json
 search:
   page:
     title: Search

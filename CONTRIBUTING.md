@@ -82,7 +82,7 @@ Tips:
 ## Template Workflow
 This repo is the source for a separate template repository:
 - Pushing to `main` triggers `.github/workflows/release-and-template.yml`.
-- After a successful publish, the workflow prepares a clean template (excludes dev‑only paths) and force‑pushes it to `canopy-iiif/template`.
+- After a successful publish, the workflow prepares a clean template (excludes dev‑only paths) and force‑pushes it to `nulib-ds/canopy-template`.
 - In the template, dependencies on `@canopy-iiif/*` are set to the latest published versions and `build`/`dev` run `node app/scripts/canopy-build.mjs`.
 
 ## Pull Requests

@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://canopy-iiif.github.io/app/sitemap.xml
+Sitemap: https://nulib-ds.github.io/canopy/sitemap.xml

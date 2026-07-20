@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-
-# Add both sitemaps
-Sitemap: https://canopy-iiif.github.io/sitemap.xml
-Sitemap: https://canopy-iiif.github.io/app/sitemap.xml

@@ -180,36 +180,22 @@ Goal: Allow authors to fully compose the search page via MDX, while the builder 
 
 --## Release and Template Workflow
 
-- Strategy: releases are published via Changesets; only after a successful publish does the workflow prepare and force‑push a clean template to `canopy-iiif/template`.
+- Strategy: releases are published via Changesets; only after a successful publish does the workflow prepare and force‑push a clean template to `nulib-ds/canopy-template`.
 - Trigger: `.github/workflows/release-and-template.yml` runs on `push` to `main` (and can be dispatched manually). It uses `changesets/action` to publish and exposes whether a release occurred; the template push runs only when a publish happened.
 -- What it does:
   - Copies the repo into a disposable staging directory (default `.template-build/`, override with `TEMPLATE_OUT_DIR`), excluding dev-only paths (e.g., `.git`, `node_modules`, `packages`, `.cache`, `.changeset`, template workflows, agent docs).
   - Rewrites `package.json` inside the staging directory to remove workspaces, swap `workspace:*` deps for published versions of `@canopy-iiif/lib` and `@canopy-iiif/ui`, and set `build`/`dev` scripts to run `node app/scripts/canopy-build.mjs`.
   - Patches the Pages deploy workflow in the template to inline the build verify step (no helpers package there).
-  - Force‑pushes the result to `main` of `${OWNER}/template` (org: `canopy-iiif`).
+  - Force‑pushes the result to `main` of `nulib-ds/canopy-template` (and `nulib-ds/canopy-template-i18n` for the bilingual variant).
 - Template expectations:
   - The generated template consumes the published `@canopy-iiif/app` package; it does not include the monorepo `packages/` directory.
   - `packages/helpers` is omitted from the template; template automation reuses the verified workflows committed to this repo.
   - Root `package.json` in the template is rewritten without workspaces and with pinned semver dependencies; `.github/workflows` are pared down so they reference the published package only.
 - Keep template parity notes in `packages/helpers/AGENTS.md` when helper scripts change.
 - Setup required:
-  - Create the `template` repository under the `canopy-iiif` org.
-  - Add a secret in this repo named `TEMPLATE_PUSH_TOKEN` (PAT with `repo` write access to `canopy-iiif/template`).
-  - Optional: mark `template` as a Template repository in GitHub settings.
-
--## Org Pages Workflow
-
-- Goal: keep https://canopy-iiif.github.io/app in sync with the `main` branch so docs + marketing updates deploy without waiting for a tagged release.
-- Trigger: `.github/workflows/deploy-org-site.yml` runs automatically after the Tests workflow succeeds on `main` (mirrors deploy-pages) and offers `workflow_dispatch` for manual syncs.
-- Steps:
-  - Run `npm run build` with `CANOPY_BASE_PATH=/app` + `CANOPY_BASE_URL=https://canopy-iiif.github.io/app`.
-  - Call `packages/helpers/org/prepare-org-site.js` to harvest sitemap files from `site/`, rewrite `<loc>` entries to the `CANOPY_BASE_URL` so `/app` stays in every URL, and emit a minimal `.org-build/` (only `index.html`, `README*`, `robots.txt`, `*.css`, `sitemap*.xml(.gz)`, `.nojekyll`). The helper renders `packages/helpers/org/root/index.mdx` (optionally wrapped by `_app.mdx`) into the published HTML—no `/app` directory is pushed.
-  - Force-push `.org-build/` via `packages/helpers/org/push-org-site.js` to the `canopy-iiif/canopy-iiif.github.io` repository.
-- Setup required:
-  - Add `ORG_SITE_PUSH_TOKEN` (PAT with `repo` access to `canopy-iiif.github.io`).
-  - The helper defaults to `main`/`canopy-iiif/canopy-iiif.github.io`; override with `ORG_SITE_TARGET_REPO` or `ORG_SITE_TARGET_BRANCH` when dry-running elsewhere.
-  - Override `ORG_SITE_BASE_URL` when the landing page canonical differs from `https://canopy-iiif.github.io`.
-  - `.org-build/` stays gitignored next to `.template-build/`.
+  - Create the `canopy-template` repository under the `nulib-ds` org.
+  - Add a secret in this repo named `TEMPLATE_PUSH_TOKEN` (PAT with `repo` write access to `nulib-ds/canopy-template`).
+  - Optional: mark `canopy-template` as a Template repository in GitHub settings.
 
 We index two sources: IIIF Manifests ("works") and static MDX pages ("pages"). Keep this simple and predictable.
 

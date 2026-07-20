@@ -12,8 +12,7 @@ Key Scripts
 - `run-changeset.js`, `version-bump.js`: Wrap Changesets commands with local conventions.
 - `template/`: Logic for preparing the GitHub Pages template repo during releases.
 - `template-i18n/`: Assets + overrides for the bilingual template (`en` default, `es` secondary) published by the `template-i18n` job.
-- `template-essay/`: Long-form starter content plus overrides published by the `template-essay` job.
-- `org/`: Prepares the canopy-iiif.github.io repository (rewrites `sitemap*.xml`, renders the landing page assets into `.org-build/`, and pushes the result).
+- `template-essay/`: Long-form starter content plus overrides, staged locally via `npm run preview:template-essay` (not pushed by CI — no `template-essay` GitHub repo exists).
 
 Invariants
 ----------

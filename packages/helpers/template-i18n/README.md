@@ -20,6 +20,6 @@ This variant of the Canopy template mirrors the primary starter while giving you
 
 ## Preview from the monorepo
 
-From `canopy-iiif/app`, run `npm run preview:template-i18n` to stage this variant into `.template-i18n-preview/`, install dependencies, and launch `npm run dev` so you can iterate locally.
+From `nulib-ds/canopy`, run `npm run preview:template-i18n` to stage this variant into `.template-i18n-preview/`, install dependencies, and launch `npm run dev` so you can iterate locally.
 
-Refer to https://canopy-iiif.github.io/app/docs/i18n/ for the full internationalization guide, including optional layouts, language toggle variants, and notes on inheriting navigation or locale entries per directory.
+Refer to https://nulib-ds.github.io/canopy/docs/i18n/ for the full internationalization guide, including optional layouts, language toggle variants, and notes on inheriting navigation or locale entries per directory.

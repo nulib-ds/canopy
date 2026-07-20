@@ -5,7 +5,7 @@
  * package manages core logic. Keeping the entry small ensures the generated
  * template which consumes the published package can stay up to date.
  *
- * See https://github.com/canopy-iiif/app for more information.
+ * See https://github.com/nulib-ds/canopy for more information.
  *
  * @license MIT
  * Copyright (c) 2025 Mat Jordan

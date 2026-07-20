@@ -37,7 +37,7 @@ const styles = `
 
 function GithubCorner(props = {}) {
   const {
-    href = "https://github.com/canopy-iiif/app",
+    href = "https://github.com/nulib-ds/canopy",
     label = "View the Canopy IIIF repository on GitHub",
     children,
   } = props;
