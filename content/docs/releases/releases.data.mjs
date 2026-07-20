@@ -1,5 +1,11 @@
 const releases = [
   {
+    "version": "1.12.3",
+    "date": "2026-07-20",
+    "summary": "Improve navigation locale detection.",
+    "highlights": []
+  },
+  {
     "version": "1.12.2",
     "date": "2026-05-31",
     "summary": "Update Index component to reflect counts.",
