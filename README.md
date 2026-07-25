@@ -1,6 +1,6 @@
 # Canopy IIIF
 
-### A [Northwestern University Libraries](https://www.library.northwestern.edu/) project.
+**A [Northwestern University Libraries](https://www.library.northwestern.edu/) project.**
 
 Create fast, light digital projects from IIIF collections. Canopy IIIF helps libraries, archives, museums, and researchers add narrative context to IIIF material without worrying about derivatives or storage. Author in Markdown, publish static sites, and keep maintenance low while showcasing interoperable collections.
 
