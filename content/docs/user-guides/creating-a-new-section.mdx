@@ -1,0 +1,106 @@
+---
+title: Create a New Section
+description: Add a new top-level section to your Canopy site with its own pages and navigation.
+---
+
+# Create a New Section
+
+As your project grows, you may want to organize content into distinct sections beyond about.
+
+Canopy generates pages from the folder structure inside `content/`. Creating a new section is as simple as adding a
+folder, populating it with MDX files, and registering it in your site navigation.
+
+This guide walks through creating a new "Essays" section from scratch.
+
+## 1. Create the section folder
+
+Inside the `content/` directory, create a new folder for your section. The folder name becomes the URL path:
+
+```
+content/
+├── essays/          ← new section
+├── docs/
+├── about/
+└── index.mdx
+```
+
+A folder named `essays` will be accessible at `/essays` on your site.
+
+## 2. Add an index page
+
+Every section needs an `index.mdx` file. This becomes the landing page when visitors navigate to `/essays`:
+
+```mdx filename="content/essays/index.mdx"
+---
+title: Essays
+description: Long-form writing and analysis.
+---
+
+# Essays
+
+Explore our collection of essays on history, culture, and the archives.
+```
+
+At this point, visiting `/essays` displays your new landing page.
+
+## 3. Add a section layout
+
+Create a `_layout.mdx` file in your section folder. This wraps all pages in the section with consistent layout and
+enables sidebar navigation:
+
+```mdx filename="content/essays/_layout.mdx"
+<Layout navigation={true} fluid={true}>
+  {props.children}
+</Layout>
+```
+
+## 4. Add pages to the section
+
+Create additional MDX files in the folder. Each file becomes a page within the section:
+
+```
+content/
+└── essays/
+    ├── _layout.mdx
+    ├── index.mdx
+    ├── introduction.mdx
+    └── methodology.mdx
+```
+
+```mdx filename="content/essays/introduction.mdx"
+---
+title: Introduction
+description: An overview of our research approach.
+---
+
+# Introduction
+
+This essay introduces the themes and questions that guide our work...
+```
+
+These pages are now accessible at `/essays/introduction` and `/essays/methodology`.
+
+## 5. Add the section to navigation
+
+Open `content/navigation.yml` and add an entry for your new section. The `href` should match your folder name:
+
+```yaml filename="content/navigation.yml"
+navigation:
+  - href: /search
+    label: Works
+  - href: /essays
+    label: Essays
+  - href: /docs
+    label: Docs
+  - href: /about
+    label: About
+```
+
+After rebuilding, "Essays" appears in your site header alongside the other navigation links.
+
+## Learn More
+
+See the [Layout documentation](/docs/content/layout) for all available layout props including sidebar customization
+and table of contents options.
+
+The [Primary navigation](/docs/content/layout#primary-navigation) section explains how `navigation.yml` works in detail.
