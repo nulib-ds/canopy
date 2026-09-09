@@ -25,109 +25,103 @@ Canopy renders static sites directly from IIIF **[Collections](https://iiif.io/a
 A IIIF Collection is a JSON document that lists other IIIF resources, typically Manifests or other Collections. Collections can represent any grouping of IIIF Manifests, such as an archive, library, or museum's digital holdings. Each Manifest within a Collection describes a single object (like a book, artwork, or video) and includes metadata, images, and structure.
 Canopy ingests one or more Collection URIs to build a project. Each Manifest listed in the Collection then becomes a page in the site with normalized metadata, thumbnails, and links.
 
-Below is a [simple example](https://iiif.io/api/cookbook/recipe/0032-collection/) of a IIIF Collection containing two Manifests including paintings by the American artist Winslow Homer:
+The British India art demo includes Northwestern University Libraries' [Donald K. Adams and Lawrence D. Stewart Collection of Prints](https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif). This excerpt shows two of its Manifests. Other entries and fields are omitted.
 
-```yaml filename="collection.json" {3,9,14}
+```json filename="collection.json"
 {
-  "@context": "http://iiif.io/api/presentation/3/context.json",
-  "id": "https://iiif.io/api/cookbook/recipe/0032-collection/collection.json",
+  "@context": ["http://iiif.io/api/presentation/3/context.json"],
+  "id": "https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif",
   "type": "Collection",
-  "label": {"en": ["Simple Collection Example"]},
-  "items":
-    [
-      {
-        "id": "https://iiif.io/api/cookbook/recipe/0032-collection/manifest-01.json",
-        "type": "Manifest",
-        "label": {"en": ["The Gulf Stream"]},
-      },
-      {
-        "id": "https://iiif.io/api/cookbook/recipe/0032-collection/manifest-02.json",
-        "type": "Manifest",
-        "label": {"en": ["Northeaster"]},
-      },
-    ],
+  "label": {"none": ["Donald K. Adams and Lawrence D. Stewart Collection of Prints"]},
+  "items": [
+    {
+      "id": "https://api.dc.library.northwestern.edu/api/v2/works/c26591b2-994b-4ba3-a87e-9124419fa91b?as=iiif",
+      "type": "Manifest",
+      "label": {"none": ["View of the city and fortress of Tonk in Rajpootana"]}
+    },
+    {
+      "id": "https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif",
+      "type": "Manifest",
+      "label": {"none": ["The town & pass of Boondi, in Rajpootana"]}
+    }
+  ]
 }
 ```
 
 A IIIF Manifest provides detailed information about a single digital object, including its metadata (like title, creator, date), the images or media associated with it, and how those images are structured (for example, pages in a book or views of an artwork). Each Manifest is also a JSON document that adheres to the IIIF Presentation API specifications.
 
-```yaml filename="manifest-01.json"
+The [Manifest for _The town & pass of Boondi, in Rajpootana_](https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif) supplies its title and date. This excerpt omits the Canvas data and other fields; follow the link for the complete Manifest.
+
+```json filename="manifest.json"
 {
   "@context": "http://iiif.io/api/presentation/3/context.json",
-  "id": "https://iiif.io/api/cookbook/recipe/0032-collection/manifest-01.json",
+  "id": "https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif",
   "type": "Manifest",
-  "label": {"en": ["The Gulf Stream"]},
-  "metadata":
-    [
-      {
-        "label": {"en": ["Artist"]},
-        "value": {"en": ["Winslow Homer (1836–1910)"]},
-      },
-      {"label": {"en": ["Date"]}, "value": {"en": ["1899"]}},
-    ],
-  "items": [...],
+  "label": {"none": ["The town & pass of Boondi, in Rajpootana"]},
+  "metadata": [
+    {
+      "label": {"none": ["Date"]},
+      "value": {"none": ["1826 to 1830"]}
+    }
+  ]
 }
 ```
 
 ## Configuration
 
-Canopy works with both Presentation 3.0 API and the older Presentation 2.x. If the collection noted above were provided to Canopy, the `canopy.yml` file would reference Collection URI **`id`** which is also the URL where the collection document is hosted:
+Canopy works with IIIF Presentation 3.0 and 2.x. To use this Collection, add its `id` to `canopy.yml`. The ID is also the URL of the Collection document:
 
 ```yaml filename="canopy.yml" copy
-title: Works by Winslow Homer
+title: Art in British India
 collection:
-  - https://iiif.io/api/cookbook/recipe/0032-collection/collection.json
+  - https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif
 ```
 
-As this collection references two manifests, each would have its own relative page on the site:
+Each Manifest gets a work page. The two shown above appear at:
 
-- _/works/the-gulf-stream.html_
-- _/works/northeaster.html_
+- [/works/view-of-the-city-and-fortress-of-tonk-in-rajpootan.html](/works/view-of-the-city-and-fortress-of-tonk-in-rajpootan.html)
+- [/works/the-town-and-pass-of-boondi-in-rajpootana.html](/works/the-town-and-pass-of-boondi-in-rajpootana.html)
 
-In certain cases, Manifests may not be present in a Collection. You can still include these by manually adding their URIs directly to the `manifest` list in `canopy.yml`:
+You can also build from individual Manifests. To include only these two works, use a `manifest` list instead of the Collection:
 
 ```yaml filename="canopy.yml" copy
-title: Works by Winslow Homer
+title: Art in British India
 manifest:
-  - https://iiif.io/api/cookbook/recipe/0032-collection/manifest-01.json
-  - https://iiif.io/api/cookbook/recipe/0032-collection/manifest-02.json
+  - https://api.dc.library.northwestern.edu/api/v2/works/c26591b2-994b-4ba3-a87e-9124419fa91b?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif
 ```
 
 In both cases, each page would include normalized metadata from the Manifest, thumbnails, and links to view the object in a IIIF viewer. Manifest metadata is indexed for search along with any other MDX files under `content/`. Theming offers some baseline options with the ability to supply optional CSS overrides. With a site built, you can deploy it anywhere static files can be served, such as GitHub Pages or your own web server. And best of all, Canopy handles all the heavy lifting of fetching, normalizing, and rendering IIIF resources so you can focus on building great experiences.
 
 ## Content Authoring
 
-To extend IIIF material, Canopy supports the authoring of markdown files with a special component syntax (MDX). These additional content pages can include IIIF assets from your manifests. See the [Content](./content) section for details on how to author MDX files with IIIF resources. Below is a simple example of an MDX file that references the Gulf Stream Manifest from above and includes a viewer component to render it:
+Use MDX to add context to IIIF materials and embed components in Markdown. This page references the Boondi Manifest and displays it in a viewer. See [Content](./content) for more examples.
 
-```mdx filename="content/about/warm-deadly-seas.mdx" copy
+```mdx filename="content/about/boondi.mdx" copy
 ---
-title: Warm and Deadly Seas
-description: A look at Winslow Homer's 1899 painting The Gulf Stream.
+title: A View of Boondi
+description: Explore a print of Boondi from Northwestern University Libraries.
 referencedManifests:
-  - https://iiif.io/api/cookbook/recipe/0032-collection/manifest-01.json
+  - https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif
 ---
 
-### Example: Warm and Deadly Seas
+### Example: A View of Boondi
 
-In 1899, Winslow Homer painted _The Gulf Stream_, a powerful depiction of a lone man
-adrift in a small boat amidst turbulent seas. The painting captures the raw force of
-nature and the vulnerability of humanity against its vastness. In this late 19th-century
-work, Homer illustrates not only the physical dangers of the sea but also the existential
-threats faced by individuals in an indifferent universe.
+Northwestern University Libraries dates _The town & pass of Boondi, in Rajpootana_
+to 1826 to 1830. Its catalog describes the town on a hillside, with the Raja's palace
+partway up and fortifications extending toward the summit.
 
-<Viewer iiifContent="https://iiif.io/api/cookbook/recipe/0032-collection/manifest-01.json" />
+<Viewer iiifContent="https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif" />
 ```
 
-This page would be accessible at _/about/warm-deadly-seas.html_ and include the viewer rendering the Manifest specified. The `referencedManifests` frontmatter key ensures that any metadata from the Manifest is indexed for search on this page as well.
+This page appears at `/about/boondi.html`. The `referencedManifests` frontmatter key links it to the work and supplies the Manifest metadata selected for search.
 
 ---
 
-### Example: Warm and Deadly Seas
+### Example: A View of Boondi
 
-In 1899, Winslow Homer painted _The Gulf Stream_, a powerful depiction of a lone man
-adrift in a small boat amidst turbulent seas. The painting captures the raw force of
-nature and the vulnerability of humanity against its vastness. In this late 19th-century
-work, Homer illustrates not only the physical dangers of the sea but also the existential
-threats faced by individuals in an indifferent universe.
+Northwestern University Libraries dates _The town & pass of Boondi, in Rajpootana_
+to 1826 to 1830. Its catalog describes the town on a hillside, with the Raja's palace
+partway up and fortifications extending toward the summit.
 
-<Viewer iiifContent="https://iiif.io/api/cookbook/recipe/0032-collection/manifest-01.json" />
+<Viewer iiifContent="https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif" />

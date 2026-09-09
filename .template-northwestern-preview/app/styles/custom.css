@@ -1,0 +1,13 @@
+/** 
+ * Example custom color variables
+ * @see https://nulib-ds.github.io/canopy/docs/theming/tailwind#custom
+ */
+
+/* @layer properties {
+  :root,
+  :host {
+    --color-northwestern-purple: #4e2a84;
+    --color-accent-700: var(--color-northwestern-purple);
+    --color-accent-default: var(--color-northwestern-purple);
+  }
+} */

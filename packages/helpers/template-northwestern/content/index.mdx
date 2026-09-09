@@ -1,0 +1,46 @@
+---
+title: Homepage example
+description: A Northwestern University Libraries starter for Canopy IIIF projects.
+image: https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-df58661ce7d5/950,520,7100,4740/!1200,630/0/default.jpg
+---
+
+<Interstitials.Hero
+  headline="Create a Northwestern digital project with Canopy IIIF"
+  description="This starter is yours to configure, add context to, and publish a collection that fits your project."
+  background="theme"
+  random={true}
+  links={[
+    {
+      href: "/about",
+      title: "Get Started",
+      type: "primary",
+    },
+    {
+      href: "https://nulib-ds.github.io/canopy/docs/",
+      title: "Read documentation",
+      type: "secondary",
+    },
+  ]}
+/>
+
+<Container>
+
+## Getting started
+
+Canopy IIIF is an open-source static site generator designed for IIIF collections, created and maintained by Northwestern University Libraries. This template is ready for your collection, context, and publishing.
+
+### Point to your collection
+
+- Open `canopy.yml` and set `collection` to the IIIF Collection you want to feature.
+- Review `metadata` and `featured` entries—adjust them to suit the facets and works you want to highlight.
+
+### Tune layouts and pages
+
+- Customize `content/index.mdx`, `content/about/`, and add new folders under `content/` for exhibits or guides.
+- Modify `content/works/_layout.mdx` to control how individual manifests render.
+- Update `content/_app.mdx` to adjust site-wide structure.
+- Browse the component catalog and usage patterns in the docs to extend the narrative beyond default manifests.
+
+<RelatedItems top={3} />
+
+</Container>

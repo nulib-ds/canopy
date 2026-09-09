@@ -1,0 +1,46 @@
+---
+type: work
+---
+
+import {
+  Label,
+  Summary,
+  Metadata,
+  RequiredStatement,
+  References,
+} from "@canopy-iiif/app/ui/server";
+
+<Container variant="wide" className="canopy-work--layout">
+  <div className="canopy-work--primary">
+    <Viewer iiifContent={props.manifest.id} />
+  </div>
+  <div className="canopy-work--secondary">
+    <header>
+      <Label manifest={props.manifest} as="h1" />
+      <Summary manifest={props.manifest} as="p" className="canopy-lead" />
+    </header>
+    <div>
+      <References />
+      <Metadata manifest={props.manifest} />
+      <RequiredStatement manifest={props.manifest} />
+      <Id id={props.manifest.id} />
+    </div>
+  </div>
+</Container>
+{/* <Container>
+  <Scroll
+    iiifContent={props.manifest.id}
+    options={{
+      offset: 16,
+      figure: {
+        aspectRatio: 1,
+        display: "thumbnail",
+        width: "200px",
+      },
+    }}
+  />
+</Container> */}
+<Container>
+  <h2>Related Items</h2>
+  <RelatedItems iiifContent={props.manifest.id} top={3} />
+</Container>

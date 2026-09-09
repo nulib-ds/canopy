@@ -40,6 +40,7 @@ search:
       motivation:
         - commenting
         - tagging
+webmcp: true
 theme:
   appearance: light
   accentColor: indigo

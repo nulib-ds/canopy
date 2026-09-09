@@ -12,16 +12,16 @@ home-page highlights. You can also reference them directly in MDX components lik
 
 ## 1. Configure metadata labels
 
-Add or update the `metadata` array so it includes the labels you want to facet on.
+Add the labels you want to browse to the `metadata` array. This example uses the Indian Paintings
+on Mica Collection from the British India art demo.
 
-```yaml filename="canopy.yml" {4-9}
+```yaml filename="canopy.yml" {4-6}
 collection:
-  - https://digital.lib.utk.edu/assemble/collection/collections/tdh
+  - https://api.dc.library.northwestern.edu/api/v2/collections/7ac5769f-a1d9-4227-a350-bf8bd8b1cddc?as=iiif
 metadata:
   - Subject
-  - Place
-  - Format
   - Date
+  - Genre
 ```
 
 The labels must match the manifest metadata labels (case-insensitive during the build). After editing
@@ -29,32 +29,32 @@ The labels must match the manifest metadata labels (case-insensitive during the 
 
 ## 2. Verify the generated collections
 
-During the build Canopy logs each generated collection (e.g., `/api/facet/subject/war-pensions.json`).
-Open one of the URLs in your browser to confirm it contains the expected manifests:
+The build creates a Collection for the subject “Mica.” Open its URL in your browser to check the
+included Manifests:
 
 ```
-/api/facet/subject/war-pensions.json
+/api/facet/subject/mica.json
 ```
 
 If you run the project at a subpath via `CANOPY_BASE_PATH`, prepend it when viewing the JSON in your
-browser (e.g., `/canopy/api/facet/subject/war-pensions.json`). Delete `.cache/iiif` and rebuild if you
+browser (e.g., `/canopy/api/facet/subject/mica.json`). Delete `.cache/iiif` and rebuild if you
 change the metadata list but still see stale output.
 
 ## 3. Embed a collection in MDX
 
 Use the generated collections to power sliders or viewers on custom pages. For example, to add a
-carousel of manifests whose subject is “War pensions”:
+carousel of Manifests whose subject is “Mica”:
 
-```mdx filename="content/about/history.mdx" {12}
+```mdx filename="content/about/mica.mdx" {9}
 ---
-title: War pensions in Tennessee
+title: Paintings on Mica
 ---
 
-# War pensions
+# Paintings on Mica
 
-During the American Civil War...
+Explore watercolors from Northwestern University Libraries' Indian Paintings on Mica Collection.
 
-<Slider iiifContent="/api/facet/subject/war-pensions.json" />
+<Slider iiifContent="/api/facet/subject/mica.json" />
 ```
 
 You can swap `<Slider />` for `<Viewer />` to render a browsable IIIF collection instead of cards.

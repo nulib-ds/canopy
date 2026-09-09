@@ -1,0 +1,23 @@
+title: Northwestern University Libraries
+collection:
+  - https://api.dc.library.northwestern.edu/api/v2/collections/bd90de9e-8e1e-43c4-8009-dd13a916a2ac?as=iiif
+metadata:
+  - Date
+  - Subject
+featured:
+  - https://api.dc.library.northwestern.edu/api/v2/works/61927e08-db09-4479-80a8-0ff00fbca987?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/a7bb16fa-5cec-4ac4-9b38-9bd68589f35a?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/5a5059b0-8bd3-4f3a-a04c-435f10952688?as=iiif
+search:
+  page:
+    title: Search
+    description: Discover works from Northwestern University Libraries.
+theme:
+  appearance: light
+  # TODO(design): "purple" is the closest stock Radix token available today.
+  # Northwestern's exact brand ramp (#4e2a84 + "Rich Black" grays) is already
+  # documented in content/docs/theme/index.mdx and doesn't map to a named
+  # Radix palette 1:1 -- decide in the design pass whether to keep this token
+  # or ship a precise app/styles/custom.css override instead.
+  accentColor: purple
+  grayColor: slate

@@ -18,8 +18,8 @@ Provide a human-readable title and a short description for every page. Titles dr
 
 ```mdx
 ---
-title: Amanda Ira Aldridge Correspondence
-description: Letters between Amanda Ira Aldridge and Mihailo Kovačević documenting the 1955 season.
+title: Work and Music in Paintings on Mica
+description: A closer look at two watercolors from the Indian Paintings on Mica collection.
 ---
 ```
 
@@ -27,13 +27,15 @@ description: Letters between Amanda Ira Aldridge and Mihailo Kovačević documen
 
 Link essays or exhibition notes back to IIIF works and unlock the `<ReferencedItems />` / `<References />` components. Provide one or more manifest URLs (Presentation 2 or 3) and Canopy resolves them to cached manifests during the build. Work pages automatically render backlinks whenever they detect a page referencing the same manifest.
 
+This example links to *Miniatures on mica, [seated woman sewing]* and *Miniatures on mica, [standing man with musical instrument]* from the British India art demo.
+
 ```mdx
 ---
-title: Amanda Ira Aldridge Correspondence
-description: Letters between Amanda Ira Aldridge and Mihailo Kovačević documenting the 1955 season.
+title: Work and Music in Paintings on Mica
+description: A closer look at two watercolors from the Indian Paintings on Mica collection.
 referencedManifests:
-  - https://api.dc.library.northwestern.edu/api/v2/works/14a6f47b?as=iiif
-  - https://data.getty.edu/museum/api/iiif/manifest/6da0...64d6
+  - https://api.dc.library.northwestern.edu/api/v2/works/cdb547e9-d5c1-4c1a-9ca5-b3fad0da4915?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/2826e1b9-d38c-413d-b46f-4cd28d916b6d?as=iiif
 ---
 ```
 
@@ -41,11 +43,13 @@ referencedManifests:
 
 Point to an image that represents the page in search results, cards, or any component that lists MDX-driven content. Use absolute URLs or site-relative paths (`/images/featured.jpg`). When omitted, cards render without an image and the search runtime falls back to a text-only layout.
 
+The image below is the provider's thumbnail for *Miniatures on mica, [seated woman sewing]*.
+
 ```mdx
 ---
-title: January 1955 Correspondence
-description: Seven letters between Amanda Ira Aldridge and Mihailo Kovačević
-image: https://iiif.example.org/iiif/3/hero-canvas/full/!800,800/0/default.jpg
+title: A Woman Sewing
+description: A watercolor on mica from Northwestern University Libraries.
+image: https://api.dc.library.northwestern.edu/api/v2/works/cdb547e9-d5c1-4c1a-9ca5-b3fad0da4915/thumbnail
 ---
 ```
 

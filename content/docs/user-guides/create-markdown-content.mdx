@@ -3,7 +3,6 @@ title: Create Markdown Content
 description: Learn how to author Markdown files with IIIF assets in Canopy IIIF.
 referencedManifests:
   - https://api.dc.library.northwestern.edu/api/v2/works/ff8b7eee-a6fc-4d12-985c-2014b57cc4e1?as=iiif
-  - https://api.dc.library.northwestern.edu/api/v2/works/14a6aa15-9e12-47a7-9617-91f430d4f47b?as=iiif
 ---
 
 # Author Markdown
@@ -61,7 +60,7 @@ such practices.
 
 After creating the basic Markdown file, you can enhance it by adding a IIIF viewer component to display an item from your IIIF materials. Canopy provides a [Clover IIIF](https://samvera-labs.github.io/clover-iiif/) `Viewer` component that can be used to display IIIF resources within Markdown.
 
-- **Add** a `<Viewer />` component to the within your content and reference a [IIIF Manifest](https://api.dc.library.northwestern.edu/api/v2/works/14a6aa15-9e12-47a7-9617-91f430d4f47b?as=iiif) with the `iiifContent` property.
+- **Add** a `<Viewer />` component within your content and reference a [IIIF Manifest](https://api.dc.library.northwestern.edu/api/v2/works/ff8b7eee-a6fc-4d12-985c-2014b57cc4e1?as=iiif) with the `iiifContent` property.
 - Adjust _options_ as desired to customize the viewer experience.
 
 ```mdx copy filename="content/about/burial-customs.mdx" {8-17}

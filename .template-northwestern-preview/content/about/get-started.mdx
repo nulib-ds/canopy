@@ -1,0 +1,90 @@
+---
+title: Get Started
+description: Use this guide to quickly stand up a Canopy IIIF project using GitHub Pages and your IIIF materials.
+image: https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-df58661ce7d5/950,520,7100,4740/!1200,630/0/default.jpg
+canonical: https://nulib-ds.github.io/canopy/about/get-started.html
+---
+
+# Get Started
+
+Stand up a Canopy project in just a few minutes: use the template, drop in your IIIF materials, and let GitHub Pages do the heavy lifting. This walkthrough keeps everything inside the browser so you can focus on getting to work building your narratives and leaving advanced customization for later.
+
+<ButtonWrapper
+  variant="interstitial"
+  text="Build a new project from the template"
+>
+  <Button
+    href="https://github.com/nulib-ds/canopy-template"
+    label="nulib-ds/canopy-template"
+  />
+  <Button
+    href="https://nulib-ds.github.io/canopy/docs/"
+    label="Documentation"
+    variant="secondary"
+  />
+</ButtonWrapper>
+
+## 1. Create a new repository
+
+1. Visit the **[nulib-ds/canopy-template](https://github.com/nulib-ds/canopy-template)** repository.
+2. Be sure to login to GitHub if you haven’t already.
+3. Click **Use this template** → **Create a new repository**.
+4. In the **General** section choose your GitHub account or organization and give the repository a name (for example _my-canopy-site_)
+5. Under the **Configuration**, choose the visibility as _Public_ so Pages can publish.
+6. Click **Create repository**. GitHub then copies the template and wires up the workflows for you.
+
+## 2. Publish with GitHub Pages
+
+The template ships with a GitHub Pages workflow (`.github/workflows/pages.yml`) that will host your project without requirement of a server. After each commit to `main` it will build and deploy your site automatically. To enable Pages for the first time:
+
+1. Go to **Settings → Pages** in your new repository.
+2. In the Build and deployment section, ensure **GitHub Actions** is selected as the source (this may be already set).
+3. Navigate back to the **Code** tab of your repository and select the _gear_ icon ⚙️ next to the _About_ section in the aside of the page.
+4. Select the **Use your GitHub Pages website** option and your unique site URL will appear.
+5. Click Save changes and you will see link to your site populate in the About section.
+
+That URL will be your public and published Canopy deployment hosted entirely by GitHub Pages. We now need to configure it to point to your IIIF collection and manifests to trigger a rebuild of Canopy.
+
+## 3. Configure `canopy.yml`
+
+```yaml copy filename="canopy.yml"
+title: Zanzibar
+collection:
+  - https://api.dc.library.northwestern.edu/api/v2/collections/073ad358-d5e9-495b-8cb5-58bd5ec4c189?as=iiif
+manifest:
+  - https://api.dc.library.northwestern.edu/api/v2/works/a13433ae-fc9f-429a-82ed-f810c5680200?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/fdaee3f6-ead3-4880-9969-1ce820e8581c?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/261c3823-c82e-43b7-bba8-41046ce3a3dd?as=iiif
+metadata:
+  - Subject
+  - Genre
+featured:
+  - https://api.dc.library.northwestern.edu/api/v2/works/38d10b34-26e0-49f5-a696-455a86f1d28f?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/1d208792-6355-43df-99e1-ec5c965ee915?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/a13433ae-fc9f-429a-82ed-f810c5680200?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/fdaee3f6-ead3-4880-9969-1ce820e8581c?as=iiif
+```
+
+Every template includes `canopy.yml` at the repository root. This single file drives the build of your Canopy site. Open it and replace the demo collection and featured manifests with your own. There are many other configuration options available ([see documentation](https://nulib-ds.github.io/canopy/docs/)); but to get the most out of Canopy, you will want to set the following:
+
+| Syntax       | Purpose                                                                                               |          |
+| ------------ | ----------------------------------------------------------------------------------------------------- | -------- |
+| `title`      | The global site title.                                                                                | Optional |
+| `collection` | A list of IIIF Collection URI(s) that Canopy will ingest.                                             | Optional |
+| `manifest`   | A list of IIIF Manifest URI(s) to add in addition to those in the Collection(s) above.                | Optional |
+| `featured`   | A list of IIIF Manifest URI(s) to highlight on the homepage.                                          | Optional |
+| `metadata`   | A list of Metadata label names you want to turn into search facets and UI components in your project. | Optional |
+
+1. From the **Code** tab, click the `canopy.yml` file to open it in the file viewer. Then click the pencil icon ✏️ in the upper right to edit the file directly in GitHub’s web editor.
+2. Replace the demo URIs under `collection` and `featured` with your own Collection(s), Manifest(s), and desired metadata facets.
+3. Click the **Commit changes** button above the file viewer, and then confirm the commit again to save your changes and trigger a rebuild.
+
+## 4. Visit your new site
+
+After a few moments, your GitHub Actions workflow will complete building and deploying your site. You can monitor the progress by clicking the **Actions** tab in your repository. Once the workflow completes successfully, visit your GitHub Pages URL (found in **Settings → Pages** or the **About** section of your repository) to see your new Canopy site live!
+
+## What’s next?
+
+- Configure your `theme` in `canopy.yml` to customize the look and feel and explore customizing further with `TailwindCSS` in `/app/styles`.
+- Create your own contextual pages under `content/` and link to manifests via `referencedManifests` frontmatter.
+- Add components referencing items in your collections using `<Viewer />`, `<Image />`, and `<ReferencedItems />` to enrich the storytelling.

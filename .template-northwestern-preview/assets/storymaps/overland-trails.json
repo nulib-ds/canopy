@@ -1,0 +1,56 @@
+{
+  "width": 1200,
+  "height": 640,
+  "font_css": "stock:abril-dosis",
+  "calculate_zoom": true,
+  "storymap": {
+    "language": "en",
+    "map_type": "stamen:toner-lite",
+    "map_as_image": false,
+    "slides": [
+      {
+        "type": "overview",
+        "text": {
+          "headline": "Overland Trails",
+          "text": "Explore a few key stops from a 19th-century overland trip across the United States."
+        }
+      },
+      {
+        "location": {"lat": 41.879, "lon": -87.623},
+        "text": {
+          "headline": "Chicago",
+          "text": "The trip begins near the southern shore of Lake Michigan, where travelers stocked up on supplies."
+        },
+        "media": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Bird%27s_eye_view_of_Chicago%2C_1892._LOC_75693206.tif/lossy-page1-1024px-Bird%27s_eye_view_of_Chicago%2C_1892._LOC_75693206.tif.jpg",
+          "caption": "Bird's-eye view of Chicago in the 1890s",
+          "credit": "Library of Congress"
+        }
+      },
+      {
+        "location": {"lat": 39.7392, "lon": -104.9903},
+        "text": {
+          "headline": "Denver",
+          "text": "Mountain passes forced travelers to slow down, but the view over the Rockies was worth the effort."
+        },
+        "media": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Denver_Welcome_Arch_1910.jpg",
+          "caption": "Denver circa 1910",
+          "credit": "Detroit Publishing Co."
+        }
+      },
+      {
+        "location": {"lat": 37.7749, "lon": -122.4194},
+        "text": {
+          "headline": "San Francisco",
+          "text": "The route ends at the Pacific coast, where gold-rush era investment transformed the shoreline."
+        },
+        "media": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/San_Francisco_blue_book_and_Pacific_Coast_elite_directory_%281890%29_%2814759261276%29.jpg/960px-San_Francisco_blue_book_and_Pacific_Coast_elite_directory_%281890%29_%2814759261276%29.jpg",
+          "caption": "San Francisco shoreline",
+          "credit": "Library of Congress"
+        }
+      }
+    ]
+  }
+}

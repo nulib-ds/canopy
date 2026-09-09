@@ -1,0 +1,219 @@
+---
+title: IIIF and AI Tools
+description: Help readers explore and cite your IIIF collections with AI tools on your static Canopy site.
+---
+
+# IIIF and AI Tools
+
+People can explore your Canopy project with an AI agent: ask about a subject, find a work, or
+follow a citation back to its source. WebMCP makes this possible by giving a compatible AI agent
+access to your site's IIIF materials through the browser.
+
+Canopy seeks to meet AI agents where people use them and provide IIIF materials responsibly. The
+tools identify your resources as IIIF and carry their descriptions, languages, rights, and attribution
+with them. This gives an AI agent the provider's written context to work with and gives readers a way
+to return to the materials behind an answer.
+
+WebMCP works with your existing static site. You can publish it through the same hosting service you
+already use for Canopy, without setting up an additional service or supplying a model API key.
+
+## Make the tools available on your site
+
+WebMCP is enabled by default. When you build your site, Canopy prepares a catalog of your IIIF
+resources, copies of those resources as JSON, and the browser script that provides the tools.
+These files are included with the rest of your site when you publish.
+
+You can leave the setting out of `canopy.yml`, or include it explicitly:
+
+```yaml
+webmcp: true
+```
+
+Once a reader opens your site in a compatible browser, an AI agent can discover four read-only tools.
+They let it browse Collections, search for Manifests, and retrieve their contents directly from the
+published JSON, without extracting the data from page HTML.
+
+If you prefer to turn off WebMCP, set the option to `false`:
+
+```yaml
+webmcp: false
+```
+
+Then rebuild and publish your site:
+
+```sh
+npm run build
+```
+
+The new build removes the catalog, resource copies, and browser tools. Your site's search and IIIF
+viewer remain available to readers.
+
+## Explore a collection with AI
+
+Open the published site in a browser that supports WebMCP, using an AI agent that can access its
+browser tools. You can start from the homepage or any work page. The tools can reach the site's
+whole published collection wherever you begin.
+
+A useful first question is:
+
+> What IIIF collections does this site provide, and what can you search?
+
+From there, ask about a work or subject that interests you. On the British India art demo, try:
+
+> Find Near Midnapore, Bengal. What does its IIIF Manifest tell us about the work, and where can I cite it?
+
+This work comes from the Victoria and Albert Museum. You can read its
+[source Manifest](https://iiif.vam.ac.uk/collections/O74660/manifest.json) to see the descriptions
+provided to the AI agent. Asking for a citation makes it easier to continue your reading in Canopy
+or consult the provider's record.
+
+Both the browser and the AI agent need WebMCP support to use these tools. See the
+[Chrome WebMCP guide](https://developer.chrome.com/docs/ai/webmcp) and
+[OpenAI site tools documentation](https://learn.chatgpt.com/docs/webmcp) for current requirements.
+Readers whose browsers do not support WebMCP can still browse, search, and view your site as usual.
+
+### What the tools can help you find
+
+The four tools give an AI agent a way to move from an overview of your site to an individual work.
+Each tool describes the IIIF materials it provides and the information it needs to retrieve them.
+
+| Tool                    | Use                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `iiif_describe_site`    | See which Collections the site provides, how many resources it includes, and what information is searchable. |
+| `iiif_get_collection`   | Read a Collection's description and browse its members in their original order.                              |
+| `iiif_search_manifests` | Find works by query, Collection, or metadata facets, with source and citation links for each result.         |
+| `iiif_get_manifest`     | Read a work's Manifest, including its metadata, Canvas references, rights, and attribution.                  |
+
+Search uses the text selected in your site's [search configuration](/docs/canopy). Each word in a
+query must appear in that text. Facets help narrow the results: several values within one facet
+include matches for any of those values, while filters on different facets must all match.
+
+The tools work with the descriptions and annotation text your site has indexed. They do not create
+OCR, interpret images, or operate the viewer. If a search comes back empty, try another term or
+browse the Collection to explore how the provider describes its materials.
+
+You can also ask what the site includes. The catalog reports how many resources Canopy indexed and
+whether any could not be retrieved. This is useful when you want to understand the scope of a
+collection before making comparisons across it. Collections retain their order and membership,
+including works that belong to several Collections. Manifests you add individually are also available
+through the tools.
+
+## Follow the materials back to their sources
+
+Each result connects the work to its IIIF source and its page in Canopy. Use the citation link when
+you want someone to open the work in your site. Use the source link when they need the provider's
+IIIF data. The response also includes the provider's rights and attribution, which you can consult
+when citing or reusing the material.
+
+Canopy publishes a copy of each resource, called a snapshot, for the tools to read. It preserves the
+copy used when Canopy built your site, so you can consult the IIIF resource behind a tool response.
+For a large Manifest, a tool may return a summary with a link to the complete snapshot.
+
+### Provenance and language
+
+IIIF describes materials with written labels and values in one or more languages. Canopy preserves
+the provider's wording so large language models (LLMs) can interpret those descriptions in context.
+This keeps the language of the collection available as readers ask questions and explore connections
+between works.
+
+You can request a display title in a preferred language with the optional `language` input. Canopy
+chooses from the titles the provider supplied, while keeping the original text and all language maps
+in the IIIF resource.
+
+When you need to trace a source, the response records when Canopy retrieved it, when the export was
+built, and any conversion between IIIF versions. A rebuild keeps the recorded retrieval date unless
+Canopy fetches the source again. If a date is unavailable, the response reports it as unknown.
+
+## Choose what you publish
+
+WebMCP gives readers access to the IIIF resources published with your site. Your search settings
+determine which fields can be searched, while the full snapshots retain the resource metadata.
+When choosing materials for your site, consider the complete records you want readers to consult.
+Excluding a field from search does not remove it from the published snapshot.
+
+You can include resources from local files when they have public IIIF IDs. Canopy keeps those IDs
+and leaves local file paths out of the responses. Resources need public identifiers without
+credentials; the catalog reports any resources skipped for this reason. IIIF resources that require
+a sign-in are not supported by these tools.
+
+## Response reference
+
+If you are inspecting a tool call or building an integration, the response separates the IIIF
+resource from information about its source and the Canopy copy. You can inspect the site's catalog
+at `api/discovery/index.json` under your site's base path. It links to the snapshots and records the
+export's version and coverage.
+
+The example below shows part of a search result for _Near Midnapore, Bengal_. The V&A supplies this
+Manifest in IIIF Presentation 2; Canopy returns it in Presentation 3 and records that conversion.
+The excerpt focuses on the resource's identity and source. The full result also includes metadata,
+attribution, timestamps, the dataset version, and links for your published site.
+
+```json
+{
+  "schemaVersion": "1.0",
+  "protocol": "IIIF",
+  "api": "Presentation",
+  "version": "3.0",
+  "representation": "summary",
+  "resource": {
+    "id": "https://iiif.vam.ac.uk/collections/O74660/manifest.json",
+    "type": "Manifest",
+    "label": { "none": ["Near Midnapore, Bengal"] }
+  },
+  "source": {
+    "uri": "https://iiif.vam.ac.uk/collections/O74660/manifest.json",
+    "presentationVersion": "2.1",
+    "transformation": "presentation-2-to-3"
+  },
+  "retrievalTool": "iiif_get_manifest"
+}
+```
+
+The `resource` object uses IIIF's vocabulary. The outer `protocol`, `api`, and `version` fields
+identify its format. Here, `representation` tells you that the result is a summary, and
+`retrievalTool` names the tool you can call to read the Manifest. A complete snapshot retains the
+IIIF context, language maps, metadata, structures, links, rights, and required attribution.
+
+### IDs and links
+
+These fields help you choose the right identifier or link for your next step:
+
+| Field         | Use                                                                   |
+| ------------- | --------------------------------------------------------------------- |
+| `resource.id` | Pass this IIIF ID to a tool when requesting a Collection or Manifest. |
+| `source.uri`  | Open the provider's source resource.                                  |
+| `snapshotUrl` | Read the JSON copy published with your Canopy site.                   |
+| `citationUrl` | Link a reader to the work's page in Canopy.                           |
+
+### Reading more results
+
+Collection and search tools return up to 20 results at a time by default. You can request up to 100
+with `limit`, though the 64 KiB response limit may produce a smaller page. Pass the returned
+`pagination.nextCursor` as the next request's `cursor` to continue. If the site is rebuilt between
+requests, you may need to start the query again because cursors belong to a particular dataset
+version.
+
+When a full Manifest exceeds the response limit, `iiif_get_manifest` returns a response marked
+`partial` with a link to the complete JSON. If even the summary is too large, the tool returns an
+error. Use the snapshot link in the catalog to read the resource directly in that case.
+
+Tools accept the inputs described in their schemas and resource IDs listed in the catalog. If a
+request fails, check the tool's inputs, then consult the catalog and provider's source URL to see
+whether the resource is available.
+
+## Troubleshooting
+
+| Problem                         | What to try                                                                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Browser tools are missing       | Confirm that your browser and AI agent support WebMCP. Check that `webmcp` is not `false`, then rebuild and publish your site.            |
+| Search results seem incomplete  | Try another term and review your indexed fields, Collection filters, and catalog coverage. Check whether more result pages are available. |
+| JSON fails to load              | Open the catalog or snapshot URL directly. Check that the files were published under your site's base path.                               |
+| A cursor is rejected            | Start the query again to use the current version of the dataset.                                                                          |
+| A schema version is unsupported | Rebuild and publish the catalog and browser script together so they use the same version.                                                 |
+
+## Further reading
+
+- [IIIF Presentation API 3.0](https://iiif.io/api/presentation/3.0/)
+- [WebMCP specification](https://webmachinelearning.github.io/webmcp/)
+- [Chrome WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp)
+- [OpenAI site tools](https://learn.chatgpt.com/docs/webmcp)

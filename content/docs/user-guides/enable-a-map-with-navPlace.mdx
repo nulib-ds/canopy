@@ -1,27 +1,67 @@
 # Enable a map with navPlace
 
-When working with IIIF Presentation 3 content, digital scholars may want to visualize where items in their collection
-are located geographically.
+`<Map>` plots geographic points from IIIF Manifests and from `<MapPoint>` elements you write in MDX.
+Use `navPlace` when the Manifest supplies coordinates. Use `MapPoint` to add your own geographic
+context.
 
-The `<Map>` component plots Manifests that expose navPlace Point features, allowing spatial relationships to be explored
-interactively.
+The British India art demo includes
+[*Bombay Harbour : fishing boats in the monsoon*](https://api.dc.library.northwestern.edu/api/v2/works/9307533e-0204-4b19-b79c-e0a850c6a46a?as=iiif).
+Its subject metadata names Mumbai Harbour, but its Manifest has no `navPlace` data. The examples
+below add an approximate marker for Mumbai. This is an editorial choice, not a provider coordinate
+or the precise location of the scene.
 
-This guide walks through the prerequisites and shows how to embed a map on any MDX page.
+## 1. Add a custom point
 
-> navPlace is an IIIF extension for geographic context. Make sure your manifests contain `navPlace.features` entries before running the build so Canopy can extract coordinates.
+Place a `<Map>` on any MDX page. Add a `<MapPoint>` with latitude and longitude in decimal degrees.
+The `referencedManifests` prop connects the marker to a work and supplies its thumbnail and link.
+List the same Manifest in the page's frontmatter so Canopy can resolve the local work page.
 
-## 1. Add navPlace data to your manifests
+```mdx copy filename="content/about/maps.mdx"
+---
+title: Mapping Bombay Harbour
+referencedManifests:
+  - https://api.dc.library.northwestern.edu/api/v2/works/9307533e-0204-4b19-b79c-e0a850c6a46a?as=iiif
+---
 
-To display items on a map, each IIIF Manifest must include geographic information describing where it is located or relevant.
+# Mapping Bombay Harbour
 
-Canopy reads this information from the Manifest’s `navPlace` property, which contains GeoJSON-like `Feature` objects.
-Only features with a `geometry.type` of `"Point"` are plotted on the map.
+This marker places the work in Mumbai. It does not locate the scene precisely.
+
+<Map height="520px">
+  <MapPoint
+    lat="19.08"
+    lng="72.88"
+    title="Mumbai"
+    summary="Approximate city marker added for this example."
+    referencedManifests={[
+      "https://api.dc.library.northwestern.edu/api/v2/works/9307533e-0204-4b19-b79c-e0a850c6a46a?as=iiif",
+    ]}
+  />
+</Map>
+```
+
+Each `<MapPoint>` supports these props:
+
+- `lat` and `lng`: required coordinates in decimal degrees.
+- `title`, `summary`, `href`, and `thumbnail`: optional popup content.
+- `referencedManifests`: an array of IIIF Manifest URLs. The `manifest` and `manifests` props provide
+  shorthand for one or several references.
+- Child MDX content for a longer description.
+
+A point with no link or resolved Manifest has an unlinked title. Supply `href` to choose a
+destination. If you omit `thumbnail`, Canopy uses the first available thumbnail from the point's
+referenced Manifests.
+
+## 2. Read coordinates from navPlace
+
+The IIIF `navPlace` extension adds geographic context to a Manifest. Canopy reads
+`navPlace.features` and plots features whose `geometry.type` is `"Point"`.
+
+When publishing your own Manifest, you can add a property like the one below. This fragment shows
+the same editorial city marker used above. It is not part of Northwestern's Manifest.
 
 ```json
 {
-  "id": "https://example.org/iiif/manifest.json",
-  "type": "Manifest",
-  "label": {"en": ["Survey of Calcutta"]},
   "navPlace": {
     "type": "FeatureCollection",
     "features": [
@@ -29,11 +69,11 @@ Only features with a `geometry.type` of `"Point"` are plotted on the map.
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [88.3639, 22.5726]
+          "coordinates": [72.88, 19.08]
         },
         "properties": {
-          "label": {"en": ["Calcutta"]},
-          "summary": {"en": ["British survey depot"]}
+          "label": {"en": ["Mumbai"]},
+          "summary": {"en": ["Approximate city marker added for this example."]}
         }
       }
     ]
@@ -41,100 +81,46 @@ Only features with a `geometry.type` of `"Point"` are plotted on the map.
 }
 ```
 
-Canopy collects these features, normalizes titles + thumbnails, and writes them to `site/api/navplace.json` during `npm run build` or `npm run dev`.
+GeoJSON coordinates use longitude first, then latitude. Keep that order when adding a `Point`.
+Document the source and precision of any coordinates you publish.
 
-## 2. Embed a Map in MDX
+## 3. Select a Manifest or Collection
 
-Once your Manifests expose `navPlace` data, you can embed a map anywhere in your site to provide a geographic overview
-of your collection.
+Set `iiifContent` to a Manifest or Collection URL already included in your Canopy site. Canopy plots
+the available `navPlace` points for that resource. External resources that are not part of the site
+cannot supply markers.
 
-Place a `<Map>` component on any MDX page (`content/**/*.mdx`) or in `content/works/_layout.mdx`. The component is
-server-side–rendering safe and renders a lightweight placeholder on the server and hydrates on the client using
-Leaflet and MarkerCluster.
-
-```mdx copy filename="content/about/maps.mdx"
----
-title: Mapping the Collection
----
-
-# Mapping the Collection
-
-Our manifests encode navPlace metadata, so we can show a geographic overview:
-
-<Map
-  iiifContent="https://tamulib-dc-labs.github.io/sesquicentennial-manifests/collections.json"
-  height="600px"
-/>
-```
-
-The `<Map>` component accepts the following props:
-
-* `iiifContent`: A IIIF Manifest or Collection URL. Canopy resolves the resource and renders markers for all available `navPlace` points.
-* `height`: Controls the height of the rendered map canvas (string or number). Defaults to `600px`.
-
-> Note:  The `iiifContent` resource must be a part of your Canopy site in order to be used with `Map`. External resources cannot be loaded.
-
-
-## 3. Add custom points with MapPoint
-
-In addition to rendering points from navPlace, you can add custom locations directly to a `<Map>` using `<MapPoint>`.
-This is useful for places that lack navPlace data or for locations that are not tied to IIIF resources.
-
-When `iiifContent` is omitted, the map renders only the custom points you provide.
-
-```mdx copy filename="content/about/maps.mdx"
-<Map
-  iiifContent="https://tamulib-dc-labs.github.io/sesquicentennial-manifests/collections.json"
-  height="520px">
-    <MapPoint lat="41.8781" lng="-87.6298" title="Newberry Library" summary="Chicago, IL" href="/works/newberry-atlas" />
-    <MapPoint lat="22.5726" lng="88.3639" title="Calcutta" summary="Survey depot" />
-
-</Map>
-```
-
-Each `<MapPoint>` represents a single geographic location and supports the following props:
-
-- `lat` / `lng` (required) — decimal degrees.
-- `title`, `summary`, `href`, `thumbnail`.
-- Child MDX content for longer descriptions (`<MapPoint>…</MapPoint>`).
-
-By default, custom points render as informational markers with unlinked titles. Add an `href` when the point should
-navigate the reader to another page or resource. If `thumbnail` is omitted, the map reuses the first available
-referenced manifest thumbnail so the popup still includes a visual cue.
-
-### Linking custom points to works
-
-When a location should direct readers to one or more items in your collection, associate the point with IIIF Manifests
-using `referencedManifests` (or the shorthand `manifest` / `manifests`).
-
-Pair these values with the page’s `referencedManifests` front matter so Canopy can resolve local `/works/*.html` links
-automatically.
+The demo's Manifests do not supply `navPlace` points. This example selects the demo Collection and
+adds a custom point so the map still has a marker:
 
 ```mdx
-<Map height="420px">
+<Map
+  iiifContent="https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif"
+  height="600px"
+>
   <MapPoint
-    lat="30.6181"
-    lng="-96.3387"
-    title="Foster Hall"
-    summary="Dormitory completed in 1899."
-    referencedManifests={['https://tamulib-dc-labs.github.io/sesquicentennial-manifests/building_history/Foster_Hall.json']}
+    lat="19.08"
+    lng="72.88"
+    title="Mumbai"
+    summary="Approximate city marker added for this example."
+    referencedManifests={[
+      "https://api.dc.library.northwestern.edu/api/v2/works/9307533e-0204-4b19-b79c-e0a850c6a46a?as=iiif",
+    ]}
   />
 </Map>
 ```
 
-## 4. Build and preview your map
+Omit `iiifContent` to show only custom points. Use `height` to set the map's height; it defaults to
+`600px`.
 
-Once your `navPlace` data and map markup are in place, run your normal development workflow to generate and preview the map:
+## 4. Build and preview
+
+Run the development server to preview your map:
 
 ```bash
-npm run dev   # watches navPlace changes and rebuilds the dataset
-# or
-npm run build
+npm run dev
 ```
 
-> If editing your Github files directly, simply edit and save.
-
-During the build, Canopy collects and normalizes all `navPlace` features and makes them available to the `<Map>`
-component. The map viewer automatically loads Leaflet and MarkerCluster via `site/scripts/canopy-map.js`.
-
-Popups are populated from each Manifest’s cached metadata—including thumbnails, labels, and links.
+Run `npm run build` to generate the static site. Canopy writes the collected `navPlace` features to
+`site/api/navplace.json`. The map renders a placeholder on the server, then loads Leaflet and
+MarkerCluster in the browser through `site/scripts/canopy-map.js`.

@@ -1,3 +1,5 @@
+const { rememberRetrieved, inheritProvenance, saveProvenance } = require('../discovery/provenance');
+const { createIngestionReport } = require('../discovery/ingestion');
 const React = require("react");
 const ReactDOMServer = require("react-dom/server");
 const crypto = require("crypto");
@@ -785,10 +787,10 @@ async function upgradeIiifResource(resource) {
       if (upgraded && typeof upgraded.then === "function") {
         upgraded = await upgraded;
       }
-      if (upgraded) return upgraded;
+      if (upgraded) return inheritProvenance(resource, upgraded);
     }
   } catch (_) {}
-  return normalizeToV3(resource);
+  return inheritProvenance(resource, await normalizeToV3(resource));
 }
 
 async function ensurePresentation3Manifest(manifest) {
@@ -907,13 +909,13 @@ async function readJsonFromUri(uri, options = {log: false}) {
         } catch (_) {}
       }
       if (!res || !res.ok) return null;
-      return await res.json();
+      return rememberRetrieved(await res.json(), uri);
     }
     const p = uri.startsWith("file://") ? new URL(uri) : {pathname: uri};
     const localPath = uri.startsWith("file://")
       ? p.pathname
       : path.resolve(String(p.pathname));
-    return await readJson(localPath);
+    return rememberRetrieved(await readJson(localPath), uri);
   } catch (_) {
     return null;
   }
@@ -1218,6 +1220,7 @@ async function saveCachedManifest(manifest, id, parentId) {
       JSON.stringify(normalizedManifest, null, 2),
       "utf8",
     );
+    await saveProvenance(normalizedManifest);
     index.byId = Array.isArray(index.byId) ? index.byId : [];
     const nid = normalizeIiifId(id);
     const existingEntryIdx = index.byId.findIndex(
@@ -1545,6 +1548,7 @@ async function saveCachedCollection(collection, id, parentId) {
       JSON.stringify(normalizedCollection, null, 2),
       "utf8",
     );
+    await saveProvenance(normalizedCollection);
     try {
       if (process.env.CANOPY_IIIF_DEBUG === "1") {
         const {logLine} = require("./log");
@@ -1684,6 +1688,7 @@ async function loadConfig() {
 // Traverse IIIF collection, cache manifests/collections, and render pages
 async function buildIiifCollectionPages(CONFIG) {
   const cfg = CONFIG || (await loadConfig());
+  const discovery = createIngestionReport(cfg);
 
   const {collections: collectionUris, manifests: manifestUris} =
     resolveIiifSources(cfg);
@@ -1818,7 +1823,7 @@ async function buildIiifCollectionPages(CONFIG) {
       return String(x || "");
     }
   };
-  async function gatherFromCollection(colLike, parentId) {
+  async function gatherFromCollection(colLike, parentId, requestedId) {
     try {
       // Resolve the URI we were asked to fetch. Some providers (e.g. Internet Archive)
       // return paged collections where the JSON payload's `id` does not match the
@@ -1832,7 +1837,10 @@ async function buildIiifCollectionPages(CONFIG) {
         typeof colLike === "object" && colLike && colLike.items
           ? colLike
           : await readJsonFromUri(uri, {log: true});
-      if (!col) return;
+      if (!col) {
+        discovery.failure(uri);
+        return;
+      }
       const ncol = await upgradeIiifResource(col);
       const reportedId = String(
         (ncol && (ncol.id || ncol["@id"])) ||
@@ -1842,12 +1850,25 @@ async function buildIiifCollectionPages(CONFIG) {
       const effectiveId = String(uri || reportedId || "");
       const collectionKey = effectiveId || reportedId || uri || "";
       const visitKey = norm(collectionKey) || collectionKey;
+      const childEntries = extractCollectionEntries(ncol);
+      // A configured root may already have been traversed as another root's child.
+      // Record its entry point and source aliases before the traversal cycle guard.
+      discovery.collection(
+        ncol,
+        childEntries.map((entry) => ({
+          ...entry.raw,
+          id: entry.id,
+          type: normalizeIiifType(entry.type || entry.fallback) === "collection"
+            ? "Collection" : "Manifest",
+        })),
+        !parentId,
+        requestedId || uri,
+      );
       if (visitedCollections.has(visitKey)) return; // avoid cycles
       visitedCollections.add(visitKey);
       try {
         await saveCachedCollection(ncol, collectionKey, parentId || "");
       } catch (_) {}
-      const childEntries = extractCollectionEntries(ncol);
       for (const entry of childEntries) {
         const entryId = entry && entry.id;
         if (!entryId) continue;
@@ -1883,9 +1904,22 @@ async function buildIiifCollectionPages(CONFIG) {
         if (visitedCollections.has(pageKey)) break;
         visitedCollections.add(pageKey);
         const page = await readJsonFromUri(pageUrl, {log: true});
-        if (!page) break;
+        if (!page) {
+          discovery.failure(pageUrl);
+          break;
+        }
         const npage = await upgradeIiifResource(page);
         const pageEntries = extractCollectionEntries(npage);
+        discovery.collection(
+          ncol,
+          pageEntries.map((entry) => ({
+            ...entry.raw,
+            id: entry.id,
+            type: normalizeIiifType(entry.type || entry.fallback) === "collection"
+              ? "Collection" : "Manifest",
+          })),
+          !parentId,
+        );
         for (const entry of pageEntries) {
           const entryId = entry && entry.id;
           if (!entryId) continue;
@@ -1905,7 +1939,9 @@ async function buildIiifCollectionPages(CONFIG) {
         pageUrl = resolvePageUrl((page && page.next) || (npage && npage.next));
       }
       // Traverse strictly by parent/child hierarchy (Presentation 3): items → Manifest or Collection
-    } catch (_) {}
+    } catch (_) {
+      discovery.failure(typeof colLike === "string" ? colLike : colLike?.id);
+    }
   }
   // Fetch each configured collection and queue manifests from all of them
   logLine("• Traversing IIIF Collection(s)", "blue", {dim: true});
@@ -1917,6 +1953,7 @@ async function buildIiifCollectionPages(CONFIG) {
       root = null;
     }
     if (!root) {
+      discovery.failure(uri);
       try {
         logLine(`IIIF: Failed to fetch collection → ${uri}`, "red");
       } catch (_) {}
@@ -1926,7 +1963,7 @@ async function buildIiifCollectionPages(CONFIG) {
     try {
       await saveCachedCollection(normalizedRoot, normalizedRoot.id || uri, "");
     } catch (_) {}
-    await gatherFromCollection(normalizedRoot, "");
+    await gatherFromCollection(normalizedRoot, "", uri);
   }
   if (manifestUris.length) {
     for (const uri of manifestUris) {
@@ -1937,7 +1974,12 @@ async function buildIiifCollectionPages(CONFIG) {
       manifestTasksFromConfig += 1;
     }
   }
-  if (!tasks.length) return {iiifRecords: []};
+  if (!tasks.length) return {
+    iiifRecords: [],
+    discovery: discovery.result(),
+    collectionIds: Array.from(visitedCollections),
+    manifestIds: [],
+  };
   try {
     logLine(
       `• Processing ${tasks.length} Manifest(s) (${manifestTasksFromCollections} from collections, ${manifestTasksFromConfig} direct)`,
@@ -2037,6 +2079,7 @@ async function buildIiifCollectionPages(CONFIG) {
         if (!it) break;
         const idx = next - 1;
         const id = it.id || it["@id"] || "";
+        discovery.request(id);
         let manifest = await loadCachedManifestById(id);
         const lns = [];
         if (manifest) {
@@ -2048,7 +2091,7 @@ async function buildIiifCollectionPages(CONFIG) {
             }).catch(() => null);
             if (res && res.ok) {
               lns.push([`↓ ${String(id)} → ${res.status}`, "yellow"]);
-              const remote = await res.json();
+              const remote = rememberRetrieved(await res.json(), id);
               manifest = await upgradeIiifResource(remote);
               const saved = await saveCachedManifest(
                 manifest,
@@ -2119,6 +2162,7 @@ async function buildIiifCollectionPages(CONFIG) {
         if (!manifest) continue;
         const ensured = await ensurePresentation3Manifest(manifest);
         manifest = ensured.manifest;
+        discovery.manifest(manifest, id);
         const title = firstLabelString(manifest.label);
         const manifestLabel = title || String(manifest.id || id);
         logDebug(`Preparing manifest ${manifestLabel}`);
@@ -2885,6 +2929,7 @@ async function buildIiifCollectionPages(CONFIG) {
     iiifRecords,
     manifestIds: Array.from(renderedManifestIds),
     collectionIds: Array.from(visitedCollections),
+    discovery: discovery.result(),
   };
 }
 

@@ -1,0 +1,141 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          npm config set fund false
+          npm config set audit false
+          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve base URL for Pages
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const yaml = require('js-yaml');
+
+          const envFile = process.env.GITHUB_ENV;
+          const repoSlug = process.env.GITHUB_REPOSITORY || '';
+          const [owner = '', repo = ''] = repoSlug.split('/');
+          const configPath = path.resolve('canopy.yml');
+
+          let configBaseUrl = '';
+          if (fs.existsSync(configPath)) {
+            try {
+              const raw = fs.readFileSync(configPath, 'utf8');
+              const data = yaml.load(raw) || {};
+              if (data && typeof data === 'object' && data.site && typeof data.site.baseUrl === 'string') {
+                configBaseUrl = data.site.baseUrl.trim();
+              }
+            } catch (error) {
+              console.warn('[pages] unable to read canopy.yml baseUrl:', error);
+            }
+          }
+
+          const defaultBaseUrl = () => {
+            if (!owner || !repo) return '';
+            if (repo === `${owner}.github.io`) {
+              return `https://${owner}.github.io`;
+            }
+            return `https://${owner}.github.io/${repo}`;
+          };
+
+          const normalizeBasePath = (value) => {
+            if (!value) return '';
+            const raw = String(value).trim();
+            if (!raw) return '';
+            const prefixed = raw.startsWith('/') ? raw : `/${raw}`;
+            const cleaned = prefixed.replace(/\/+$/, '');
+            return cleaned === '/' ? '' : cleaned;
+          };
+
+          const pathFromUrl = (urlString) => {
+            if (!urlString) return '';
+            try {
+              const parsed = new URL(urlString);
+              const pathname = (parsed.pathname || '').replace(/\/+$/, '');
+              if (!pathname || pathname === '/') return '';
+              return normalizeBasePath(pathname);
+            } catch (_) {
+              return '';
+            }
+          };
+
+          const resolvedBaseUrl = configBaseUrl || defaultBaseUrl();
+          const manualBasePath = normalizeBasePath(process.env.CANOPY_BASE_PATH || '');
+          const configBasePath = configBaseUrl ? pathFromUrl(configBaseUrl) : '';
+
+          let resolvedBasePath = manualBasePath;
+          if (!resolvedBasePath) {
+            if (configBaseUrl) {
+              resolvedBasePath = configBasePath;
+            } else if (repo && repo !== `${owner}.github.io`) {
+              resolvedBasePath = normalizeBasePath(`/${repo}`);
+            } else {
+              resolvedBasePath = '';
+            }
+          }
+
+          const lines = [];
+          lines.push(`CANOPY_BASE_URL=${resolvedBaseUrl || defaultBaseUrl()}`);
+          lines.push(`CANOPY_BASE_PATH=${resolvedBasePath}`);
+          if (!envFile) {
+            lines.forEach((line) => console.log(line));
+          } else {
+            fs.appendFileSync(envFile, `${lines.join('\n')}\n`);
+          }
+          NODE
+
+      - name: Build site
+        env:
+          CANOPY_CHUNK_SIZE: "10"
+          CANOPY_FETCH_CONCURRENCY: "1"
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

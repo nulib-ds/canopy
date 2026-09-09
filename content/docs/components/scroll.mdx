@@ -1,21 +1,27 @@
 ---
 title: Scroll
-description: Verical canvas reader for IIIF Manifests with textual annotations.
+description: Vertical canvas reader for IIIF Manifests with textual annotations.
 ---
 
 # Scroll
 
-`<Scroll>` is a specialized text-focused component that outputs a IIIF Manifest as a vertically oriented canvas reader. A small thumbnail or image viewer is fixed to the side of the viewport while the textual annotations scroll alongside it. `Scroll` can hand;e multiple languages and works well for digitized books, manuscripts, and other text-heavy objects. Note that that component currently only handles annotations embedded within the manifest. `Scroll` will respect the formats of `text/plain`, `text/html`, and `text/markdown`. Scroll handles both annotations embedded to a Manifest as well as externally referenced annotation pages.
+`<Scroll>` displays a Manifest's text annotations beside its images in a vertical reader. It supports
+multiple languages and the formats `text/plain`, `text/html`, and `text/markdown`. Annotation pages
+can be embedded in the Manifest or linked from it.
+
+This example uses *A collection of original drawings to illustrate the costume and manners of the
+Hindoos* from the British India art demo. The Manifest links a text AnnotationPage from the Canvas
+labeled “page 1 verso.” The reader displays the supplied text; it does not create a transcription.
 
 ```mdx
-<Scroll iiifContent="https://iiif-maktaba.dc.library.northwestern.edu/7536339d-ab36-4079-a206-2d46f78053dc.json" />
+<Scroll iiifContent="https://api.dc.library.northwestern.edu/api/v2/works/1b5b4a4e-af4e-4fe0-9984-a3f8284d53a2?as=iiif" />
 ```
 
-<Scroll iiifContent="https://iiif-maktaba.dc.library.northwestern.edu/7536339d-ab36-4079-a206-2d46f78053dc.json" />
+<Scroll iiifContent="https://api.dc.library.northwestern.edu/api/v2/works/1b5b4a4e-af4e-4fe0-9984-a3f8284d53a2?as=iiif" />
 
 ## Props
 
 | Prop          | Type   | Required | Notes                                                                     |
 | ------------- | ------ | -------- | ------------------------------------------------------------------------- |
 | `iiifContent` | string | ✅       | IIIF Manifest URL                                                         |
-| `options`     | object |          | Passed to Scroll and merged with global defaults from `sliderOptions.js`. |
+| `options`     | object |          | Passed to Clover's Scroll component.                                    |

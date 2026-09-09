@@ -1,56 +1,48 @@
 # Sharing Content
 
-Works in a Canopy IIIF site can be shared with others via [IIIF Content State](https://iiif.io/api/content-state/1.0/). This allows content to be opened to specific views and allows content to be easily reopened in other viewers.
+Use [IIIF Content State](https://iiif.io/api/content-state/1.0/) to share a selected view of a work.
+A compatible viewer can open the same Canvas from the shared link.
 
-> **Note:** The Share component follows the [IIIF Content State 1.0](https://iiif.io/api/content-state/1.0/) specification so links stay portable across viewers.
+This example uses [The town & pass of Boondi, in Rajpootana](/works/the-town-and-pass-of-boondi-in-rajpootana.html)
+from the British India art demo. Its [source Manifest](https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif)
+contains one Canvas, labeled “recto.”
 
-> **Prereq:** This walkthrough assumes you already have a running Canopy IIIF project ([Create a Project](/get-started)).
+## Share a view
 
-## Use Case
+Open the work and select **Share** in the viewer. Include the current view in the share options,
+then copy the link. Readers who follow it open the work at that view.
 
-You are a digital humanist who wants to link to a specific page of a book in a social media post and point at that page in the book in a custom component.
+## Embed the view in a page
 
-## Implementation
+Copy the value of the shared link's `iiif-content` query parameter into the `Viewer` component's
+`iiifContent` prop. This example opens the print's recto:
 
-### Navigate to the Book and Page You Want to Share from Canopy IIIF
-
-In your web browser, open a link to [The North American Indian](https://nulib-ds.github.io/canopy/works/the-north-american-indian-being-a-series-of-volumes-picturing-and-describing-the-indians-of-the-unit)
-and click on **page 3**. With **page 3** active, click the **Share** button and the checkbox next to **page 3**.
-Clicking the checkbox signifies you want the link to open to that specific view.
-
-![Share component screenshot](/examples/content-state.png)
-
-### Share the Link in a Social Media Post
-
-Using your social media platform of choice, create a new post using the link in the Share component's box. As
-readers click the link, they will open the work in Canopy IIIF at the page you specified.
-
-### Discuss the View in Custom Content Using the `Viewer` Component
-
-Now let's create a new page within `About` with a link to the view in the `Viewer` component.
-Create a new page called `content-state.mdx` at `/content/about`.
-
-Since Canopy IIIF uses the IIIF Content State API specification for creating a portable, sharable representation
-of what a user is looking at, we can copy the string following `?iiif-content=` and paste it into the value of
-`iiif-content` in `Viewer` and it will load that view in an interoperable way.
-
-```mdx filename="content/about/history.mdx" {10}
+```mdx filename="content/about/boondi-view.mdx"
 ---
-title: "Content State Example"
+title: A View of Boondi
 ---
 
-# Content State Example
+# A View of Boondi
 
-This is an example of a Content State request with the Viewer Component.
+Explore the print from Northwestern University Libraries.
 
-<Viewer iiifContent="JTdCJTIyJTQwY29udGV4dCUyMiUzQSUyMmh0dHAlM0ElMkYlMkZpaWlmLmlvJTJGYXBpJTJGcHJlc2VudGF0aW9uJTJGMyUyRmNvbnRleHQuanNvbiUyMiUyQyUyMmlkJTIyJTNBJTIyaHR0cHMlM0ElMkYlMkZjYW5vcHktaWlpZi5naXRodWIuaW8lMkZjYW5vcHktaWlpZiUyRndvcmtzJTJGdGhlLW5vcnRoLWFtZXJpY2FuLWluZGlhbi1iZWluZy1hLXNlcmllcy1vZi12b2x1bWVzLXBpY3R1cmluZy1hbmQtZGVzY3JpYmluZy10aGUtaW5kaWFucy1vZi10aGUtdW5pdCUyRmNvbnRlbnQtc3RhdGUlMjIlMkMlMjJ0eXBlJTIyJTNBJTIyQW5ub3RhdGlvbiUyMiUyQyUyMm1vdGl2YXRpb24lMjIlM0ElNUIlMjJjb250ZW50U3RhdGUlMjIlNUQlMkMlMjJ0YXJnZXQlMjIlM0ElN0IlMjJpZCUyMiUzQSUyMmh0dHBzJTNBJTJGJTJGYXBpLmRjLmxpYnJhcnkubm9ydGh3ZXN0ZXJuLmVkdSUyRmFwaSUyRnYyJTJGd29ya3MlMkY1ZDA3NTQxNS01MmQ1LTQ1MzAtOWQ1MC1lNmY0ODhkNjM0YzYlM0ZhcyUzRGlpaWYlMkZjYW52YXMlMkYxNiUyMiUyQyUyMnR5cGUlMjIlM0ElMjJDYW52YXMlMjIlMkMlMjJwYXJ0T2YlMjIlM0ElNUIlN0IlMjJpZCUyMiUzQSUyMmh0dHBzJTNBJTJGJTJGYXBpLmRjLmxpYnJhcnkubm9ydGh3ZXN0ZXJuLmVkdSUyRmFwaSUyRnYyJTJGd29ya3MlMkY1ZDA3NTQxNS01MmQ1LTQ1MzAtOWQ1MC1lNmY0ODhkNjM0YzYlM0ZhcyUzRGlpaWYlMjIlMkMlMjJ0eXBlJTIyJTNBJTIyTWFuaWZlc3QlMjIlN0QlNUQlN0QlN0Q" />
+<Viewer iiifContent="JTdCJTIyaWQlMjIlM0ElMjJodHRwcyUzQSUyRiUyRmFwaS5kYy5saWJyYXJ5Lm5vcnRod2VzdGVybi5lZHUlMkZhcGklMkZ2MiUyRmZpbGUtc2V0cyUyRjEzOGE5NGIwLTE3NWEtNDE1Mi05OGM3LWRmNTg2NjFjZTdkNSUzRmFzJTNEaWlpZiUyMiUyQyUyMnR5cGUlMjIlM0ElMjJDYW52YXMlMjIlMkMlMjJwYXJ0T2YlMjIlM0ElNUIlN0IlMjJpZCUyMiUzQSUyMmh0dHBzJTNBJTJGJTJGYXBpLmRjLmxpYnJhcnkubm9ydGh3ZXN0ZXJuLmVkdSUyRmFwaSUyRnYyJTJGd29ya3MlMkY0YmRiNWEyMi02YzdmLTQ5OGQtOGU2ZS1lNDllYTliYzQ3NzglM0ZhcyUzRGlpaWYlMjIlMkMlMjJ0eXBlJTIyJTNBJTIyTWFuaWZlc3QlMjIlN0QlNUQlN0Q" />
 ```
 
-> **Why Base64?** IIIF Content State encodes JSON as Base64 so you can embed complex state in URLs. See the [encoding section](https://iiif.io/api/content-state/1.0/#6-content-state-encoding) for details.
+The encoded value contains this Canvas reference. Both IDs come from the provider's Manifest:
 
-### Navigation updates automatically
+```json
+{
+  "id": "https://api.dc.library.northwestern.edu/api/v2/file-sets/138a94b0-175a-4152-98c7-df58661ce7d5?as=iiif",
+  "type": "Canvas",
+  "partOf": [
+    {
+      "id": "https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif",
+      "type": "Manifest"
+    }
+  ]
+}
+```
 
-Because Canopy derives navigation from the file tree, new pages under `content/about/` show up in
-the About sidebar as soon as you add the MDX file—no separate menu files required.
-
-![Screenshot of Content State example in Viewer](/examples/content-state-view.png)
+IIIF Content State uses URL-safe Base64 encoding to carry JSON in a link. See the
+[encoding specification](https://iiif.io/api/content-state/1.0/#6-content-state-encoding) for details.

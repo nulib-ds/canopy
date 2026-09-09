@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "template-northwestern",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview:template-northwestern"],
+      "port": 5001
+    }
+  ]
+}

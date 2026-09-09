@@ -114,30 +114,30 @@ We can also zoom into a more specific detail by combining `xywh` with size const
 
 ### Annotated callouts
 
-We can also pass annotations to draw attention to important regions or narrative elements. In this example, an annotation highlights a group of travelers near the ridge. This retains zoom and pan functionality across the image while adding context.
+Pass an annotation to mark a region of the image. This callout is written for the example; it is not provider metadata. Its local ID identifies the callout, and its target uses the real Canvas ID from the Boondi Manifest.
 
 <Image
   src="https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-df58661ce7d5"
   isTiledImage
   alt="Annotated Boondi panorama"
-  caption="Annotations describe figures and landmarks inside the panorama."
+  caption="A callout marks a detail in the Boondi print."
   annotations={[
     {
       annotation: {
-        id: "https://iiif.dc.library.northwestern.edu/iiif/3/f7409acd-e3f9-496a-b733-81f46d4ffa4f/annotation/0",
+        id: "#boondi-detail",
         type: "Annotation",
         motivation: ["tagging"],
         body: [
           {
-            id: "https://iiif.dc.library.northwestern.edu/iiif/3/f7409acd-e3f9-496a-b733-81f46d4ffa4f/annotation/0/body/0",
+            id: "#boondi-detail-text",
             type: "TextualBody",
-            value: "Five travelers pause with their horses near the ridge.",
+            value: "Explore this selected detail of the Boondi print.",
           },
         ],
         target: {
           type: "SpecificResource",
           source: {
-            id: "https://iiif.dc.library.northwestern.edu/iiif/3/f7409acd-e3f9-496a-b733-81f46d4ffa4f/canvas/1",
+            id: "https://api.dc.library.northwestern.edu/api/v2/file-sets/138a94b0-175a-4152-98c7-df58661ce7d5?as=iiif",
             type: "Canvas",
           },
           selector: {
@@ -156,24 +156,24 @@ We can also pass annotations to draw attention to important regions or narrative
   src="https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-df58661ce7d5"
   isTiledImage
   alt="Annotated Boondi panorama"
-  caption="Annotations describe figures and landmarks inside the panorama."
+  caption="A callout marks a detail in the Boondi print."
   annotations={[
     {
       annotation: {
-        id: "https://iiif.dc.library.northwestern.edu/iiif/3/f7409acd-e3f9-496a-b733-81f46d4ffa4f/annotation/0",
+        id: "#boondi-detail",
         type: "Annotation",
         motivation: ["tagging"],
         body: [
           {
-            id: "https://iiif.dc.library.northwestern.edu/iiif/3/f7409acd-e3f9-496a-b733-81f46d4ffa4f/annotation/0/body/0",
+            id: "#boondi-detail-text",
             type: "TextualBody",
-            value: "Five travelers pause with their horses near the ridge.",
+            value: "Explore this selected detail of the Boondi print.",
           },
         ],
         target: {
           type: "SpecificResource",
           source: {
-            id: "https://iiif.dc.library.northwestern.edu/iiif/3/f7409acd-e3f9-496a-b733-81f46d4ffa4f/canvas/1",
+            id: "https://api.dc.library.northwestern.edu/api/v2/file-sets/138a94b0-175a-4152-98c7-df58661ce7d5?as=iiif",
             type: "Canvas",
           },
           selector: {

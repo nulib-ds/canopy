@@ -4,24 +4,28 @@ title: Configuration
 
 # Canopy Configuration
 
-Canopy reads settings from `canopy.yml` in the repository root. Edit this file after walking through the [Get Started guide](/get-started). The minimal `canopy.yml` includes a global site title, a list of IIIF Collection and Manifest URIs, metadata fields to index, featured items, as well as a theme block. These settings are not strictly required, yet they form the basis of most Canopy sites.
+Canopy reads `canopy.yml` in the repository root. This file sets your site title, IIIF sources, indexed metadata, featured works, and theme. Start with the [Get Started guide](/get-started), then adjust the settings below.
+
+These examples use resources from the British India Art demo, drawn from Northwestern University Libraries and the Victoria and Albert Museum.
 
 ```yaml filename="canopy.yml" copy
-title: Example Site
+title: British India Art
 collection:
-  - https://example.org/iiif/collections/a
-  - https://example.org/iiif/collections/b
+  - https://api.dc.library.northwestern.edu/api/v2/collections/7ac5769f-a1d9-4227-a350-bf8bd8b1cddc?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif
 manifest:
-  - https://example.org/iiif/manifest/delta
-  - https://example.org/iiif/manifest/echo
-  - https://example.edu/api/manifest/foxtrot
+  - https://iiif.vam.ac.uk/collections/O1267239/manifest.json
+  - https://iiif.vam.ac.uk/collections/O755793/manifest.json
+  - https://iiif.vam.ac.uk/collections/O74660/manifest.json
 metadata:
   - Subject
-  - Creator
+  - Date
+  - Language
+  - Genre
 featured:
-  - https://example.org/iiif/manifest/alpha
-  - https://example.org/iiif/manifest/bravo
-  - https://example.edu/api/manifest/foxtrot
+  - https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/c26591b2-994b-4ba3-a87e-9124419fa91b?as=iiif
+  - https://iiif.vam.ac.uk/collections/O74660/manifest.json
 theme:
   accentColor: violet
   grayColor: mauve
@@ -33,7 +37,7 @@ theme:
 ### Title
 
 ```yaml
-title: Example Site
+title: British India Art
 ```
 
 - Applied across the site.
@@ -45,8 +49,8 @@ title: Example Site
 
 ```yaml
 collection:
-  - https://example.org/iiif/collections/a
-  - https://example.org/iiif/collections/b
+  - https://api.dc.library.northwestern.edu/api/v2/collections/7ac5769f-a1d9-4227-a350-bf8bd8b1cddc?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif
 ```
 
 - Not strictly required but provides one URI or multiple IIIF Collection URIs.
@@ -62,8 +66,8 @@ Directly list individual IIIF Manifest URIs to include in the build. This is use
 
 ```yaml
 manifest:
-  - https://example.org/iiif/manifest/echo
-  - https://example.edu/api/manifest/foxtrot
+  - https://iiif.vam.ac.uk/collections/O755793/manifest.json
+  - https://iiif.vam.ac.uk/collections/O74660/manifest.json
 ```
 
 - Not required and can be used alongside `collection` or on its own.
@@ -75,7 +79,9 @@ manifest:
 ```yaml
 metadata:
   - Subject
-  - Creator
+  - Date
+  - Language
+  - Genre
 ```
 
 - Optional list of manifest metadata labels (matched case-insensitively at build time; `subject`, `Subject`, and `SUBJECT` are treated the same).
@@ -86,13 +92,13 @@ metadata:
 
 ```yaml
 featured:
-  - https://example.org/iiif/manifest/alpha
-  - https://example.org/iiif/manifest/bravo
-  - https://example.edu/api/manifest/foxtrot
+  - https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/c26591b2-994b-4ba3-a87e-9124419fa91b?as=iiif
+  - https://iiif.vam.ac.uk/collections/O74660/manifest.json
 ```
 
 - Optional list of manifest URIs for the homepage hero and other highlighted slots.
-- Entries should belong to your configured collections; Canopy normalizes IDs to avoid duplicates.
+- Entries should come from your configured Collections or standalone Manifest list. Canopy normalizes IDs to avoid duplicates.
 
 ## Theme
 
@@ -210,6 +216,20 @@ search:
 ```
 
 ## Extras
+
+### WebMCP
+
+```yaml
+webmcp: true
+```
+
+WebMCP lets readers explore your IIIF collections with an AI agent in a compatible browser. It is
+enabled by default and works with your static site, so you can use your existing hosting service.
+When you build and publish, Canopy includes the IIIF catalog, resource copies, and browser tools.
+
+To turn off WebMCP, set `webmcp: false`, then rebuild and publish your site. This removes the catalog,
+resource copies, and tools. See [IIIF and AI Tools](/docs/developers/iiif-and-ai-tools) to get started
+and learn how readers can follow answers back to their sources.
 
 ### Frontmatter reference
 

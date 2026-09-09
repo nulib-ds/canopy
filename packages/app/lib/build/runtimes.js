@@ -10,6 +10,7 @@ async function prepareAllRuntimes() {
   try { if (typeof mdx.ensureFacetsRuntime === 'function') await mdx.ensureFacetsRuntime(); } catch (_) {}
   try { if (typeof mdx.ensureReactGlobals === 'function') await mdx.ensureReactGlobals(); } catch (_) {}
   await prepareSearchFormRuntime();
+  await prepareDiscoveryRuntime();
   try { logLine('✓ Prepared client hydration runtimes', 'cyan', { dim: true }); } catch (_) {}
 }
 
@@ -49,6 +50,28 @@ async function prepareSearchFormRuntime() {
   } catch (_) {}
 }
 
+async function prepareDiscoveryRuntime() {
+  const { readWebMcpEnabled } = require('../discovery/config');
+  const outFile = path.join(OUT_DIR, 'scripts', 'canopy-webmcp.js');
+  if (!readWebMcpEnabled()) {
+    await fs.promises.rm(outFile, { force: true });
+    return;
+  }
+  const esbuild = await resolveEsbuild();
+  if (!esbuild) throw new Error('WebMCP runtime bundling requires esbuild.');
+  ensureDirSync(path.dirname(outFile));
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, '..', 'discovery', 'browser.js')],
+    outfile: outFile,
+    platform: 'browser',
+    format: 'iife',
+    bundle: true,
+    target: ['es2020'],
+    logLevel: 'silent',
+    minify: true,
+  });
+}
+
 async function prepareSearchRuntime(timeoutMs = 10000, label = '') {
   const search = require('../search/search');
   try { logLine(`• Writing search runtime${label ? ' (' + label + ')' : ''}...`, 'blue', { bright: true }); } catch (_) {}
@@ -65,4 +88,4 @@ async function prepareSearchRuntime(timeoutMs = 10000, label = '') {
   }
 }
 
-module.exports = { prepareAllRuntimes, prepareSearchFormRuntime, prepareSearchRuntime };
+module.exports = { prepareAllRuntimes, prepareSearchFormRuntime, prepareSearchRuntime, prepareDiscoveryRuntime };
