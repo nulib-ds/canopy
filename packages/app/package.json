@@ -1,6 +1,6 @@
 {
   "name": "@canopy-iiif/app",
-  "version": "1.12.7",
+  "version": "1.13.0",
   "private": false,
   "license": "MIT",
   "author": "Mat Jordan <mat@northwestern.edu>",

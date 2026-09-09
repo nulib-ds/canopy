@@ -4,9 +4,12 @@ const {
   path,
   CONTENT_DIR,
   OUT_DIR,
+  absoluteUrl,
   ensureDirSync,
   cleanDir,
 } = require("../common");
+const { exportDiscovery } = require("../discovery/export");
+const { webMcpEnabled } = require("../discovery/config");
 const mdx = require("./mdx");
 const iiif = require("./iiif");
 const pages = require("./pages");
@@ -27,6 +30,7 @@ let iiifRecordsCache = [];
 let iiifManifestIdsCache = [];
 let iiifCollectionIdsCache = [];
 let pageRecords = [];
+let discoveryCache = null;
 
 function nowMs() {
   try {
@@ -130,6 +134,7 @@ async function build(options = {}) {
     if (!skipIiif && hasIiifSources) {
       const results = await iiif.buildIiifCollectionPages(CONFIG);
       iiifRecords = results?.iiifRecords;
+      discoveryCache = webMcpEnabled(CONFIG) ? results?.discovery || {} : null;
       iiifRecordsCache = Array.isArray(iiifRecords) ? iiifRecords : [];
       currentManifestIds = Array.isArray(results?.manifestIds)
         ? results.manifestIds
@@ -147,6 +152,7 @@ async function build(options = {}) {
     } else if (!skipIiif && !hasIiifSources) {
       iiifRecords = [];
       iiifRecordsCache = [];
+      discoveryCache = {};
       currentManifestIds = [];
       currentCollectionIds = [];
       iiifManifestIdsCache = [];
@@ -234,6 +240,28 @@ async function build(options = {}) {
       logLine("✗ Search index creation failed", "red", {bright: true});
       logLine("  " + String(e), "red");
     }
+  });
+
+  await timeStage("Export IIIF discovery data", stageTimings, async () => {
+    if (skipIiif && discoveryCache === null && webMcpEnabled(CONFIG)) {
+      const catalogPath = path.join(OUT_DIR, "api", "discovery", "index.json");
+      if (!fs.existsSync(catalogPath)) {
+        throw new Error("IIIF discovery needs a full build before IIIF can be skipped.");
+      }
+      logLine(
+        "• Retaining published IIIF discovery data (skipping IIIF rebuild)",
+        "blue",
+        {dim: true},
+      );
+      return;
+    }
+    await exportDiscovery({
+      config: CONFIG,
+      ...discoveryCache,
+      records: iiifRecords,
+      outDir: OUT_DIR,
+      absoluteUrl,
+    });
   });
 
   /**

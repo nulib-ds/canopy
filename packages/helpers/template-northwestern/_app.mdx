@@ -1,0 +1,48 @@
+import {Meta, Stylesheet} from "@canopy-iiif/app/head";
+import {CanopyHeader, CanopyFooter} from "@canopy-iiif/app/ui";
+
+export function Head() {
+  return (
+    <>
+      <Meta />
+      <Stylesheet />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossOrigin="true"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,50,0..1;1,9..144,300..600,50,0..1&display=swap"
+        rel="stylesheet"
+      />
+    </>
+  );
+}
+
+export function App({children}) {
+  return (
+    <>
+      {/* TODO(design): swap in a Northwestern/NUL logo mark once approved.
+          Keeping the generic Canopy mark for this scaffolding pass. */}
+      <CanopyHeader logo={Logo} />
+      <main>{children}</main>
+      <CanopyFooter>
+        <p>
+          Copyright 2026 Northwestern University Libraries, MIT License. A
+          Canopy IIIF Project.
+        </p>
+      </CanopyFooter>
+    </>
+  );
+}
+
+export const Logo = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+    <circle className="canopy-logo-backlight" cx="250" cy="250" r="250" />
+    <path
+      className="canopy-logo-overlay"
+      d="M125,33.45C50.28,76.68,0,157.47,0,250s50.28,173.32,125,216.55c74.72-43.23,125-124.01,125-216.55S199.72,76.68,125,33.45Z"
+    />
+  </svg>
+);

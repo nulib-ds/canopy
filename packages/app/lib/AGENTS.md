@@ -12,6 +12,7 @@ Core Areas
 - `components/`: Shared SSR-ready React components (MDX placeholders, layout helpers).
 - `iiif/`: Fetching, caching, and normalizing Presentation 3 manifests.
 - `search/`: Search runtime bundler + index writer.
+- `discovery/`: IIIF catalog exports, resource retrieval, and the WebMCP browser runtime.
 - `common.js` / `index.js`: Entry points that wire CLI commands `build()` and `dev()`.
 
 Invariants
@@ -60,6 +61,11 @@ Logbook Template
 
 Logbook
 -------
+- 2026-09-09 / Codex: Reproduced the WebMCP build fixture's CI citation failure by removing `ui/dist`: missing SSR components prevented the work page and search record from being generated, leaving the source URL as the citation fallback. Root `pretest:unit` now builds UI assets before Jest, and the Tests workflow reads Node 24 from `.nvmrc`. The fixture reports rendering failures with child-process logs. Validation: all 193 tests across 15 suites pass starting without `ui/dist`; targeted ESLint and workflow YAML checks pass.
+- 2026-09-08 / Codex: IIIF and AI tools use WebMCP with static catalog and resource files. Source version, retrieval time, and normalization history are stored separately under `.cache/iiif/provenance/<sha256-resource-id>.json`; IIIF JSON stays unchanged. Older cache entries report unknown provenance. The browser bundle has no React dependency and is injected by the shared HTML shell. Verify with discovery fixture tests and a network-enabled build.
+- 2026-09-08 / Codex: The internal `createDiscoveryTools` helper supplies schema 1.0 IIIF responses to the browser. Responses have a 64 KiB data limit, versioned pagination, explicit partial summaries, and strict input validation. Discovery references resolve source aliases without changing snapshots; skipped IIIF builds retain the previous export. The tools require no separately hosted service or server SDK. Repository-wide lint still includes generated bundles and template previews with existing configuration errors.
+- 2026-09-08 / Codex: WebMCP validation passed: 176 tests across 14 suites, type checking, targeted lint, formatting, package inspection, and a network-enabled static build with 175 Manifests and three Collections. Browser tests also verify the bundled script and WebMCP annotations. This feature adds no package dependencies or CLI commands.
+- 2026-09-09 / Codex: A single root setting, `webmcp`, controls browser registration and static exports. It defaults to `true`; `webmcp: false` disables both. Removed the separate discovery settings. Configuration tests cover missing settings, explicit booleans, invalid values, and YAML errors. The build fixture verifies default enablement, explicit enablement, retained snapshots, and disabled cleanup. Validation: 193 tests across 15 suites, type checking, targeted lint, formatting, and a network-enabled build passed.
 - 2026-04-26 / mat: Added local file path support to the manifest fetch worker in `build/iiif.js`. Previously, the worker branched on `https?://` and `file://` and SKIPped everything else; relative paths (e.g., `assets/iiif/example.json`) were silently dropped. Added a third branch that catches any value with no URI scheme (regex: no `[scheme]:` prefix) and routes it through `readJsonFromUri()`, which already resolves relative paths against `process.cwd()`. Collection-root URIs were already handled correctly via `readJsonFromUri()`; only the manifest worker needed the fix.
 - 2025-09-26 / chatgpt: Hardened runtime bundlers to throw when esbuild or source compilation fails and required `content/works/_layout.mdx`; build now aborts instead of silently writing placeholder assets.
 - 2025-09-26 / chatgpt: Replaced the legacy command runtime stub with an esbuild-bundled runtime (`search/search-form-runtime.js`); `prepareSearchFormRuntime()` now builds `site/scripts/canopy-search-form.js` and fails if esbuild is missing.

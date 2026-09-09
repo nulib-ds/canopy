@@ -1,0 +1,31 @@
+node_modules/
+.tool-versions
+
+# canopy specific
+site/
+.template-build/
+.template-i18n-build/
+.template-preview/
+.template-i18n-preview/
+.template-essay-build/
+.template-essay-preview/
+.template-northwestern-build/
+.template-northwestern-preview/
+.org-build/
+
+# remove this if you would like to commit the cache
+.cache
+
+# ignore pnpm local store (we standardize on npm)
+.pnpm-store/
+
+# Do not commit compiled UI stylesheet; built in dev/publish
+packages/app/ui/styles/index.css
+
+# Ignore built UI bundle; built on demand and at publish
+packages/app/ui/dist/
+
+# Test outputs
+tests/coverage/
+playwright-report/
+test-results/

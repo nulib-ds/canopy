@@ -7,34 +7,35 @@ description: Embed the Storiiies viewer to add guided image tours with annotatio
 
 `<ImageStory>` wraps [Storiiies](https://www.cogapp.com/r-d/storiiies) by [Cogapp](https://www.cogapp.com/), an open-source tool for guiding users through a sequence of annotations on an image. `<ImageStory>` accepts IIIF Manifest URIs with annotations targeting rectangles or points on images, and renders them as a guided tour with built-in navigation and annotation text.
 
-The component is ideal for embedding interactive image stories in content pages, making it easy to highlight visual details and provide contextual narratives in an engaging way. The example below is an embedded instance of https://storiiies.cogapp.com/view/3683j/Embassy-of-Hyderbeck-to-Calcutta-1800.
+This tour uses *An Indian woman burning herself on the death of her husband* from the British India
+art demo. It draws its image from Northwestern University Libraries'
+[source Manifest](https://api.dc.library.northwestern.edu/api/v2/works/009e37b7-5c36-4451-bafb-f1217f45877f?as=iiif).
+The [Storiiies Manifest](https://manifest.storiiies-editor.cogapp.com/v3/c083t) adds an authored tour;
+its annotations are separate from the provider's catalog record.
 
 <ImageStory
-  iiifContent="https://manifest.storiiies-editor.cogapp.com/v3/3683j"
+  iiifContent="https://manifest.storiiies-editor.cogapp.com/v3/c083t"
   height="900"
 />
 
 ```mdx
 <ImageStory
-  iiifContent="https://manifest.storiiies-editor.cogapp.com/v3/3683j"
+  iiifContent="https://manifest.storiiies-editor.cogapp.com/v3/c083t"
   height="900"
 />
 ```
 
 ## Authoring with Storiiies Editor
 
-Individuals of any technical skill level can easily create and export Storiiies manifests using the [Storiiies Editor](https://editor.storiiies.cogapp.com/), which provides a user-friendly interface for defining stories and contextual descriptions. Once created, simply pass the manifest URL to `<ImageStory>` to embed the interactive experience directly in your MDX content.
+Use the [Storiiies Editor](https://editor.storiiies.cogapp.com/) to write a tour and choose the image
+regions it describes. Pass the resulting Manifest URL to `<ImageStory>` to embed it in MDX.
 
 ### Determine Manifest URL
 
-1. Click **Links** and copy the bookmark URL
-2. Note the identifier **3683j** in this bookmark: https://storiiies.cogapp.com/view/3683j/Embassy-of-Hyderbeck-to-Calcutta-1800
-3. This identifier can be used to construct a manifest URL: https://manifest.storiiies-editor.cogapp.com/v3/3683j
-
-### Example
-
-- **Bookmark link:** `https://storiiies.cogapp.com/view/3683j/Embassy-of-Hyderbeck-to-Calcutta-1800`
-- **Manifest URL:** `https://manifest.storiiies-editor.cogapp.com/v3/3683j`
+1. Click **Links** in the editor and copy the bookmark URL.
+2. Find the tour identifier in that URL. This example uses `c083t`.
+3. Use the identifier at the end of the Manifest URL:
+   `https://manifest.storiiies-editor.cogapp.com/v3/c083t`.
 
 ## API
 

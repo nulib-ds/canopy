@@ -1,5 +1,11 @@
 const releases = [
   {
+    "version": "1.13.0",
+    "date": "2026-09-09",
+    "summary": "Introduce WebMCP underlay.",
+    "highlights": []
+  },
+  {
     "version": "1.12.7",
     "date": "2026-07-20",
     "summary": "Update dates in footer.",

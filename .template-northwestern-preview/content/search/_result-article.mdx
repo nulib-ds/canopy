@@ -1,0 +1,17 @@
+import {ArticleCard} from "@canopy-iiif/app/ui";
+
+<ArticleCard
+  href={props.record?.href}
+  title={props.record?.title || props.record?.href || "Untitled"}
+  annotation={props.record?.annotation}
+  summary={props.record?.summary || props.record?.summaryValue || ""}
+  summaryMarkdown={
+    props.record?.summaryMarkdown ||
+    props.record?.summary ||
+    props.record?.summaryValue ||
+    ""
+  }
+  metadata={Array.isArray(props.record?.metadata) ? props.record.metadata : []}
+  query={props.query}
+  recordType={props.record?.type}
+/>

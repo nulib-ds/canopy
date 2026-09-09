@@ -436,7 +436,8 @@ function canopyBodyClassForType(type) {
 
 function htmlShell({ title, body, cssHref, scriptHref, headExtra, bodyClass, lang }) {
   const scriptTag = scriptHref ? `<script defer src="${scriptHref}"></script>` : '';
-  const extra = headExtra ? String(headExtra) : '';
+  const extra = (headExtra ? String(headExtra) : '') +
+    require('./discovery/config').webMcpScriptTag(withBase);
   const cssTag = cssHref ? `<link rel="stylesheet" href="${cssHref}">` : '';
   const appearance = resolveThemeAppearance();
   const accent = resolveThemeAccent();

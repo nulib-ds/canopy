@@ -39,15 +39,17 @@ Paragraphs can mix _italics_, **bold**, and `inline code` for props like `iiifCo
 
 ### Images
 
+This image comes from [The town & pass of Boondi, in Rajpootana](https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif), a print in the British India Art demo.
+
 ```mdx
-![Stacked archival boxes](https://picsum.photos/seed/canopy-stacks/800/360)
+![The town & pass of Boondi, in Rajpootana](https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-df58661ce7d5/full/600,/0/default.jpg)
 
 <Image
-  src="https://ids.lib.harvard.edu/ids/iiif/9013118"
+  src="https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-df58661ce7d5"
   isTiledImage
   height="400px"
-  alt="Detail from The Summons"
-  caption="Use the Image component for pan-zoom or annotated figures."
+  alt="The town &amp; pass of Boondi, in Rajpootana"
+  caption="Courtesy of Northwestern University Libraries."
 />
 ```
 
@@ -67,7 +69,7 @@ Term
 
 ````mdx
 ```txt filename="snippet.mdx"
-<Viewer iiifContent="https://…" />
+<Viewer iiifContent="https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif" />
 ```
 
 - [x] Document the build inputs.
@@ -95,24 +97,24 @@ Because MDX is just React, you can pass props directly in the markup. Keep compo
 
 ## Home page content
 
-`content/index.mdx` controls the landing page. Compose Markdown and drop components wherever you need them—most sites lead with `<Interstitials.Hero />`, then follow up with `<Container>` sections, sliders, or bespoke CTAs.
+`content/index.mdx` controls the landing page. Compose Markdown and place components where you need them. Most sites lead with `<Interstitials.Hero />`, then follow up with `<Container>` sections, sliders, or bespoke CTAs.
 
 ```mdx filename="content/index.mdx"
 ---
-title: Amanda Ira Aldridge Correspondence
+title: British India Art
 ---
 
 <Interstitials.Hero
-  headline="Plan your visit"
-  description="Preview your favorites, bookmark upcoming tours, and read the latest from the archives."
-  links={[{ title: 'Browse works', href: '/works' }]}
+  headline="Explore British India Art"
+  description="Explore paintings and prints from Northwestern University Libraries and the Victoria and Albert Museum."
+  links={[{ title: 'Browse works', href: '/search' }]}
 />
 
 <Container>
-  <p>Introduce the collection, cite your institution, or drop inline media.</p>
+  <p>Explore art from India through IIIF images and source records.</p>
   <ButtonWrapper>
-    <Button href="/works" label="Browse works" />
-    <Button href="https://example.org" label="About the project" variant="secondary" />
+    <Button href="/search" label="Browse works" />
+    <Button href="/about" label="About the project" variant="secondary" />
   </ButtonWrapper>
 </Container>
 ```
@@ -121,16 +123,19 @@ title: Amanda Ira Aldridge Correspondence
 
 `<Interstitials.Hero />` renders at the top of the page and rotates through the `featured` manifests listed in `canopy.yml`.
 
-```yaml filename="canopy.yml" {5-10}
+```yaml filename="canopy.yml" {5-7}
 collection:
-  - https://collections.example.org/iiif/harpsichords
+  - https://api.dc.library.northwestern.edu/api/v2/collections/7ac5769f-a1d9-4227-a350-bf8bd8b1cddc?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif
 featured:
-  - https://collections.example.org/iiif/manifest/alpha
-  - https://collections.example.org/iiif/manifest/bravo
-  - https://collections.example.org/iiif/manifest/charlie
+  - https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/c26591b2-994b-4ba3-a87e-9124419fa91b?as=iiif
+  - https://api.dc.library.northwestern.edu/api/v2/works/d4c62d7f-f50d-4b29-85e0-5d380675bec7?as=iiif
 metadata:
   - Subject
-  - Creator
+  - Date
+  - Language
+  - Genre
 ```
 
 Behavior notes:
@@ -140,12 +145,12 @@ Behavior notes:
 - The hero supports props like `headline`, `description`, `links`, `variant`, `background`, `homeLabel`, and `height`. Pass them via `content/index.mdx` (e.g., `<Interstitials.Hero headline="Explore" />`).
 - Set `variant="breadcrumb"` to render a centered, copy-driven hero with a breadcrumb that mirrors the current docs path; override the leading crumb with `homeLabel` when needed.
 
-```mdx filename="content/index.mdx" {11-16}
+```mdx filename="content/index.mdx" {1-6}
 <Interstitials.Hero
   variant="breadcrumb"
-  headline="Plan your visit"
-  description="Preview your favorites, bookmark upcoming tours, and read the latest from the archives."
-  links={[{ title: 'Browse works', href: '/works' }]}
+  headline="Explore British India Art"
+  description="Explore paintings and prints from Northwestern University Libraries and the Victoria and Albert Museum."
+  links={[{ title: 'Browse works', href: '/search' }]}
 />
 ```
 

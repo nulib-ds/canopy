@@ -1,6 +1,6 @@
 {
   "name": "@canopy-iiif/app-root",
-  "version": "1.12.7",
+  "version": "1.13.0",
   "description": "An open-source static site generator designed for fast creation, contextualization, and customization of a discovery-focused digital scholarship and collections website using IIIF APIs.",
   "private": true,
   "main": "app/scripts/canopy-build.mjs",
@@ -15,6 +15,7 @@
     "preview:template-essay": "node packages/helpers/template/preview-template.js --source packages/helpers/template-essay --name template-essay --out .template-essay-preview",
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit",
+    "pretest:unit": "npm -w @canopy-iiif/app run ui:build",
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --config tests/jest.config.cjs",
     "precommit:tests": "npm run test:unit",
     "prepare": "husky install",

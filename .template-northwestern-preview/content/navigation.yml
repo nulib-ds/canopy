@@ -1,0 +1,5 @@
+navigation:
+  - href: /search
+    label: Works
+  - href: /about
+    label: About

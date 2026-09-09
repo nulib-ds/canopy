@@ -158,8 +158,23 @@ Set `type` as `small` on any `mapKey` entry to render those `MapPoint`s as compa
 
 Provide any IIIF Manifest or Collection URL via `iiifContent`. When a manifest is supplied, the map plots only that record’s navPlace features. When a collection is supplied, the runtime inspects each manifest listed in the collection and includes every navPlace-enabled work it finds. Note that this currently only supports Collections whose manifests are set in your `canopy.yml` file as the build process pre-fetches and caches those records.
 
+The British India art demo does not supply `navPlace` points. This example selects its Collection
+and adds an approximate city marker linked to *Bombay Harbour : fishing boats in the monsoon*.
+The coordinate is an editorial choice, not a provider coordinate or the precise location of the
+scene.
+
 ```mdx
-<Map iiifContent="https://tamulib-dc-labs.github.io/sesquicentennial-manifests/collections.json" />
+<Map iiifContent="https://api.dc.library.northwestern.edu/api/v2/collections/94536627-cfdf-413c-852b-0cb16d986da3?as=iiif">
+  <MapPoint
+    lat="19.08"
+    lng="72.88"
+    title="Mumbai"
+    summary="Approximate city marker added for this example."
+    referencedManifests={[
+      "https://api.dc.library.northwestern.edu/api/v2/works/9307533e-0204-4b19-b79c-e0a850c6a46a?as=iiif",
+    ]}
+  />
+</Map>
 ```
 
 ## IIIF Georeference extension
