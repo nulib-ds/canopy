@@ -1305,6 +1305,7 @@ function renameAnonymousChunks(scriptsDir) {
   } catch (_) {}
 }
 
+// Clover dependencies use native BigInt literals, requiring ES2020 or newer.
 async function buildCloverHydrationRuntimes() {
   const esbuild = resolveEsbuild();
   if (!esbuild)
@@ -1332,7 +1333,7 @@ async function buildCloverHydrationRuntimes() {
     format: "esm",
     splitting: true,
     sourcemap: false,
-    target: ["es2018"],
+    target: ["es2020"],
     logLevel: "silent",
     minify: true,
     define: { "process.env.NODE_ENV": '"production"' },
@@ -1446,7 +1447,7 @@ async function buildCustomClientRuntime(entries) {
     outfile: outFile,
     bundle: true,
     platform: "browser",
-    target: ["es2018"],
+    target: ["es2020"],
     format: "esm",
     sourcemap: false,
     minify: true,
@@ -1595,7 +1596,7 @@ async function ensureFacetsRuntime() {
       format: "iife",
       bundle: true,
       sourcemap: false,
-      target: ["es2018"],
+      target: ["es2020"],
       logLevel: "silent",
       minify: true,
       plugins: [shim],
@@ -1658,7 +1659,7 @@ async function ensureReactGlobals() {
     format: "iife",
     bundle: true,
     sourcemap: false,
-    target: ["es2018"],
+    target: ["es2020"],
     logLevel: "silent",
     minify: true,
     define: {"process.env.NODE_ENV": '"production"'},
@@ -1695,7 +1696,7 @@ async function ensureHeroRuntime() {
     format: "iife",
     bundle: true,
     sourcemap: false,
-    target: ["es2018"],
+    target: ["es2020"],
     logLevel: "silent",
     minify: true,
   });
@@ -1812,7 +1813,7 @@ async function ensureTimelineRuntime() {
     format: "iife",
     bundle: true,
     sourcemap: false,
-    target: ["es2018"],
+    target: ["es2020"],
     logLevel: "silent",
     minify: true,
     plugins: [plugin],
@@ -1935,7 +1936,7 @@ async function ensureMapRuntime() {
     format: "iife",
     bundle: true,
     sourcemap: false,
-    target: ["es2018"],
+    target: ["es2020"],
     logLevel: "silent",
     minify: true,
     plugins: [plugin],

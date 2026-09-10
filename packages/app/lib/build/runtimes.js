@@ -3,12 +3,25 @@ const { fs, path, OUT_DIR, ensureDirSync } = require('../common');
 
 async function prepareAllRuntimes() {
   const mdx = require('./mdx');
-  try { await mdx.ensureClientRuntime(); } catch (_) {}
-  try { if (typeof mdx.ensureTimelineRuntime === 'function') await mdx.ensureTimelineRuntime(); } catch (_) {}
-  try { if (typeof mdx.ensureMapRuntime === 'function') await mdx.ensureMapRuntime(); } catch (_) {}
-  try { if (typeof mdx.ensureHeroRuntime === 'function') await mdx.ensureHeroRuntime(); } catch (_) {}
-  try { if (typeof mdx.ensureFacetsRuntime === 'function') await mdx.ensureFacetsRuntime(); } catch (_) {}
-  try { if (typeof mdx.ensureReactGlobals === 'function') await mdx.ensureReactGlobals(); } catch (_) {}
+  const runtimes = [
+    ['Clover hydration', mdx.ensureClientRuntime],
+    // Page renderers may catch this failure; check the cached result before succeeding.
+    ['Custom client component', mdx.ensureCustomClientRuntime],
+    ['Timeline', mdx.ensureTimelineRuntime],
+    ['Map', mdx.ensureMapRuntime],
+    ['Hero', mdx.ensureHeroRuntime],
+    ['RelatedItems', mdx.ensureFacetsRuntime],
+    ['React globals', mdx.ensureReactGlobals],
+  ];
+  for (const [label, ensureRuntime] of runtimes) {
+    try {
+      await ensureRuntime();
+    } catch (error) {
+      throw new Error(`[canopy] ${label} runtime failed to build: ${error.message || error}`, {
+        cause: error,
+      });
+    }
+  }
   await prepareSearchFormRuntime();
   await prepareDiscoveryRuntime();
   try { logLine('✓ Prepared client hydration runtimes', 'cyan', { dim: true }); } catch (_) {}
@@ -37,7 +50,7 @@ async function prepareSearchFormRuntime() {
     format: 'iife',
     bundle: true,
     sourcemap: false,
-    target: ['es2018'],
+    target: ['es2020'],
     logLevel: 'silent',
     minify: true,
   });

@@ -1,5 +1,11 @@
 const releases = [
   {
+    "version": "1.13.1",
+    "date": "2026-09-10",
+    "summary": "Address clover / canopy esbuild friction.",
+    "highlights": []
+  },
+  {
     "version": "1.13.0",
     "date": "2026-09-09",
     "summary": "Introduce WebMCP underlay.",
