@@ -186,7 +186,7 @@ Goal: Allow authors to fully compose the search page via MDX, while the builder 
   - Copies the repo into a disposable staging directory (default `.template-build/`, override with `TEMPLATE_OUT_DIR`), excluding dev-only paths (e.g., `.git`, `node_modules`, `packages`, `.cache`, `.changeset`, template workflows, agent docs).
   - Rewrites `package.json` inside the staging directory to remove workspaces, swap `workspace:*` deps for published versions of `@canopy-iiif/lib` and `@canopy-iiif/ui`, and set `build`/`dev` scripts to run `node app/scripts/canopy-build.mjs`.
   - Patches the Pages deploy workflow in the template to inline the build verify step (no helpers package there).
-  - Force‑pushes the result to `main` of `nulib-ds/canopy-template` (and `nulib-ds/canopy-template-i18n` for the bilingual variant).
+  - Force‑pushes the result to `main` of `nulib-ds/canopy-template` (plus `nulib-ds/canopy-template-i18n` for the bilingual variant and `nulib-ds/canopy-template-northwestern` for the Northwestern-branded variant).
 - Template expectations:
   - The generated template consumes the published `@canopy-iiif/app` package; it does not include the monorepo `packages/` directory.
   - `packages/helpers` is omitted from the template; template automation reuses the verified workflows committed to this repo.

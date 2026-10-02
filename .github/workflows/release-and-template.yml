@@ -223,3 +223,58 @@ jobs:
           TEMPLATE_COMMIT_MESSAGE: ${{ steps.template_i18n_commit.outputs.text }}
           TEMPLATE_OUT_DIR: .template-i18n-build
         run: node packages/helpers/template/push-template.js
+
+  template-northwestern:
+    needs: release
+    if: needs.release.result == 'success' && needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: |
+          npm config set fund false
+          npm config set audit false
+          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Build template commit message
+        id: template_northwestern_commit
+        run: |
+          MESSAGE=$(node -e "const notes = process.env.NOTES ? JSON.parse(process.env.NOTES) : {}; const summary = notes.summary ? ' – ' + notes.summary : ''; const version = process.env.VERSION || ''; process.stdout.write('Update template-northwestern for v' + version + summary);")
+          {
+            echo 'text<<EOF'
+            echo "$MESSAGE"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ needs.release.outputs.releaseVersion }}
+          NOTES: ${{ needs.release.outputs.releaseNotes }}
+
+      - name: Resolve published version
+        id: ver_northwestern
+        run: |
+          echo "APP=$(npm view @canopy-iiif/app version || echo '')" >> $GITHUB_OUTPUT
+
+      - name: Prepare clean template (northwestern)
+        env:
+          APP_VERSION: ${{ steps.ver_northwestern.outputs.APP }}
+          TEMPLATE_SOURCE_DIR: packages/helpers/template-northwestern
+          TEMPLATE_OUT_DIR: .template-northwestern-build
+        run: node packages/helpers/template/prepare-template.js
+
+      - name: Push to template-northwestern repository (main)
+        env:
+          TEMPLATE_PUSH_TOKEN: ${{ secrets.TEMPLATE_PUSH_TOKEN }}
+          TARGET_REPO: nulib-ds/canopy-template-northwestern
+          TEMPLATE_COMMIT_MESSAGE: ${{ steps.template_northwestern_commit.outputs.text }}
+          TEMPLATE_OUT_DIR: .template-northwestern-build
+        run: node packages/helpers/template/push-template.js

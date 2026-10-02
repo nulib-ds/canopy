@@ -9,6 +9,8 @@ site/
 .template-i18n-preview/
 .template-essay-build/
 .template-essay-preview/
+.template-northwestern-build/
+.template-northwestern-preview/
 .org-build/
 
 # remove this if you would like to commit the cache

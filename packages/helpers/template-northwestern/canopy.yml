@@ -14,10 +14,7 @@ search:
     description: Discover works from Northwestern University Libraries.
 theme:
   appearance: light
-  # TODO(design): "purple" is the closest stock Radix token available today.
-  # Northwestern's exact brand ramp (#4e2a84 + "Rich Black" grays) is already
-  # documented in content/docs/theme/index.mdx and doesn't map to a named
-  # Radix palette 1:1 -- decide in the design pass whether to keep this token
-  # or ship a precise app/styles/custom.css override instead.
+  # Fallbacks only: app/styles/northwestern.css overrides these with
+  # Northwestern's exact Purple and Rich Black ramps. See DESIGN.md.
   accentColor: purple
-  grayColor: slate
+  grayColor: sand

@@ -13,6 +13,7 @@ Key Scripts
 - `template/`: Logic for preparing the GitHub Pages template repo during releases.
 - `template-i18n/`: Assets + overrides for the bilingual template (`en` default, `es` secondary) published by the `template-i18n` job.
 - `template-essay/`: Long-form starter content plus overrides, staged locally via `npm run preview:template-essay` (not pushed by CI — no `template-essay` GitHub repo exists).
+- `template-northwestern/`: Northwestern-branded starter (brand layer in `app/styles/northwestern.css`, decisions in `DESIGN.md`), published by the `template-northwestern` release job to `nulib-ds/canopy-template-northwestern` (reuses `TEMPLATE_PUSH_TOKEN`, the Canopy CI PAT, which has access to that repo); preview locally via `npm run preview:template-northwestern`.
 
 Invariants
 ----------
@@ -46,3 +47,4 @@ Logbook
 - 2026-02-02 / chatgpt: Added `org/prepare-org-site.js` + `org/push-org-site.js`; helper now rewrites `sitemap*.xml(.gz)` `<loc>` entries to `CANOPY_BASE_URL`, renders `root/index.mdx` (+ `_app.mdx`) to HTML, copies only README/robots/CSS, and publishes a minimal `.org-build/` (no `/app` directory) before pushing to `canopy-iiif.github.io`.
 - 2026-03-14 / chatgpt: Introduced the template-i18n source directory plus `TEMPLATE_SOURCE_DIR` override so the release workflow can publish `canopy-iiif/template-i18n` alongside the default starter.
 - 2026-03-30 / chatgpt: Added the essay template variant plus a reusable preview helper so any template can be staged locally (`npm run preview:template*`).
+- 2026-10-02 / claude: `prepare-template.js` now copies a variant's `DESIGN.md` and overlays a variant's `app/` directory after `writeTailwindFiles()`, so variants can ship their own `app/styles/*.css`. Variants without `app/` are unaffected.

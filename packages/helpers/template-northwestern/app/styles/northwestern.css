@@ -1,0 +1,449 @@
+/**
+ * Northwestern brand layer for Canopy IIIF.
+ *
+ * Maps Northwestern's official palette and typefaces onto Canopy's design
+ * tokens, then applies the Northwestern header/footer treatment. Edit
+ * `custom.css` for project-specific changes so this file can track brand
+ * updates. Decisions and rationale live in DESIGN.md.
+ *
+ * @see https://www.northwestern.edu/brand/
+ */
+
+/* -------------------------------------------------------------------------
+ * Typefaces — loaded from Northwestern's central CDN. Akkurat Pro is
+ * licensed for central hosting only: never copy these files into assets/.
+ * ---------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Akkurat Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url("https://common.northwestern.edu/v8/css/fonts/AkkuratProRegular.woff2") format("woff2"),
+    url("https://common.northwestern.edu/v8/css/fonts/AkkuratProRegular.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Akkurat Pro";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url("https://common.northwestern.edu/v8/css/fonts/AkkuratProItalic.woff2") format("woff2"),
+    url("https://common.northwestern.edu/v8/css/fonts/AkkuratProItalic.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Akkurat Pro";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    url("https://common.northwestern.edu/v8/css/fonts/AkkuratProBold.woff2") format("woff2"),
+    url("https://common.northwestern.edu/v8/css/fonts/AkkuratProBold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://common.northwestern.edu/v8/css/fonts/Poppins-Regular.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://common.northwestern.edu/v8/css/fonts/Poppins-Bold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("https://common.northwestern.edu/v8/css/fonts/Poppins-ExtraBold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Noto Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://common.northwestern.edu/v8/css/fonts/noto-serif-v16-latin-regular.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Noto Serif";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://common.northwestern.edu/v8/css/fonts/noto-serif-v16-latin-italic.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Noto Serif";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://common.northwestern.edu/v8/css/fonts/noto-serif-v16-latin-700.woff") format("woff");
+}
+
+/* -------------------------------------------------------------------------
+ * Tokens. `!important` is required: Canopy appends the theme generated from
+ * canopy.yml after this file in production builds.
+ * ---------------------------------------------------------------------- */
+
+@layer properties {
+  :root,
+  :host {
+    /* Purple scale (Purple 100 = Northwestern Purple) */
+    --nu-purple-10: #e4e0ee;
+    --nu-purple-20: #ccc4df;
+    --nu-purple-30: #b6acd1;
+    --nu-purple-40: #a495c3;
+    --nu-purple-60: #836eaa;
+    --nu-purple-90: #5b3b8d;
+    --nu-purple-100: #4e2a84;
+    --nu-purple-110: #482476;
+    --nu-purple-120: #401f68;
+    --nu-purple-140: #30104e;
+
+    /* Rich Black scale — never #000000 in digital UI */
+    --nu-rich-black-10: #d8d6d6;
+    --nu-rich-black-20: #bbb8b8;
+    --nu-rich-black-30: #a29f9e;
+    --nu-rich-black-40: #8a8585;
+    --nu-rich-black-50: #716c6b;
+    --nu-rich-black-60: #5d5857;
+    --nu-rich-black-70: #484342;
+    --nu-rich-black-80: #342f2e;
+
+    --nu-white: #ffffff;
+    --nu-offwhite: #f0f0f0;
+
+    /* Canopy accent ramp → Purple */
+    --color-accent-50: var(--nu-white) !important;
+    --color-accent-100: var(--nu-purple-10) !important;
+    --color-accent-200: var(--nu-purple-20) !important;
+    --color-accent-300: var(--nu-purple-30) !important;
+    --color-accent-400: var(--nu-purple-40) !important;
+    --color-accent-500: var(--nu-purple-60) !important;
+    --color-accent-600: var(--nu-purple-90) !important;
+    --color-accent-700: var(--nu-purple-100) !important;
+    --color-accent-800: var(--nu-purple-120) !important;
+    --color-accent-900: var(--nu-purple-140) !important;
+    --color-accent-default: var(--nu-purple-100) !important;
+
+    /* Canopy gray ramp → White, Off-White, Rich Black 10–80% */
+    --color-gray-50: var(--nu-white) !important;
+    --color-gray-100: var(--nu-offwhite) !important;
+    --color-gray-200: var(--nu-rich-black-10) !important;
+    --color-gray-300: var(--nu-rich-black-20) !important;
+    --color-gray-400: var(--nu-rich-black-40) !important;
+    --color-gray-500: var(--nu-rich-black-50) !important;
+    --color-gray-600: var(--nu-rich-black-60) !important;
+    --color-gray-700: var(--nu-rich-black-60) !important;
+    --color-gray-800: var(--nu-rich-black-70) !important;
+    --color-gray-900: var(--nu-rich-black-80) !important;
+    --color-gray-default: var(--nu-rich-black-80) !important;
+    --color-gray-muted: var(--nu-rich-black-60) !important;
+
+    /* Typefaces */
+    --font-sans: "Akkurat Pro", Arial, sans-serif !important;
+    --font-display: "Poppins", Arial, sans-serif;
+    --font-serif: "Noto Serif", Georgia, serif !important;
+    --default-font-family: var(--font-sans) !important;
+  }
+}
+
+/* Clover components (viewer, slider, image, scroll) read their own
+ * `--clover-*` variables, which Canopy's generated theme does not set. */
+:root {
+  --clover-color-accent: var(--nu-purple-100);
+  --clover-color-accent-alt: var(--nu-purple-120);
+  --clover-color-primary: var(--nu-rich-black-80);
+  --clover-color-primary-alt: var(--nu-rich-black-80);
+  --clover-color-primary-muted: var(--nu-rich-black-60);
+  --clover-color-secondary: var(--nu-white);
+  --clover-color-secondary-alt: var(--nu-rich-black-10);
+  --clover-color-secondary-muted: var(--nu-offwhite);
+  --clover-radius: 0;
+  --clover-radius-pill: 0;
+}
+
+/* Hero: flat white instead of the default lavender gradient — white is the
+ * predominant surface; the image and purple headline carry the moment.
+ * Unlayered because Canopy's hero styles are unlayered. */
+.canopy-interstitial--hero {
+  --hero-bg-mid: var(--nu-white);
+  --hero-bg-end: var(--nu-white);
+  border-bottom: 1px solid var(--nu-rich-black-10);
+}
+
+/* Cards: no box border — an Off-White surface separates them from the page. */
+.canopy-card {
+  border: none;
+  background: var(--nu-offwhite);
+}
+
+/* Canopy tucks the hero under a transparent header; this header is opaque. */
+.canopy-interstitial {
+  margin-top: 0;
+  padding-top: 2rem;
+}
+
+/* -------------------------------------------------------------------------
+ * Base typography
+ * ---------------------------------------------------------------------- */
+
+@layer base {
+  /* 110% (17.6px) matches Canopy's default sizing and sits in Northwestern's
+   * 17–19px range for Akkurat Pro body copy. */
+  html {
+    font-size: 110%;
+    font-family: var(--font-sans);
+    font-weight: 400;
+  }
+
+  body {
+    background: var(--nu-white);
+    color: var(--nu-rich-black-80);
+    line-height: 1.7;
+  }
+
+  /* Poppins is reserved for display sizes (≥ 1.375rem). */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--nu-purple-100);
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--nu-rich-black-80);
+  }
+
+  /* Purple vs. Rich Black text is ~1.3:1, so in-copy links need an
+   * underline to stay distinguishable (WCAG 1.4.1). */
+  main p a,
+  main li a,
+  main dd a,
+  main blockquote a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  main p a:hover,
+  main li a:hover,
+  main dd a:hover,
+  main blockquote a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--nu-purple-100);
+    outline-offset: 2px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Components
+ * ---------------------------------------------------------------------- */
+
+@layer components {
+  /* Header: Northwestern Purple bar with the white wordmark. */
+  .canopy-header {
+    background: var(--nu-purple-100);
+    color: var(--nu-white);
+  }
+
+  .canopy-header .canopy-logo,
+  .canopy-modal .canopy-logo {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 1.111rem;
+    letter-spacing: 0;
+    color: var(--nu-white) !important;
+  }
+
+  .canopy-logo .nu-wordmark {
+    display: block;
+    flex: 0 0 auto;
+    height: 1.1rem;
+    width: auto;
+    padding-right: 0.85rem;
+    border-right: 1px solid var(--nu-purple-60);
+  }
+
+  .canopy-header .canopy-nav-links a {
+    color: var(--nu-white);
+    font-weight: 700;
+  }
+
+  .canopy-header .canopy-nav-links a:hover,
+  .canopy-header .canopy-nav-links a:focus-visible,
+  .canopy-header .canopy-nav-links a[aria-current="page"] {
+    color: var(--nu-white);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+  }
+
+  .canopy-header .canopy-header__icon-button,
+  .canopy-header .canopy-header__menu {
+    color: var(--nu-white);
+  }
+
+  .canopy-header .canopy-header__icon-button:hover,
+  .canopy-header .canopy-header__icon-button:focus-visible {
+    color: var(--nu-purple-20);
+  }
+
+  .canopy-header :focus-visible {
+    outline-color: var(--nu-white);
+  }
+
+  /* Narrow spaces (small screens, nav/search modals): stack the title under
+   * the wordmark. */
+  .canopy-modal .canopy-logo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .canopy-modal .canopy-logo .nu-wordmark {
+    height: 1rem;
+    padding-right: 0;
+    border-right: none;
+  }
+
+  .canopy-modal .canopy-logo span {
+    height: auto;
+    line-height: 1.2;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 40rem) {
+    .canopy-header .canopy-logo {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.35rem;
+    }
+
+    .canopy-header .canopy-logo .nu-wordmark {
+      height: 1rem;
+      padding-right: 0;
+      border-right: none;
+    }
+
+    .canopy-header .canopy-logo span {
+      height: auto;
+      line-height: 1.2;
+      font-size: 0.95rem;
+    }
+  }
+
+  /* Nav and search modals repeat the brand; give it the same purple bar so
+   * the white wordmark stays legible. */
+  .canopy-modal--nav .canopy-modal__brand,
+  .canopy-modal--search .canopy-modal__brand {
+    margin: -1.618rem -1.618rem 1.25rem;
+    padding: 1rem 4.5rem 1rem 1.618rem;
+    background: var(--nu-purple-100);
+  }
+
+  .canopy-modal--nav .canopy-modal__close,
+  .canopy-modal--search .canopy-modal__close {
+    background: none;
+    color: var(--nu-white);
+  }
+
+  .canopy-modal--nav .canopy-modal__close:hover,
+  .canopy-modal--nav .canopy-modal__close:focus-visible,
+  .canopy-modal--search .canopy-modal__close:hover,
+  .canopy-modal--search .canopy-modal__close:focus-visible {
+    color: var(--nu-purple-20);
+    outline-color: var(--nu-white);
+  }
+
+  .canopy-modal--nav .canopy-nav-links a {
+    color: var(--nu-rich-black-80);
+    font-weight: 700;
+  }
+
+  /* Buttons: Akkurat Pro Bold, generous padding, square corners. */
+  .canopy-button {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .canopy-button--primary {
+    background-color: var(--nu-purple-100);
+    border-color: var(--nu-purple-100);
+    color: var(--nu-white);
+  }
+
+  .canopy-button--primary:hover,
+  .canopy-button--primary:focus-visible {
+    background-color: var(--nu-purple-120);
+    border-color: var(--nu-purple-120);
+    color: var(--nu-white);
+    text-decoration: none;
+  }
+
+  .canopy-button--secondary {
+    background-color: var(--nu-white);
+    border-color: var(--nu-purple-100);
+    color: var(--nu-purple-100);
+  }
+
+  .canopy-button--secondary:hover,
+  .canopy-button--secondary:focus-visible {
+    background-color: var(--nu-purple-10);
+    border-color: var(--nu-purple-100);
+    color: var(--nu-purple-100);
+    text-decoration: none;
+  }
+
+  /* Footer: Purple 120 reversed-out section. */
+  .canopy-footer {
+    background: var(--nu-purple-120);
+    border-top: none;
+    color: var(--nu-white);
+  }
+
+  .canopy-footer__inner {
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .canopy-footer a {
+    color: var(--nu-white);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .canopy-footer .nu-wordmark {
+    display: block;
+    height: 1.25rem;
+    width: auto;
+  }
+
+  .canopy-footer :focus-visible {
+    outline-color: var(--nu-white);
+  }
+}

@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@import "@canopy-iiif/app/ui/styles/index.css";
+@import "./northwestern.css";
+@import "./custom.css";
+
+@utility max-w-content {
+  max-width: 1080px;
+}
+
+@utility max-w-wide {
+  max-width: 1300px;
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}

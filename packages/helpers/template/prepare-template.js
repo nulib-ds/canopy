@@ -122,6 +122,12 @@ function applyTemplateOverrides(templateRoot) {
     fs.copyFileSync(templateAgents, destAgents);
   }
 
+  const templateDesign = path.join(resolvedTemplateRoot, 'DESIGN.md');
+  if (fs.existsSync(templateDesign)) {
+    const destDesign = path.join(distRoot, 'DESIGN.md');
+    fs.copyFileSync(templateDesign, destDesign);
+  }
+
   const templateCanopy = path.join(resolvedTemplateRoot, 'canopy.yml');
   if (fs.existsSync(templateCanopy)) {
     const destCanopy = path.join(distRoot, 'canopy.yml');
@@ -249,6 +255,14 @@ module.exports = defineCanopyTailwindConfig(pathToFileURL(__filename).href);
   }
 }
 
+// Variants may ship their own `app/` files (e.g. `app/styles/custom.css`).
+// Runs after writeTailwindFiles so variant styles win over the monorepo copies.
+function applyTemplateAppOverrides(templateRoot) {
+  const templateAppDir = path.join(templateRoot, 'app');
+  if (!fs.existsSync(templateAppDir) || !fs.statSync(templateAppDir).isDirectory()) return;
+  copyDirContents(templateAppDir, path.join(OUTPUT_ROOT, 'app'));
+}
+
 function main(templateRoot) {
   const appVersion = process.env.APP_VERSION || '';
   const resolvedTemplateRoot = templateRoot || resolveTemplateRoot();
@@ -261,6 +275,7 @@ function main(templateRoot) {
   const writeTemplateDeploy = require('./write-template-deploy');
   writeTemplateDeploy(OUTPUT_ROOT);
   writeTailwindFiles();
+  applyTemplateAppOverrides(resolvedTemplateRoot);
 }
 
 if (require.main === module) {

@@ -1,21 +1,35 @@
 import {Meta, Stylesheet} from "@canopy-iiif/app/head";
 import {CanopyHeader, CanopyFooter} from "@canopy-iiif/app/ui";
 
+export const NU_CDN = "https://common.northwestern.edu/v8/css";
+
 export function Head() {
   return (
     <>
       <Meta />
+      <link rel="preconnect" href="https://common.northwestern.edu" crossOrigin="anonymous" />
+      <link
+        rel="preload"
+        href={`${NU_CDN}/fonts/AkkuratProRegular.woff2`}
+        as="font"
+        type="font/woff2"
+        crossOrigin="anonymous"
+      />
+      <link
+        rel="preload"
+        href={`${NU_CDN}/fonts/AkkuratProBold.woff2`}
+        as="font"
+        type="font/woff2"
+        crossOrigin="anonymous"
+      />
+      <link
+        rel="preload"
+        href={`${NU_CDN}/fonts/Poppins-Bold.woff`}
+        as="font"
+        type="font/woff"
+        crossOrigin="anonymous"
+      />
       <Stylesheet />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossOrigin="true"
-      />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,50,0..1;1,9..144,300..600,50,0..1&display=swap"
-        rel="stylesheet"
-      />
     </>
   );
 }
@@ -23,14 +37,20 @@ export function Head() {
 export function App({children}) {
   return (
     <>
-      {/* TODO(design): swap in a Northwestern/NUL logo mark once approved.
-          Keeping the generic Canopy mark for this scaffolding pass. */}
-      <CanopyHeader logo={Logo} />
+      {/* The header pairs the wordmark with a short unit or project name, so
+          it omits "Northwestern". canopy.yml `title` still sets page titles. */}
+      <CanopyHeader logo={Logo} title="Libraries" />
       <main>{children}</main>
       <CanopyFooter>
+        <a href="https://www.northwestern.edu/" aria-label="Northwestern University">
+          <img className="nu-wordmark" src={`${NU_CDN}/images/northwestern.svg`} alt="" />
+        </a>
         <p>
-          Copyright 2026 Northwestern University Libraries, MIT License. A
-          Canopy IIIF Project.
+          <a href="https://www.library.northwestern.edu/">Northwestern University Libraries</a>
+        </p>
+        <p>
+          © 2026 Northwestern University. Built with{" "}
+          <a href="https://nulib-ds.github.io/canopy/">Canopy IIIF</a>.
         </p>
       </CanopyFooter>
     </>
@@ -38,11 +58,7 @@ export function App({children}) {
 }
 
 export const Logo = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-    <circle className="canopy-logo-backlight" cx="250" cy="250" r="250" />
-    <path
-      className="canopy-logo-overlay"
-      d="M125,33.45C50.28,76.68,0,157.47,0,250s50.28,173.32,125,216.55c74.72-43.23,125-124.01,125-216.55S199.72,76.68,125,33.45Z"
-    />
-  </svg>
+  // Official white wordmark from Northwestern's CDN. It is only legible on
+  // Northwestern Purple — see DESIGN.md before placing it elsewhere.
+  <img className="nu-wordmark" src={`${NU_CDN}/images/northwestern.svg`} alt="Northwestern" />
 );
