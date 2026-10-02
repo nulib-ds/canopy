@@ -6,6 +6,9 @@
   --canopy-radius-xl: 0;
   --canopy-radius-pill: 0;
   --canopy-radius-circle: 0;
+  // Clover reads its own radius tokens; follow Canopy's square corners.
+  --clover-radius: var(--canopy-radius-sm);
+  --clover-radius-pill: var(--canopy-radius-pill);
   --canopy-shadow-none: none;
   --canopy-shadow-sm: none;
   --canopy-shadow-md: none;

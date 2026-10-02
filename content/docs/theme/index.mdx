@@ -189,20 +189,29 @@ override the custom variables in production builds even if everything works corr
 
 ### Clover Component overrides
 
-The Image, Viewer, Slider, and Scroll components (derived from the Clover IIIF package) have their own theming system that uses **different CSS variable names**.
+The Image, Viewer, Slider, and Scroll components (derived from the Clover IIIF package) read their own `--clover-*` CSS variables. Canopy sets these for you from the theme tokens above, so Clover components follow your `canopy.yml` palette and any overrides you make to `--color-accent-*` or `--color-gray-*`.
 
-To customize these colors, add these rules **outside** the `@layer properties` block, targeting the
-`.clover-viewer` class directly. This targeting is necessary because Clover uses its own CSS variables. Standard `:root` variables won't override these component-scoped styles.
+| Clover variable                  | Canopy token             | Used for                                  |
+| -------------------------------- | ------------------------ | ----------------------------------------- |
+| `--clover-color-accent`          | `--color-accent-default` | Buttons and active states                 |
+| `--clover-color-accent-alt`      | `--color-accent-900`     | Button hover states                       |
+| `--clover-color-primary`         | `--color-gray-default`   | Text                                      |
+| `--clover-color-primary-alt`     | `--color-gray-900`       | Media player background, headings         |
+| `--clover-color-primary-muted`   | `--color-gray-muted`     | Placeholders and muted text               |
+| `--clover-color-secondary`       | `--color-gray-50`        | Panel backgrounds, text on accent buttons |
+| `--clover-color-secondary-alt`   | `--color-gray-400`       | Resize handles, popover arrows            |
+| `--clover-color-secondary-muted` | `--color-gray-300`       | Subtle borders                            |
+| `--clover-radius`                | `--canopy-radius-sm`     | Corner radius (`0`)                       |
+| `--clover-radius-pill`           | `--canopy-radius-pill`   | Pill buttons (`0`)                        |
+
+To give Clover components different colors from the rest of your site, set the `--clover-*` variables directly. Target `:root` to change every Clover component, or a component class such as `.clover-viewer` or `.canopy-slider` to scope the change. These rules can live outside `@layer properties` and do not need `!important`.
 
 ```css filename="app/styles/_custom.css"
-/* Clover IIIF Viewer theme overrides
- * Must target the component directly to override generated theme classes.
- */
+/* Clover IIIF theme overrides */
 .clover-viewer,
-.clover-viewer [class*="t-"] {
-  --colors-accent: #500000 !important;
-  --colors-accentAlt: #300000 !important;
-  --colors-accentMuted: #8b1a1a !important;
+.canopy-slider {
+  --clover-color-accent: #500000;
+  --clover-color-accent-alt: #300000;
 }
 ```
 

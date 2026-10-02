@@ -50,6 +50,23 @@ const AVAILABLE = new Set(
 
 const APPEARANCES = new Set(["light", "dark"]);
 
+// Current Clover (verified on 3.16) reads `--clover-color-*` tokens. Each one
+// points at a Canopy token rather than a literal value so author overrides of
+// `--color-accent-*` / `--color-gray-*` also reach Clover components.
+// Radix dark scales invert, so the same steps hold for `appearance: dark`.
+const CLOVER_ACCENT_TOKENS = {
+  "--clover-color-accent": "--color-accent-default", // accent 800
+  "--clover-color-accent-alt": "--color-accent-900", // hover states
+};
+const CLOVER_GRAY_TOKENS = {
+  "--clover-color-primary": "--color-gray-default", // gray 900, text
+  "--clover-color-primary-alt": "--color-gray-900", // no darker step exists
+  "--clover-color-primary-muted": "--color-gray-muted", // gray 800, placeholders
+  "--clover-color-secondary": "--color-gray-50", // surfaces
+  "--clover-color-secondary-alt": "--color-gray-400", // handles, popover arrows
+  "--clover-color-secondary-muted": "--color-gray-300", // subtle borders
+};
+
 function readYamlConfig(cfgPath) {
   try {
     if (!cfgPath) return {};
@@ -124,6 +141,19 @@ function buildVariablesMap(brandScale, grayScale, options = {}) {
     if (grayScale["900"]) vars["--color-gray-default"] = grayScale["900"];
     if (grayScale["800"]) vars["--color-gray-muted"] = grayScale["800"];
   }
+  if (brandScale) {
+    for (const [prop, token] of Object.entries(CLOVER_ACCENT_TOKENS)) {
+      vars[prop] = `var(${token})`;
+    }
+  }
+  if (grayScale) {
+    for (const [prop, token] of Object.entries(CLOVER_GRAY_TOKENS)) {
+      vars[prop] = `var(${token})`;
+    }
+  }
+  // Older Stitches-based Clover (e.g. 3.3.8) reads `--colors-*` and declares
+  // its own `:root` defaults, hence `!important`. Drop once sites no longer
+  // pin those versions.
   if (brandScale && grayScale) {
     if (brandScale["800"]) {
       vars["--colors-accent"] = `${brandScale["800"]} !important`;
@@ -244,5 +274,6 @@ module.exports = {
   AVAILABLE_PALETTES: Array.from(AVAILABLE).sort(),
   __DEBUG_ENABLED: DEBUG_ENABLED,
   variablesToCss,
+  buildVariablesMap,
   buildSassConfig,
 };
