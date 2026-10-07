@@ -38,7 +38,11 @@ function readYamlConfig(cfgPath) {
   }
 }
 
-function buildSassConfig(brandScale, grayScale) {
+/**
+ * @deprecated Always returned "" and is no longer used; removed in the next
+ * major release.
+ */
+function buildSassConfig() {
   return "";
 }
 
@@ -77,10 +81,8 @@ function loadCanopyTheme(options = {}) {
     });
   }
 
-  const dynamicVars = buildVariablesMap(accentScale, grayScale, {appearance});
-  const mergedVars = dynamicVars;
-  const css = variablesToCss(mergedVars);
-  const sassConfig = buildSassConfig(accentScale, grayScale);
+  const variables = buildVariablesMap(accentScale, grayScale, {appearance});
+  const css = variablesToCss(variables);
 
   debugLog("resolved theme", {
     configPath: cfgPath,
@@ -112,9 +114,8 @@ function loadCanopyTheme(options = {}) {
     appearance,
     accent: {name: accentName, scale: accentScale},
     gray: {name: grayName, scale: grayScale},
-    variables: mergedVars,
+    variables,
     css,
-    sassConfig,
   };
 }
 

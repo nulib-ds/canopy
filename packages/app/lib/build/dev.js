@@ -46,13 +46,6 @@ const CUSTOM_COMPONENT_EXTENSIONS = new Set(
     ext
   ) => ext.toLowerCase())
 );
-let loadUiTheme = null;
-try {
-  const uiTheme = require(path.join(APP_UI_DIR, "theme.js"));
-  if (uiTheme && typeof uiTheme.loadCanopyTheme === "function") {
-    loadUiTheme = uiTheme.loadCanopyTheme;
-  }
-} catch (_) {}
 const APP_WATCH_TARGETS = [
   { dir: APP_LIB_DIR, label: "@canopy-iiif/app/lib" },
   { dir: APP_UI_DIR, label: "@canopy-iiif/app/ui" },
@@ -1146,11 +1139,7 @@ async function dev() {
     const rebuildUiStyles = () => {
       if (!sass || !fs.existsSync(uiStylesEntry)) return false;
       try {
-        const theme = loadUiTheme ? loadUiTheme({ cwd: process.cwd() }) : null;
-        const source = `${
-          theme && theme.sassConfig ? theme.sassConfig : ""
-        }@use 'index';`;
-        const result = sass.compileString(source, {
+        const result = sass.compileString("@use 'index';", {
           loadPaths: [uiStylesDir],
           style: "expanded",
         });

@@ -10,19 +10,17 @@
  */
 const plugin = require("tailwindcss/plugin");
 const path = require("path");
-const { loadCanopyTheme } = require("./theme");
 
 function compileScss(filePath) {
   try {
     const sass = require("sass");
-    const theme = loadCanopyTheme();
     const stylesRoot = path.join(__dirname, "styles");
     const loadPaths = [stylesRoot];
     const relModule = path
       .relative(stylesRoot, filePath)
       .replace(/\\/g, "/")
       .replace(/\.scss$/i, "");
-    const source = `${theme && theme.sassConfig ? theme.sassConfig : ""}@use '${relModule}';`;
+    const source = `@use '${relModule}';`;
     const out = sass.compileString(source, { style: "expanded", loadPaths });
     return out && out.css ? out.css : "";
   } catch (e) {

@@ -3,15 +3,10 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import * as sass from 'sass';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const { loadCanopyTheme } = require('../theme.js');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
-const repoRoot = path.resolve(root, '..', '..', '..');
 const stylesDir = path.join(root, 'styles');
 const indexScss = path.join(stylesDir, 'index.scss');
 const indexCss = path.join(stylesDir, 'index.css');
@@ -39,10 +34,8 @@ const externalizeWorkspaceLibComponents = {
 
 async function compileStylesOnce() {
   try {
-    const theme = loadCanopyTheme({ cwd: repoRoot });
     const loadPaths = [stylesDir];
-    const source = `${theme && theme.sassConfig ? theme.sassConfig : ''}@use 'index';`;
-    const out = sass.compileString(source, { style: 'expanded', loadPaths });
+    const out = sass.compileString("@use 'index';", { style: 'expanded', loadPaths });
     fs.mkdirSync(path.dirname(indexCss), { recursive: true });
     // The theme is added to each site's stylesheet at build time
     // (lib/build/styles.js); never bake it into this published file.
