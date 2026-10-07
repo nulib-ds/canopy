@@ -37,10 +37,14 @@ export function Head() {
 export function App({children}) {
   return (
     <>
-      {/* The wordmark stands alone. The header's text label (canopy.yml
-          `title`) is visually hidden but still names the home link and the
-          nav/search modals for screen readers. */}
-      <CanopyHeader logo={Logo} />
+      {/* v4-style top bar: the white wordmark links to northwestern.edu. The
+          header below carries the site name from canopy.yml `title`. */}
+      <div className="nu-top-bar">
+        <a href="https://www.northwestern.edu/">
+          <img className="nu-wordmark" src={`${NU_CDN}/images/northwestern.svg`} alt="Northwestern University" />
+        </a>
+      </div>
+      <CanopyHeader />
       <main>{children}</main>
       <CanopyFooter>
         <a href="https://www.northwestern.edu/" aria-label="Northwestern University">
@@ -57,10 +61,3 @@ export function App({children}) {
     </>
   );
 }
-
-export const Logo = () => (
-  // Official white wordmark from Northwestern's CDN. It is only legible on
-  // Northwestern Purple — see DESIGN.md before placing it elsewhere. Empty
-  // alt: the hidden header label already names the link.
-  <img className="nu-wordmark" src={`${NU_CDN}/images/northwestern.svg`} alt="" />
-);

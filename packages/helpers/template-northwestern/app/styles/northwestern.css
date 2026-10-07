@@ -106,6 +106,7 @@
     --nu-purple-30: #b6acd1;
     --nu-purple-40: #a495c3;
     --nu-purple-60: #836eaa;
+    --nu-purple-70: #765da0;
     --nu-purple-90: #5b3b8d;
     --nu-purple-100: #4e2a84;
     --nu-purple-110: #482476;
@@ -191,6 +192,67 @@
   padding-top: 2rem;
 }
 
+/* Header search: underlined field with a trailing purple icon, as in the
+ * v4 templates. Unlayered because Canopy's search-form styles are. */
+.canopy-header__desktop-search {
+  width: 265px;
+  flex: none;
+}
+
+.canopy-header .canopy-search-form {
+  display: flex;
+  align-items: center;
+  border: none;
+  border-bottom: 1px solid var(--nu-purple-60);
+  background: transparent;
+  padding: 0;
+}
+
+.canopy-header .canopy-search-form__label {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.canopy-header .canopy-search-form__label svg {
+  order: 2;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--nu-purple-60);
+}
+
+.canopy-header .canopy-search-form__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2rem;
+  padding: 0 0.2rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--nu-rich-black-80);
+}
+
+.canopy-header .canopy-search-form__input::placeholder {
+  color: var(--nu-purple-30);
+}
+
+.canopy-header .canopy-search-form__submit {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* -------------------------------------------------------------------------
  * Base typography
  * ---------------------------------------------------------------------- */
@@ -258,99 +320,143 @@
  * ---------------------------------------------------------------------- */
 
 @layer components {
-  /* Header: Northwestern Purple bar with the white wordmark. */
-  .canopy-header {
-    background: var(--nu-purple-100);
-    color: var(--nu-white);
+  /* Header — modeled on Northwestern's v4 department templates: a Purple 120
+   * top bar with the wordmark (rendered in _app.mdx), a white row with the
+   * site name and search, then a full-width nav row between Purple 30 rules.
+   * Content aligns to a 1120px column. */
+  .nu-top-bar {
+    background: var(--nu-purple-120);
+    min-height: 63px;
+    display: flex;
+    align-items: center;
+    padding-inline: max(1.25rem, calc((100% - 1120px) / 2));
   }
 
-  /* The wordmark stands alone. The text label (canopy.yml `title`) stays in
-   * the markup, visually hidden, to name the home link and the modals. */
-  .canopy-header .canopy-logo > span,
-  .canopy-modal .canopy-logo > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .canopy-logo .nu-wordmark {
+  .nu-top-bar .nu-wordmark {
     display: block;
-    flex: 0 0 auto;
-    height: 1.1rem;
+    height: 21px;
     width: auto;
   }
 
-  .canopy-header .canopy-nav-links a {
-    color: var(--nu-white);
-    font-weight: 700;
+  .nu-top-bar a:focus-visible {
+    outline: 2px solid var(--nu-white);
+    outline-offset: 2px;
   }
 
-  .canopy-header .canopy-nav-links a:hover,
-  .canopy-header .canopy-nav-links a:focus-visible,
+  .canopy-header {
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(1.25rem, 1fr)
+      [content-start] minmax(0, 1120px)
+      [content-end] minmax(1.25rem, 1fr)
+      [full-end];
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    background: var(--nu-white);
+    border-bottom: 1px solid var(--nu-purple-30);
+  }
+
+  .canopy-header__brand,
+  .canopy-header__desktop-search,
+  .canopy-header__actions {
+    grid-column: content;
+    grid-row: 1;
+  }
+
+  .canopy-header__brand {
+    justify-self: start;
+    max-width: calc(100% - 6rem);
+    padding: 2rem 0 1.8rem;
+  }
+
+  .canopy-header__desktop-search,
+  .canopy-header__actions {
+    justify-self: end;
+    margin-left: 0;
+  }
+
+  .canopy-header .canopy-logo,
+  .canopy-modal .canopy-logo {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: var(--nu-purple-100) !important;
+  }
+
+  .canopy-header .canopy-logo {
+    font-size: 1.8rem;
+  }
+
+  /* Long site names wrap rather than truncate, as in the v4 templates. */
+  .canopy-header .canopy-logo span,
+  .canopy-modal .canopy-logo span {
+    height: auto;
+    line-height: 1.2;
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .canopy-modal .canopy-logo {
+    font-size: 1.1rem;
+  }
+
+  /* Nav row: full-bleed rule, links aligned to the content column. */
+  .canopy-nav-links.canopy-header__desktop-nav {
+    grid-column: full;
+    grid-row: 2;
+    gap: 0;
+    padding-inline: max(1.25rem, calc((100% - 1120px) / 2));
+    border-top: 1px solid var(--nu-purple-30);
+  }
+
+  .canopy-header .canopy-nav-links a {
+    display: block;
+    padding: 0.9rem 1.15rem;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    color: var(--nu-purple-100);
+    text-decoration: none;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
   .canopy-header .canopy-nav-links a[aria-current="page"] {
+    background: var(--nu-purple-10);
+    color: var(--nu-purple-100);
+  }
+
+  .canopy-header .canopy-nav-links a:hover {
+    background: var(--nu-purple-70);
     color: var(--nu-white);
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.35em;
+  }
+
+  .canopy-header .canopy-nav-links a:focus-visible {
+    background: var(--nu-rich-black-80);
+    color: var(--nu-white);
+    outline: none;
   }
 
   .canopy-header .canopy-header__icon-button,
   .canopy-header .canopy-header__menu {
-    color: var(--nu-white);
-  }
-
-  .canopy-header .canopy-header__icon-button:hover,
-  .canopy-header .canopy-header__icon-button:focus-visible {
-    color: var(--nu-purple-20);
-  }
-
-  .canopy-header :focus-visible {
-    outline-color: var(--nu-white);
-  }
-
-  /* Narrow spaces (small screens, nav/search modals): a smaller wordmark. */
-  .canopy-modal .canopy-logo .nu-wordmark {
-    height: 1rem;
-  }
-
-  @media (max-width: 40rem) {
-    .canopy-header .canopy-logo .nu-wordmark {
-      height: 1rem;
-    }
-  }
-
-  /* Nav and search modals repeat the brand; give it the same purple bar so
-   * the white wordmark stays legible. */
-  .canopy-modal--nav .canopy-modal__brand,
-  .canopy-modal--search .canopy-modal__brand {
-    margin: -1.618rem -1.618rem 1.25rem;
-    padding: 1rem 4.5rem 1rem 1.618rem;
-    /* The close button sits 1rem from the top and is 2.5rem tall; this
-     * height centers the wordmark on it. */
-    min-height: 4.5rem;
-    background: var(--nu-purple-100);
-  }
-
-  .canopy-modal--nav .canopy-modal__close,
-  .canopy-modal--search .canopy-modal__close {
-    background: none;
-    color: var(--nu-white);
-  }
-
-  .canopy-modal--nav .canopy-modal__close:hover,
-  .canopy-modal--nav .canopy-modal__close:focus-visible,
-  .canopy-modal--search .canopy-modal__close:hover,
-  .canopy-modal--search .canopy-modal__close:focus-visible {
-    color: var(--nu-purple-20);
-    outline-color: var(--nu-white);
+    color: var(--nu-purple-100);
   }
 
   .canopy-modal--nav .canopy-nav-links a {
-    color: var(--nu-rich-black-80);
+    color: var(--nu-purple-100);
     font-weight: 700;
+  }
+
+  @media (max-width: 56.25em) {
+    .canopy-header__brand {
+      padding: 1.25rem 0;
+    }
+
+    .canopy-header .canopy-logo {
+      font-size: 1.35rem;
+    }
   }
 
   /* Buttons: Akkurat Pro Bold, generous padding, square corners. */

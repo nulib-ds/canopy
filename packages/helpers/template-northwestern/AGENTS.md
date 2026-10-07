@@ -11,7 +11,7 @@ Key Files
 - `canopy.yml` — points to a Northwestern Digital Collections collection so the demo renders immediately. `theme.accentColor`/`grayColor` are fallbacks only; `app/styles/northwestern.css` overrides them.
 - `app/styles/northwestern.css` — brand layer: Northwestern CDN `@font-face` (Akkurat Pro, Poppins, Noto Serif), exact Purple/Rich Black ramps mapped onto Canopy tokens, header/footer/button treatment.
 - `app/styles/custom.css` — empty slot for project-specific overrides; keep brand changes out of it.
-- `_app.mdx` — font preloads, official white wordmark (from the Northwestern CDN) in the purple header, Purple 120 footer.
+- `_app.mdx` — font preloads, v4-style Purple 120 top bar with the official white wordmark (from the Northwestern CDN), Purple 120 footer.
 - `content/index.mdx` — homepage adapted from the default template with Northwestern-flavored copy.
 - `content/about/index.mdx` — colophon-style "about this starter" page crediting Northwestern University Libraries.
 - `DESIGN.md` — brand/design brief: color palette, typography, logo, layout decisions, and an open-decisions checklist.
@@ -35,3 +35,4 @@ Logbook
   - `northwestern.css` visually hides that label. It still names the home link and the nav/search modals (`aria-labelledby`) for screen readers, and the wordmark has empty `alt` so the name isn't read twice.
   - Removed the Purple 60 hairline and the label-stacking rules.
   - The modal brand bar gets `min-height: 4.5rem` so the wordmark stays centered on the close button now that the label no longer adds height.
+- 2026-10-07 / claude: Rebuilt the header on Northwestern's v4 department templates. `_app.mdx` renders a `.nu-top-bar` (Purple 120, wordmark linked to northwestern.edu) above `CanopyHeader`, which no longer gets a `logo`. `northwestern.css` lays the header out as a grid on a 1120px column: uppercase purple site name with an underlined search, then a full-bleed nav row between Purple 30 rules. The search overrides are unlayered because Canopy's search-form styles are. Removed the hidden-label, purple modal bar, and white-on-purple nav rules.

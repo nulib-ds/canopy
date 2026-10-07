@@ -1,5 +1,11 @@
 const releases = [
   {
+    "version": "1.14.1",
+    "date": "2026-10-07",
+    "summary": "Refine Northwestern template header.",
+    "highlights": []
+  },
+  {
     "version": "1.14.0",
     "date": "2026-10-07",
     "summary": "Update Northwestern theme; component theming.",

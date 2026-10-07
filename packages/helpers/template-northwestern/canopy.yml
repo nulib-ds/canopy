@@ -1,17 +1,18 @@
-title: Northwestern University Libraries
+title: Canopy Template
 collection:
   - https://api.dc.library.northwestern.edu/api/v2/collections/bd90de9e-8e1e-43c4-8009-dd13a916a2ac?as=iiif
 metadata:
   - Date
   - Subject
 featured:
+  - https://api.dc.library.northwestern.edu/api/v2/works/9f9a7032-717f-4446-a0c3-193404a4c090?as=iiif
   - https://api.dc.library.northwestern.edu/api/v2/works/61927e08-db09-4479-80a8-0ff00fbca987?as=iiif
   - https://api.dc.library.northwestern.edu/api/v2/works/a7bb16fa-5cec-4ac4-9b38-9bd68589f35a?as=iiif
   - https://api.dc.library.northwestern.edu/api/v2/works/5a5059b0-8bd3-4f3a-a04c-435f10952688?as=iiif
 search:
   page:
     title: Search
-    description: Discover works from Northwestern University Libraries.
+    description: Discover works
 theme:
   appearance: light
   # Fallbacks only: app/styles/northwestern.css overrides these with

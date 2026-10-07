@@ -9,16 +9,16 @@ The living record of layout, theme, and styling decisions for the Northwestern-b
 | `app/styles/northwestern.css` | Brand layer: `@font-face`, Purple/Rich Black tokens mapped onto Canopy tokens, header/footer/button treatment. Treat as upstream — avoid editing per project. |
 | `app/styles/custom.css` | Project-specific overrides. Empty by default. |
 | `app/styles/index.css` | Tailwind entry; imports Canopy UI, then `northwestern.css`, then `custom.css`. |
-| `content/_app.mdx` | Font preloads, header wordmark, footer. |
+| `content/_app.mdx` | Font preloads, v4-style top bar with the wordmark, footer. |
 | `canopy.yml` | `theme` fields are fallbacks only (`purple` / `sand`); `northwestern.css` wins. |
 
 ## Brand & Identity
 
 - Institution: Northwestern University Libraries.
-- Header shows the official white "Northwestern" wordmark from Northwestern's CDN (`common.northwestern.edu/v8/css/images/northwestern.svg`) on its own, with no unit/project label beside it.
-- Canopy still renders the header's text label, the `canopy.yml` `title`. `northwestern.css` visually hides it so it can name the home link and the nav/search modals for screen readers. The wordmark image has empty `alt` so the name isn't read twice.
-- Below `40rem`, and inside the nav/search modals, the wordmark drops to `1rem` tall.
-- The wordmark is white-only. It must sit on Northwestern Purple (header, nav/search modal brand bar) or Purple 120 (footer). Never place it on white.
+- The header follows Northwestern's v4 department templates (northwestern.edu/templates/v4): a Purple 120 top bar holding the official white wordmark (`common.northwestern.edu/v8/css/images/northwestern.svg`, 21px tall) linked to northwestern.edu, then a white row with the site name, then the nav row.
+- The top bar is markup in `_app.mdx` (`.nu-top-bar`), not part of `CanopyHeader`, so the wordmark links to the University while the site name links home. `CanopyHeader` gets no `logo`.
+- The site name is the `canopy.yml` `title`, set in uppercase Akkurat Pro Regular in Northwestern Purple (`1.8rem`; `1.35rem` below `56.25em`). Long names wrap.
+- The wordmark is white-only. It must sit on Purple 120 (top bar, footer) or Northwestern Purple. Never place it on white.
 
 ## Color
 
@@ -36,7 +36,7 @@ Northwestern's exact ramps, mapped onto Canopy's tokens in `northwestern.css`. C
 | `--color-gray-200`–`800` | Rich Black 10, 20, 40, 50, 60, 60, 70% |
 | `--color-gray-900` / `-default` | Rich Black 80% `#342F2E` (primary text) |
 
-- White is the predominant surface. Purple appears in the header bar, headings, links, and primary buttons; Purple 120 in the footer.
+- White is the predominant surface. Purple appears in the top bar, site name, nav, headings, links, and primary buttons; Purple 120 in the footer.
 - Pure black (`#000000`) is never used.
 - `--color-gray-400` maps to Rich Black 40% (3.7:1) rather than 30% so UI borders clear the 3:1 component contrast minimum.
 - Raw brand values are exposed as `--nu-purple-*`, `--nu-rich-black-*`, `--nu-white`, `--nu-offwhite` for project CSS.
@@ -76,8 +76,8 @@ All faces load from Northwestern's central CDN (`common.northwestern.edu/v8/css/
 
 ## Components
 
-- **Header:** Northwestern Purple bar, opaque; white wordmark, label, nav links (Akkurat Pro Bold), and icons. Active/hover nav items get a 2px white underline. Because it is opaque, the hero's `-5rem` tuck-under margin is reset to `0`.
-- **Nav/search modals:** the brand row becomes a full-bleed purple bar with a white close button (scoped to `.canopy-modal--nav` / `--search`).
+- **Header (v4):** three rows aligned to a 1120px column. Top bar Purple 120, 63px. Site-name row white, `2rem` padding, with search on the right: an underlined field (Purple 60 rule, Purple 30 placeholder, trailing Purple 60 icon; the submit button is visually hidden). Nav row between Purple 30 hairlines; links Akkurat Pro Bold in Northwestern Purple, Purple 70 fill with white text on hover, Purple 10 fill for the current page. Below Canopy's `70rem` breakpoint the nav and search collapse to purple icon buttons. The header is opaque, so the hero's `-5rem` tuck-under margin is reset to `0`.
+- **Nav/search modals:** white, with the site name in the same uppercase purple treatment.
 - **Hero:** flat white (Canopy's lavender gradient removed); purple Poppins headline, Rich Black description, brand buttons.
 - **Buttons:** primary = Purple 100 fill, Purple 120 on hover; secondary = white with Purple 100 outline/text, Purple 10 on hover. Akkurat Pro Bold, `0.75rem 1.5rem` padding.
 - **Footer:** Purple 120 band, white wordmark linking to northwestern.edu, Libraries link, copyright + Canopy credit.
@@ -91,8 +91,8 @@ All faces load from Northwestern's central CDN (`common.northwestern.edu/v8/css/
 
 - [x] Color tokens — exact ramps via `app/styles/northwestern.css`
 - [x] Typography — Akkurat Pro / Poppins / Noto Serif from the Northwestern CDN
-- [x] Logo — official white wordmark from the Northwestern CDN on a purple header
-- [ ] Confirm the standalone wordmark header with University Marketing, or replace it with an official Libraries lockup
+- [x] Logo — official white wordmark from the Northwestern CDN in a v4-style Purple 120 top bar
+- [ ] Confirm the v4-style header with University Marketing
 - [x] Hero treatment on the homepage — flat white, hairline base
 - [ ] Work-page layout variations from the default template
 - [ ] Content voice for starter copy
