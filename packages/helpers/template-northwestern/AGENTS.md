@@ -29,3 +29,9 @@ Logbook
 -------
 - 2026-07-20 / claude: Initial scaffolding — canopy.yml, _app.mdx, homepage, about/colophon page, README, and DESIGN.md brief. Theme, typography, and logo decisions intentionally left open pending a follow-up design pass.
 - 2026-10-02 / claude: Design pass — exact brand tokens and CDN fonts in `app/styles/northwestern.css`, purple header with the official wordmark, Purple 120 footer, underlined in-copy links. Restored the `preview:template-northwestern` script, `.gitignore` entry, and `DESIGN.md` copy; added the variant `app/` overlay to `prepare-template.js`.
+- 2026-10-02 / claude: Dropped `!important` from the `northwestern.css` tokens and cut its Clover block to the three values that differ from Canopy's mapping (`accent-alt`, `secondary-alt`, `secondary-muted`). Needs an `@canopy-iiif/app` release newer than 1.13.1, which places the theme before custom CSS and emits `--clover-color-*`. Verified against a local-package build: computed tokens and Viewer, slider and header styles are unchanged on the homepage, About and a work page.
+- 2026-10-02 / claude: Dropped the "| Libraries" header label; the wordmark stands alone.
+  - `_app.mdx` no longer passes `title`, so Canopy's label is the `canopy.yml` title.
+  - `northwestern.css` visually hides that label. It still names the home link and the nav/search modals (`aria-labelledby`) for screen readers, and the wordmark has empty `alt` so the name isn't read twice.
+  - Removed the Purple 60 hairline and the label-stacking rules.
+  - The modal brand bar gets `min-height: 4.5rem` so the wordmark stays centered on the close button now that the label no longer adds height.

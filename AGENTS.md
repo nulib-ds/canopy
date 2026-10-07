@@ -5,7 +5,7 @@ This repository is a minimal Node.js project. Use this guide to add code and gro
 ## Project Structure & Module Organization
 - `app/`: app entry and styles
   - `app/scripts/canopy-build.mjs`: single stable entry for dev/build (orchestrates UI + lib)
-  - `app/styles/`: Tailwind v4 entrypoint. The UI preset injects Sass-exported design tokens (colors, fonts, etc.) so utilities like `bg-brand` resolve to the CSS variables defined in the preset.
+  - `app/styles/`: Tailwind v4 entrypoint, configured in CSS (`@theme`, `@utility`, `@plugin`); there is no JS config. The build injects the `canopy.yml` theme tokens at the top of the compiled stylesheet, and Tailwind's gray utilities resolve to them.
 - `content/`: MDX pages and section layouts
 - `assets/`: static files copied into `site/`
 - `packages/`: workspaces

@@ -30,3 +30,27 @@
 .clover-viewer-media-navigation button svg {
   filter: unset !important;
 }
+
+// Canopy's dark appearance already inverts the `--clover-color-*` tokens, so
+// Clover's own `.dark` rules for the select menu would swap them back to a
+// light panel. Restore Clover's light-mode mapping, which is now dark.
+html.dark {
+  .clover-select-content {
+    background-color: var(--clover-color-secondary);
+    border-color: var(--clover-color-secondary-muted);
+  }
+
+  .clover-select-item {
+    color: var(--clover-color-primary);
+    background-color: var(--clover-color-secondary);
+  }
+
+  .clover-select-item[data-state='checked'] {
+    color: var(--clover-color-primary) !important;
+  }
+
+  .clover-select-label {
+    color: var(--clover-color-primary-muted);
+    background-color: transparent;
+  }
+}

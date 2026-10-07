@@ -1,23 +1,14 @@
-/* eslint-disable import/namespace */
 import React from "react";
-import * as radixColors from "@radix-ui/colors";
+import {
+  LEVELS,
+  buildVariablesMap,
+  swatchColor,
+  toTailwindScale,
+} from "../../theme-palette.js";
 
 const COLOR_SCALES = [
   {label: "Accent", prefix: "--color-accent"},
   {label: "Gray", prefix: "--color-gray"},
-];
-
-const COLOR_STOPS = [
-  "50",
-  "100",
-  "200",
-  "300",
-  "400",
-  "500",
-  "600",
-  "700",
-  "800",
-  "900",
 ];
 
 const ACCENT_COLOR_NAMES = [
@@ -56,20 +47,6 @@ const DEFAULTS = {
   accentColor: "indigo",
   grayColor: "slate",
 };
-const LEVELS = COLOR_STOPS;
-const STEP_MAP = {
-  50: 1,
-  100: 3,
-  200: 4,
-  300: 6,
-  400: 7,
-  500: 8,
-  600: 9,
-  700: 10,
-  800: 11,
-  900: 12,
-};
-
 const Section = ({title, description, children}) => (
   <div className="canopy-theme-showcase__section">
     <h3 className="canopy-theme-showcase__section-title">{title}</h3>
@@ -88,7 +65,7 @@ const ColorScaleRow = ({label, prefix}) => (
       <strong>{label}</strong>
     </div>
     <div className="canopy-theme-showcase__scale-track">
-      {COLOR_STOPS.map((stop) => (
+      {LEVELS.map((stop) => (
         <div
           key={`${label}-${stop}`}
           className="canopy-theme-showcase__scale-stop"
@@ -104,156 +81,17 @@ const ColorScaleRow = ({label, prefix}) => (
   </div>
 );
 
-const AVAILABLE = new Set(
-  Object.keys(radixColors).filter(
-    (key) =>
-      /^[a-z]+$/i.test(key) && radixColors[key] && radixColors[key][`${key}1`]
-  )
-);
-
-function normalizeAppearance(raw) {
-  if (!raw) return "light";
-  return String(raw).trim().toLowerCase() === "dark" ? "dark" : "light";
-}
-
-function darkenHex(hex, amount = 0.15) {
-  if (!hex) return hex;
-  const normalized = hex.replace("#", "");
-  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) return hex;
-  const num = parseInt(normalized, 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  const clamp = (value) => Math.max(0, Math.min(255, Math.round(value)));
-  const toHex = (value) => clamp(value).toString(16).padStart(2, "0");
-  const factor = 1 - amount;
-  return `#${toHex(r * factor)}${toHex(g * factor)}${toHex(b * factor)}`;
-}
-
-function lightenHex(hex, amount = 0.15) {
-  if (!hex) return hex;
-  const normalized = hex.replace("#", "");
-  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) return hex;
-  const num = parseInt(normalized, 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  const clamp = (value) => Math.max(0, Math.min(255, Math.round(value)));
-  const toHex = (value) => clamp(value).toString(16).padStart(2, "0");
-  const adjust = (value) => value + (255 - value) * amount;
-  return `#${toHex(adjust(r))}${toHex(adjust(g))}${toHex(adjust(b))}`;
-}
-
-function adjustSaturation(hex, amount = 0.15) {
-  if (!hex) return hex;
-  const normalized = hex.replace("#", "");
-  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) return hex;
-  const num = parseInt(normalized, 16);
-  let r = ((num >> 16) & 255) / 255;
-  let g = ((num >> 8) & 255) / 255;
-  let b = (num & 255) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      default:
-        h = (r - g) / d + 4;
-    }
-    h /= 6;
-  }
-  const delta = Number(amount);
-  if (!Number.isFinite(delta) || delta === 0) return hex;
-  s = Math.max(0, Math.min(1, s + delta));
-  const hueToRgb = (p, q, t) => {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
-  };
-  let rOut;
-  let gOut;
-  let bOut;
-  if (s === 0) {
-    rOut = gOut = bOut = l;
-  } else {
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    rOut = hueToRgb(p, q, h + 1 / 3);
-    gOut = hueToRgb(p, q, h);
-    bOut = hueToRgb(p, q, h - 1 / 3);
-  }
-  const toHex = (value) =>
-    Math.round(Math.max(0, Math.min(1, value)) * 255)
-      .toString(16)
-      .padStart(2, "0");
-  return `#${toHex(rOut)}${toHex(gOut)}${toHex(bOut)}`;
-}
-
-function mixHexColors(colorA, colorB, amount = 0.5) {
-  const normalize = (hex) =>
-    hex && /^[0-9a-fA-F]{6}$/.test(hex.replace("#", ""))
-      ? hex.replace("#", "")
-      : null;
-  const first = normalize(colorA);
-  const second = normalize(colorB);
-  if (!first || !second) return colorA || colorB || null;
-  const a = parseInt(first, 16);
-  const b = parseInt(second, 16);
-  const clampAmount = Math.max(0, Math.min(1, Number(amount) || 0));
-  const mixChannel = (shift) =>
-    Math.round(
-      ((a >> shift) & 255) +
-        (((b >> shift) & 255) - ((a >> shift) & 255)) * clampAmount
-    );
-  const toHex = (value) => value.toString(16).padStart(2, "0");
-  const r = mixChannel(16);
-  const g = mixChannel(8);
-  const bl = mixChannel(0);
-  return `#${toHex(r)}${toHex(g)}${toHex(bl)}`;
-}
-
-function normalizeDarkenAmount(raw) {
-  const value = Number(raw);
-  if (!Number.isFinite(value)) return null;
-  return Math.min(0.95, Math.max(0, value));
-}
-
-function resolveRadixPalette(name, appearance) {
-  if (!name || !AVAILABLE.has(name)) return null;
-  const paletteKey = appearance === "dark" ? `${name}Dark` : name;
-  const palette = radixColors[paletteKey];
-  if (palette && palette[`${name}1`]) return palette;
-  const fallback = radixColors[name];
-  return fallback && fallback[`${name}1`] ? fallback : null;
-}
-
-function toTailwindScale(name, options = {}) {
-  if (!name || !AVAILABLE.has(name)) return null;
-  const appearance = normalizeAppearance(options.appearance);
-  const palette = resolveRadixPalette(name, appearance);
-  if (!palette) return null;
-  const scale = {};
-  for (const lvl of LEVELS) {
-    const radixStep = STEP_MAP[lvl];
-    const key = `${name}${radixStep}`;
-    const value = palette[key];
-    if (!value) return null;
-    scale[lvl] = value;
-  }
-  return scale;
+// The variables a build emits for one palette, without `color-scheme`, which
+// the preview sets from the chosen appearance.
+function paletteVars(type, name, appearance) {
+  const scale = toTailwindScale(name, {appearance});
+  if (!scale) return null;
+  const vars =
+    type === "accent"
+      ? buildVariablesMap(scale, null, {appearance})
+      : buildVariablesMap(null, scale, {appearance});
+  delete vars["color-scheme"];
+  return vars;
 }
 
 function buildPreviewData() {
@@ -262,24 +100,20 @@ function buildPreviewData() {
     accentColors: ACCENT_COLOR_NAMES,
     grayColors: GRAY_COLOR_NAMES,
     defaults: DEFAULTS,
-    scales: {},
+    vars: {},
   };
   for (const appearance of APPEARANCES) {
-    const accentScales = {};
-    const grayScales = {};
-    for (const accent of ACCENT_COLOR_NAMES) {
-      const scale = toTailwindScale(accent, {appearance});
-      if (scale) accentScales[accent] = scale;
+    const accent = {};
+    const gray = {};
+    for (const name of ACCENT_COLOR_NAMES) {
+      const vars = paletteVars("accent", name, appearance);
+      if (vars) accent[name] = vars;
     }
-    for (const gray of GRAY_COLOR_NAMES) {
-      const scale = toTailwindScale(gray, {
-        appearance,
-        darken900Amount: 0.4,
-        saturate700: false,
-      });
-      if (scale) grayScales[gray] = scale;
+    for (const name of GRAY_COLOR_NAMES) {
+      const vars = paletteVars("gray", name, appearance);
+      if (vars) gray[name] = vars;
     }
-    data.scales[appearance] = {accent: accentScales, gray: grayScales};
+    data.vars[appearance] = {accent, gray};
   }
   return data;
 }
@@ -290,10 +124,10 @@ function encodeJson(value) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
 
-const ColorsLabeled = ({colors, type, getRadixSwatch}) => (
+const ColorsLabeled = ({colors, type}) => (
   <div className="canopy-theme-showcase__swatch-grid">
     {colors.map((name) => {
-      const colorValue = getRadixSwatch(name);
+      const colorValue = swatchColor(name);
       return (
         <button
           key={`${type}-${name}`}
@@ -319,13 +153,6 @@ export default function ThemeShowcase() {
   const accentColors = ACCENT_COLOR_NAMES;
   const grayColors = GRAY_COLOR_NAMES;
 
-  const getRadixSwatch = (name) => {
-    if (!name) return null;
-    const scale = radixColors[name];
-    if (!scale) return null;
-    return scale[`${name}9`] || Object.values(scale)[8];
-  };
-
   const styles = `
     .canopy-theme-showcase {
       margin: 2.618rem 0;
@@ -336,7 +163,6 @@ export default function ThemeShowcase() {
       flex-wrap: wrap;
     }
     .canopy-theme-showcase__appearance-button {
-      border-radius: 999px;
       border: 1px solid var(--color-gray-300);
       background: var(--color-gray-50);
       color: var(--color-gray-900);
@@ -351,7 +177,6 @@ export default function ThemeShowcase() {
       background: color-mix(in srgb, var(--color-accent-100) 65%, transparent);
     }
     .canopy-theme-showcase__reset {
-      border-radius: 999px;
       border: 1px solid var(--color-gray-400);
       background: transparent;
       padding: 0.35rem 1.2rem;
@@ -404,20 +229,6 @@ export default function ThemeShowcase() {
       align-items: center;
       gap: 0.382rem;
       overflow: hidden;
-
-      &:first-child {
-        .canopy-theme-showcase__scale-chip {
-          border-top-left-radius: 3px;
-          border-bottom-left-radius: 3px;
-        }
-      }
-
-      &:last-child {
-        .canopy-theme-showcase__scale-chip {
-          border-top-right-radius: 3px;
-          border-bottom-right-radius: 3px;
-        }
-      }
     }
     .canopy-theme-showcase__scale-chip {
       display: block;
@@ -435,7 +246,6 @@ export default function ThemeShowcase() {
     .canopy-theme-showcase__swatch {
       width: 5.5rem;
       border: 1px solid var(--color-gray-200);
-      border-radius: 0.75rem;
       background: var(--color-gray-50);
       padding: 0.5rem;
       display: flex;
@@ -443,7 +253,7 @@ export default function ThemeShowcase() {
       align-items: center;
       gap: 0.35rem;
       cursor: pointer;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease background 0.2s ease, color 0.2s ease;
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
       font-weight: 300;
     }
     .canopy-theme-showcase__swatch:focus-visible {
@@ -452,20 +262,17 @@ export default function ThemeShowcase() {
     }
     .canopy-theme-showcase__swatch[data-swatch-active="true"] {
       border-color: var(--color-accent-default);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-200) 70%, transparent);
       background: linear-gradient(135deg, var(--color-accent-50), var(--color-accent-100));
       color: var(--color-gray-900);
       font-weight: 400;
     }
     .canopy-theme-showcase__swatch[data-swatch-active="true"][data-theme-swatch-type="gray"]  {
       border-color: var(--color-gray-default);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gray-200) 70%, transparent);
       background: linear-gradient(135deg, var(--color-gray-50), var(--color-gray-100));
     }
     .canopy-theme-showcase__swatch-chip {
       width: 100%;
       height: 2.618rem;
-      border-radius: 0.5rem;
     }
     .canopy-theme-showcase__swatch-label {
       font-size: 0.9222rem;
@@ -541,7 +348,6 @@ export default function ThemeShowcase() {
         <ColorsLabeled
           colors={accentColors}
           type="accent"
-          getRadixSwatch={getRadixSwatch}
         />
       </Section>
       <Section
@@ -551,7 +357,6 @@ export default function ThemeShowcase() {
         <ColorsLabeled
           colors={grayColors}
           type="gray"
-          getRadixSwatch={getRadixSwatch}
         />
       </Section>
       <script

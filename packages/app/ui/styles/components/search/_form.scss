@@ -18,7 +18,7 @@
     right: 5.5rem;
     top: 50%;
     transform: translateY(-50%);
-    color: rgba(148, 163, 184, 0.75);
+    color: color-mix(in srgb, var(--color-gray-600) 75%, transparent);
     opacity: 0.75;
     pointer-events: none;
     white-space: nowrap;
@@ -102,7 +102,7 @@
     @include buttons.canopy-button-base(0.25rem, 0.25rem);
     border: none;
     background: none;
-    color: rgba(100, 116, 139, 0.9);
+    color: var(--color-gray-700);
     font-size: 1.25rem;
     line-height: 1;
     padding: 0 0.25rem;
@@ -133,7 +133,7 @@
     caret-color var(--duration-fast) var(--easing-standard);
 
   &::placeholder {
-    color: rgba(148, 163, 184, 0.75);
+    color: color-mix(in srgb, var(--color-gray-600) 75%, transparent);
   }
 }
 

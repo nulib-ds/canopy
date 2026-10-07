@@ -1,27 +1,16 @@
 const React = require("react");
+const {STORAGE_KEY, STORAGE_VERSION} = require("./theme-preview-storage");
 
-const LEVELS = [
-  "50",
-  "100",
-  "200",
-  "300",
-  "400",
-  "500",
-  "600",
-  "700",
-  "800",
-  "900",
-];
 const FALLBACK_DEFAULTS = {
   appearance: "light",
   accentColor: "indigo",
   grayColor: "slate",
 };
-const STORAGE_VERSION = 2;
 
-function themeShowcaseRuntime(levels, storageVersion) {
-  const STORAGE_KEY = "canopy_content_theme_preview";
-  const STORAGE_VERSION = Number(storageVersion) || 1;
+// Runs in the browser. Each palette's variables are precomputed by the
+// ThemeShowcase component with the build's own buildVariablesMap(), so this
+// only merges them and forces them over the page's theme.
+function themeShowcaseRuntime(STORAGE_KEY, STORAGE_VERSION) {
   const baseDefaults = Object.assign({}, FALLBACK_DEFAULTS);
   const html =
     typeof document !== "undefined" ? document.documentElement : null;
@@ -42,66 +31,18 @@ function themeShowcaseRuntime(levels, storageVersion) {
     document.head.appendChild(styleEl);
   }
 
-  function lookupScale(dataset, appearance, type, name) {
+  function lookupVars(dataset, appearance, type, name) {
     if (!dataset || !appearance || !type || !name) return null;
-    const bucket = dataset.scales && dataset.scales[appearance];
-    if (!bucket) return null;
-    const entry = bucket[type];
-    if (!entry) return null;
-    return entry[name] || null;
+    const bucket = dataset.vars && dataset.vars[appearance];
+    if (!bucket || !bucket[type]) return null;
+    return bucket[type][name] || null;
   }
 
   function buildOverrideVars(options) {
     const vars = {};
-    if (options.accentActive && options.accentScale) {
-      for (const level of levels) {
-        const value = options.accentScale[level];
-        if (value) vars[`--color-accent-${level}`] = `${value} !important`;
-      }
-      if (options.accentScale["800"]) {
-        vars["--color-accent-default"] =
-          `${options.accentScale["800"]} !important`;
-      }
-    }
-    if (options.grayActive && options.grayScale) {
-      for (const level of levels) {
-        const value = options.grayScale[level];
-        if (value) vars[`--color-gray-${level}`] = `${value} !important`;
-      }
-      if (options.grayScale["900"]) {
-        vars["--color-gray-default"] = `${options.grayScale["900"]} !important`;
-      }
-      if (options.grayScale["800"]) {
-        vars["--color-gray-muted"] = `${options.grayScale["800"]} !important`;
-      }
-    }
-    if (
-      options.accentActive &&
-      options.grayActive &&
-      options.accentScale &&
-      options.grayScale
-    ) {
-      if (options.accentScale["800"]) {
-        vars["--colors-accent"] = `${options.accentScale["800"]} !important`;
-      }
-      if (options.accentScale["900"]) {
-        vars["--colors-accentAlt"] = `${options.accentScale["900"]} !important`;
-      }
-      if (options.accentScale["600"]) {
-        vars["--colors-accentMuted"] =
-          `${options.accentScale["600"]} !important`;
-      }
-      if (options.grayScale["900"]) {
-        const primary = `${options.grayScale["900"]} !important`;
-        vars["--colors-primary"] = primary;
-        vars["--colors-primaryAlt"] = primary;
-        vars["--colors-primaryMuted"] = primary;
-      }
-      if (options.grayScale["50"]) {
-        const secondary = `${options.grayScale["50"]} !important`;
-        vars["--colors-secondary"] = secondary;
-        vars["--colors-secondaryAlt"] = secondary;
-        vars["--colors-secondaryMuted"] = secondary;
+    for (const source of [options.accentVars, options.grayVars]) {
+      for (const [prop, value] of Object.entries(source || {})) {
+        vars[prop] = `${value} !important`;
       }
     }
     if (options.appearanceActive && options.appearance) {
@@ -295,20 +236,18 @@ function themeShowcaseRuntime(levels, storageVersion) {
     function apply() {
       const activeAppearance = state.appearance || defaults.appearance;
       const activeAccentName = state.accent || defaults.accentColor || "indigo";
-      const accentScale = state.accent
-        ? lookupScale(dataset, activeAppearance, "accent", state.accent)
+      const accentVars = state.accent
+        ? lookupVars(dataset, activeAppearance, "accent", state.accent)
         : null;
-      const grayScale = state.gray
-        ? lookupScale(dataset, activeAppearance, "gray", state.gray)
+      const grayVars = state.gray
+        ? lookupVars(dataset, activeAppearance, "gray", state.gray)
         : null;
       const css = formatCss(
         buildOverrideVars({
-          accentActive: Boolean(accentScale),
-          grayActive: Boolean(grayScale),
           appearanceActive: Boolean(state.appearance),
           appearance: activeAppearance,
-          accentScale,
-          grayScale,
+          accentVars,
+          grayVars,
         }),
       );
       styleEl.textContent = css;
@@ -364,7 +303,7 @@ const SCRIPT = (() => {
       "const baseDefaults = Object.assign({}, FALLBACK_DEFAULTS);",
       `const baseDefaults = ${JSON.stringify(FALLBACK_DEFAULTS)};`,
     );
-  const raw = `(${runtimeSource})(${JSON.stringify(LEVELS)}, ${JSON.stringify(STORAGE_VERSION)});`;
+  const raw = `(${runtimeSource})(${JSON.stringify(STORAGE_KEY)}, ${JSON.stringify(STORAGE_VERSION)});`;
   return raw.replace(/<\/script/gi, "<\\/script");
 })();
 

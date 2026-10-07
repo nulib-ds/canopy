@@ -4,6 +4,9 @@
  * A Tailwind preset that sources design tokens (colors, fonts, sizes, etc.)
  * from Sass under packages/ui/styles, injects them as CSS variables, and maps
  * Tailwind theme.extend values to those variables for easy use in utilities.
+ *
+ * @deprecated Removed in the next major release. Under Tailwind v4 this preset
+ * adds no styles; the build injects the theme into each site's stylesheet.
  */
 const plugin = require("tailwindcss/plugin");
 const {loadCanopyTheme} = require("./theme");

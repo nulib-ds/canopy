@@ -93,8 +93,8 @@
 }
 
 /* -------------------------------------------------------------------------
- * Tokens. `!important` is required: Canopy appends the theme generated from
- * canopy.yml after this file in production builds.
+ * Tokens. Canopy places the theme generated from canopy.yml before this
+ * file, so these overrides win without `!important`.
  * ---------------------------------------------------------------------- */
 
 @layer properties {
@@ -126,53 +126,48 @@
     --nu-offwhite: #f0f0f0;
 
     /* Canopy accent ramp → Purple */
-    --color-accent-50: var(--nu-white) !important;
-    --color-accent-100: var(--nu-purple-10) !important;
-    --color-accent-200: var(--nu-purple-20) !important;
-    --color-accent-300: var(--nu-purple-30) !important;
-    --color-accent-400: var(--nu-purple-40) !important;
-    --color-accent-500: var(--nu-purple-60) !important;
-    --color-accent-600: var(--nu-purple-90) !important;
-    --color-accent-700: var(--nu-purple-100) !important;
-    --color-accent-800: var(--nu-purple-120) !important;
-    --color-accent-900: var(--nu-purple-140) !important;
-    --color-accent-default: var(--nu-purple-100) !important;
+    --color-accent-50: var(--nu-white);
+    --color-accent-100: var(--nu-purple-10);
+    --color-accent-200: var(--nu-purple-20);
+    --color-accent-300: var(--nu-purple-30);
+    --color-accent-400: var(--nu-purple-40);
+    --color-accent-500: var(--nu-purple-60);
+    --color-accent-600: var(--nu-purple-90);
+    --color-accent-700: var(--nu-purple-100);
+    --color-accent-800: var(--nu-purple-120);
+    --color-accent-900: var(--nu-purple-140);
+    --color-accent-default: var(--nu-purple-100);
 
     /* Canopy gray ramp → White, Off-White, Rich Black 10–80% */
-    --color-gray-50: var(--nu-white) !important;
-    --color-gray-100: var(--nu-offwhite) !important;
-    --color-gray-200: var(--nu-rich-black-10) !important;
-    --color-gray-300: var(--nu-rich-black-20) !important;
-    --color-gray-400: var(--nu-rich-black-40) !important;
-    --color-gray-500: var(--nu-rich-black-50) !important;
-    --color-gray-600: var(--nu-rich-black-60) !important;
-    --color-gray-700: var(--nu-rich-black-60) !important;
-    --color-gray-800: var(--nu-rich-black-70) !important;
-    --color-gray-900: var(--nu-rich-black-80) !important;
-    --color-gray-default: var(--nu-rich-black-80) !important;
-    --color-gray-muted: var(--nu-rich-black-60) !important;
+    --color-gray-50: var(--nu-white);
+    --color-gray-100: var(--nu-offwhite);
+    --color-gray-200: var(--nu-rich-black-10);
+    --color-gray-300: var(--nu-rich-black-20);
+    --color-gray-400: var(--nu-rich-black-40);
+    --color-gray-500: var(--nu-rich-black-50);
+    --color-gray-600: var(--nu-rich-black-60);
+    --color-gray-700: var(--nu-rich-black-60);
+    --color-gray-800: var(--nu-rich-black-70);
+    --color-gray-900: var(--nu-rich-black-80);
+    --color-gray-default: var(--nu-rich-black-80);
+    --color-gray-muted: var(--nu-rich-black-60);
 
     /* Typefaces */
-    --font-sans: "Akkurat Pro", Arial, sans-serif !important;
+    --font-sans: "Akkurat Pro", Arial, sans-serif;
     --font-display: "Poppins", Arial, sans-serif;
-    --font-serif: "Noto Serif", Georgia, serif !important;
-    --default-font-family: var(--font-sans) !important;
+    --font-serif: "Noto Serif", Georgia, serif;
+    --default-font-family: var(--font-sans);
   }
 }
 
-/* Clover components (viewer, slider, image, scroll) read their own
- * `--clover-*` variables, which Canopy's generated theme does not set. */
+/* Clover components (viewer, slider, image, scroll) follow the tokens above
+ * through Canopy's `--clover-*` mapping. These differ on purpose: hovers
+ * match the Purple 120 buttons, and the gray ramp's steps sit further apart
+ * than Radix's, so the mapped borders would be too dark. */
 :root {
-  --clover-color-accent: var(--nu-purple-100);
   --clover-color-accent-alt: var(--nu-purple-120);
-  --clover-color-primary: var(--nu-rich-black-80);
-  --clover-color-primary-alt: var(--nu-rich-black-80);
-  --clover-color-primary-muted: var(--nu-rich-black-60);
-  --clover-color-secondary: var(--nu-white);
   --clover-color-secondary-alt: var(--nu-rich-black-10);
   --clover-color-secondary-muted: var(--nu-offwhite);
-  --clover-radius: 0;
-  --clover-radius-pill: 0;
 }
 
 /* Hero: flat white instead of the default lavender gradient — white is the
@@ -269,13 +264,16 @@
     color: var(--nu-white);
   }
 
-  .canopy-header .canopy-logo,
-  .canopy-modal .canopy-logo {
-    font-family: var(--font-sans);
-    font-weight: 700;
-    font-size: 1.111rem;
-    letter-spacing: 0;
-    color: var(--nu-white) !important;
+  /* The wordmark stands alone. The text label (canopy.yml `title`) stays in
+   * the markup, visually hidden, to name the home link and the modals. */
+  .canopy-header .canopy-logo > span,
+  .canopy-modal .canopy-logo > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .canopy-logo .nu-wordmark {
@@ -283,8 +281,6 @@
     flex: 0 0 auto;
     height: 1.1rem;
     width: auto;
-    padding-right: 0.85rem;
-    border-right: 1px solid var(--nu-purple-60);
   }
 
   .canopy-header .canopy-nav-links a {
@@ -315,43 +311,14 @@
     outline-color: var(--nu-white);
   }
 
-  /* Narrow spaces (small screens, nav/search modals): stack the title under
-   * the wordmark. */
-  .canopy-modal .canopy-logo {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-  }
-
+  /* Narrow spaces (small screens, nav/search modals): a smaller wordmark. */
   .canopy-modal .canopy-logo .nu-wordmark {
     height: 1rem;
-    padding-right: 0;
-    border-right: none;
-  }
-
-  .canopy-modal .canopy-logo span {
-    height: auto;
-    line-height: 1.2;
-    font-size: 0.95rem;
   }
 
   @media (max-width: 40rem) {
-    .canopy-header .canopy-logo {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.35rem;
-    }
-
     .canopy-header .canopy-logo .nu-wordmark {
       height: 1rem;
-      padding-right: 0;
-      border-right: none;
-    }
-
-    .canopy-header .canopy-logo span {
-      height: auto;
-      line-height: 1.2;
-      font-size: 0.95rem;
     }
   }
 
@@ -361,6 +328,9 @@
   .canopy-modal--search .canopy-modal__brand {
     margin: -1.618rem -1.618rem 1.25rem;
     padding: 1rem 4.5rem 1rem 1.618rem;
+    /* The close button sits 1rem from the top and is 2.5rem tall; this
+     * height centers the wordmark on it. */
+    min-height: 4.5rem;
     background: var(--nu-purple-100);
   }
 

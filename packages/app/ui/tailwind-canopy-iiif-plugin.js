@@ -4,6 +4,9 @@
  * Provides semantic component styles for Canopy UI elements.
  * Users can disable these defaults by removing this plugin from
  * their Tailwind config.
+ *
+ * @deprecated Removed in the next major release. Under Tailwind v4 this plugin
+ * adds no styles; component CSS comes from `@canopy-iiif/app/ui/styles/index.css`.
  */
 const plugin = require("tailwindcss/plugin");
 const path = require("path");

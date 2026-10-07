@@ -1,3 +1,8 @@
+/**
+ * @deprecated Removed in the next major release. Tailwind v4 reads a JS
+ * config only through `@config`, and the Canopy preset and plugin it wires up
+ * no longer add styles. Customize Tailwind in `app/styles/index.css` instead.
+ */
 const path = require("node:path");
 const {fileURLToPath} = require("node:url");
 
@@ -65,7 +70,21 @@ const isUrlLike = (value) => {
   return typeof value.href === "string" && typeof value.protocol === "string";
 };
 
+let warnedDeprecated = false;
+
+function warnDeprecated() {
+  if (warnedDeprecated) return;
+  warnedDeprecated = true;
+  process.emitWarning(
+    "@canopy-iiif/app/ui/tailwind-config is deprecated and will be removed in the next major release. " +
+      "Tailwind v4 reads a JS config only through @config, and Canopy's preset and plugin no longer add styles. " +
+      "Customize Tailwind in app/styles/index.css: https://nulib-ds.github.io/canopy/docs/theme/#tailwind",
+    {type: "DeprecationWarning", code: "CANOPY_TAILWIND_CONFIG"},
+  );
+}
+
 function defineCanopyTailwindConfig(metaUrlOrOptions, maybeOptions) {
+  warnDeprecated();
   const hasMetaArgument = isUrlLike(metaUrlOrOptions);
   const metaUrl = hasMetaArgument ? metaUrlOrOptions : undefined;
   const options = (hasMetaArgument ? maybeOptions : metaUrlOrOptions) || {};

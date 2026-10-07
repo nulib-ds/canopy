@@ -239,16 +239,8 @@ function writeTailwindFiles() {
     fs.writeFileSync(path.join(stylesDir, 'index.css'), fallbackCss, 'utf8');
   }
 
-  const tailwindConfigPath = path.join(stylesDir, 'tailwind.config.cjs');
-  if (!fs.existsSync(tailwindConfigPath)) {
-    const configSource = `const { pathToFileURL } = require('node:url');
-const defineCanopyTailwindConfig = require('@canopy-iiif/app/ui/tailwind-config.js');
-
-module.exports = defineCanopyTailwindConfig(pathToFileURL(__filename).href);
-`;
-    fs.writeFileSync(tailwindConfigPath, configSource, 'utf8');
-  }
-
+  // No tailwind.config.*: Tailwind v4 reads a JS config only through
+  // `@config`, so sites customize Tailwind in app/styles/index.css.
   const legacyMjsConfig = path.join(stylesDir, 'tailwind.config.mjs');
   if (fs.existsSync(legacyMjsConfig)) {
     rmrf(legacyMjsConfig);

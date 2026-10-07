@@ -51,7 +51,7 @@
     max-width: 320px;
     z-index: 4;
     padding: 0.5rem 0.75rem;
-    background-color: rgba(15, 23, 42, 0.85);
+    background-color: color-mix(in srgb, var(--color-gray-900) 85%, transparent);
     color: var(--color-gray-50);
     font-size: 0.875rem;
     line-height: 1.25rem;
@@ -254,8 +254,8 @@
     align-items: center;
     font-size: 0.8333rem;
     font-weight: 400;
-    color: #000;
-    background: #fffd;
+    color: var(--color-gray-900);
+    background: color-mix(in srgb, var(--color-gray-50) 87%, transparent);
     white-space: nowrap;
     position: relative;
     padding-left: 4px;

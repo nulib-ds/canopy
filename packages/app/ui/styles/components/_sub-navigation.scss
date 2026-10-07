@@ -119,9 +119,9 @@
 .canopy-content-navigation--floating {
   position: fixed;
   top: 1.618rem;
-  left: var(--canopy-content-nav-fixed-left, auto);
+  left: var(--canopy-content-nav-fixed-left);
   right: auto;
-  width: var(--canopy-content-nav-fixed-width, auto);
+  width: var(--canopy-content-nav-fixed-width);
   z-index: 10;
   max-height: calc(100vh - 1.5rem);
   overflow-x: hidden;

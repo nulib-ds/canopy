@@ -29,7 +29,7 @@
 - `collection` / `manifest` — IIIF sources. Accept a string or array; URIs must respond with Presentation 2/3 JSON.
 - `metadata` — ordered list of manifest fields to promote as facets/labels inside IIIF components.
 - `featured` — manifest IDs for `<Interstitials.Hero />` rotations.
-- `theme` — Tailwind + CSS variable presets (e.g., `appearance`, `accentColor`, `grayColor`).
+- `theme` — Radix palettes and appearance for the generated CSS variables (`appearance`, `accentColor`, `grayColor`).
 - `basePath` is inferred from `CANOPY_BASE_PATH` / `CANOPY_BASE_URL` (env vars) when deploying under a subdirectory.
 
 ### 4.2 Frontmatter & Layouts
@@ -132,8 +132,9 @@ Hydrated components follow a shared pattern:
 - Template automation (documented in `.github/workflows/*`) strips monorepo-only directories when publishing to the template repo, so remind users that packages under `packages/` are already compiled.
 
 ## 9. Theming & Design Tokens
-- Tailwind config lives in `app/styles/tailwind.config.js` (preset: `tailwind-canopy-iiif-preset`). Tokens defined in Sass feed CSS variables referenced by utilities like `bg-brand`.
-- To customize colors/typography, edit `app/styles/theme.css` (or add new layers) and rebuild. `ThemeShowcase` is a good sanity check component.
+- The build generates `--color-accent-*`, `--color-gray-*` and `--clover-*` variables from `canopy.yml` `theme` and places them first in the stylesheet. Overrides in `app/styles/custom.css` (inside `@layer properties`) win without `!important`.
+- Tailwind v4 is configured in CSS, not a JS config: use `@theme`, `@theme inline`, `@utility`, `@plugin` and `@source` in `app/styles/index.css`. Tailwind's `*-gray-*` utilities follow the Canopy gray scale. A JS config only loads through `@config`.
+- To customize colors/typography, override the tokens in `app/styles/custom.css` and rebuild. `ThemeShowcase` is a good sanity check component.
 - Component-specific styles (e.g., slider, image story) live in `packages/app/ui/styles/components/`. Avoid editing the compiled CSS under `site/`.
 - Encourage consistent spacing/typography by reusing `Container`, `Button`, `Card`, and other layout primitives.
 

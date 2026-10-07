@@ -252,9 +252,6 @@ async function renderContentMdxToHtml(filePath, outPath, extraProps = {}, source
   const heroRel = needsHeroSlider
     ? relativeRuntimeScript(outPath, 'canopy-hero-slider.js', true)
     : null;
-  const heroCssRel = needsHeroSlider
-    ? path.relative(path.dirname(outPath), path.join(OUT_DIR, 'scripts', 'canopy-hero-slider.css')).split(path.sep).join('/')
-    : null;
   const timelineRel = needsTimeline
     ? relativeRuntimeScript(outPath, 'canopy-timeline.js', true)
     : null;
@@ -343,16 +340,9 @@ async function renderContentMdxToHtml(filePath, outPath, extraProps = {}, source
   if (moduleScriptRels.length) {
     moduleScriptRels.forEach((src) => pushModuleScript(src));
   }
+  // The hero runtime (Embla) ships no CSS; its styles live in the UI
+  // stylesheet, so only the map needs a runtime stylesheet.
   const extraStyles = [];
-  if (heroCssRel) {
-    let rel = heroCssRel;
-    try {
-      const heroCssAbs = path.join(OUT_DIR, 'scripts', 'canopy-hero-slider.css');
-      const st = fs.statSync(heroCssAbs);
-      rel += `?v=${Math.floor(st.mtimeMs || Date.now())}`;
-    } catch (_) {}
-    extraStyles.push(`<link rel="stylesheet" href="${rel}">`);
-  }
   if (mapCssRel) {
     let rel = mapCssRel;
     try {

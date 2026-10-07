@@ -56,6 +56,7 @@
     "ui/tailwind-config.d.ts",
     "ui/tailwind-default.config.mjs",
     "ui/theme.js",
+    "ui/theme-palette.js",
     "types/**"
   ],
   "publishConfig": {

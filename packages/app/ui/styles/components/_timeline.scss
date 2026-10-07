@@ -215,7 +215,6 @@
 .canopy-timeline__key-dot {
   width: 0.618rem;
   height: 0.618rem;
-  border-radius: 999px;
   background: var(--color-accent-default);
 }
 
@@ -271,7 +270,7 @@
   @include buttons.canopy-button-base(0.75rem, 1rem);
   width: 100%;
   border-color: var(--color-gray-200);
-  background: color-mix(in srgb, var(--color-gray-50) 70%, #fff);
+  background: var(--color-gray-50);
   text-align: left;
 }
 

@@ -1,6 +1,7 @@
-/** 
- * Example custom color variables
- * @see https://nulib-ds.github.io/canopy/docs/theming/tailwind#custom
+/**
+ * Example custom color variables. Tokens set here override the theme
+ * generated from canopy.yml, without `!important`.
+ * @see https://nulib-ds.github.io/canopy/docs/theme/#override-order
  */
 
 /* @layer properties {

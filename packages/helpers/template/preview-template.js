@@ -17,6 +17,8 @@ function parseArgs(argv = []) {
     } else if (token === '--name' || token === '-n') {
       args.name = argv[i + 1];
       i += 1;
+    } else if (key === 'published') {
+      args.published = true;
     } else if (key === 'help' || key === 'h') {
       args.help = true;
     }
@@ -25,7 +27,8 @@ function parseArgs(argv = []) {
 }
 
 function usage() {
-  console.log('Usage: node packages/helpers/template/preview-template.js --source <dir> [--out <dir>] [--name <label>]');
+  console.log('Usage: node packages/helpers/template/preview-template.js --source <dir> [--out <dir>] [--name <label>] [--published]');
+  console.log('  --published  preview against the released @canopy-iiif/app instead of this checkout');
 }
 
 function run(command, args, options = {}) {
@@ -41,6 +44,27 @@ function run(command, args, options = {}) {
 
 function npmCommand() {
   return process.platform === 'win32' ? 'npm.cmd' : 'npm';
+}
+
+// Swap in this checkout's @canopy-iiif/app, packed the way `npm publish` packs
+// it, so previews show unreleased lib/ui changes. A tarball rather than a
+// symlink keeps its React resolving from the preview's node_modules.
+function installLocalApp(cwd, outDir) {
+  run(npmCommand(), ['-w', '@canopy-iiif/app', 'run', 'ui:build'], {cwd});
+  const packed = spawnSync(
+    npmCommand(),
+    ['-w', '@canopy-iiif/app', 'pack', '--json', '--pack-destination', outDir],
+    {cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit']},
+  );
+  if (packed.status !== 0) {
+    throw new Error('Command failed: npm pack -w @canopy-iiif/app');
+  }
+  const tarball = path.join(outDir, JSON.parse(packed.stdout)[0].filename);
+  try {
+    run(npmCommand(), ['install', '--no-save', tarball], {cwd: outDir});
+  } finally {
+    fs.rmSync(tarball, {force: true});
+  }
 }
 
 function main() {
@@ -69,6 +93,12 @@ function main() {
 
   run('node', ['packages/helpers/template/prepare-template.js'], {env});
   run(npmCommand(), ['install'], {cwd: resolvedOut});
+  if (args.published) {
+    console.log('[template preview] Using the published @canopy-iiif/app');
+  } else {
+    console.log('[template preview] Installing @canopy-iiif/app from this checkout');
+    installLocalApp(cwd, resolvedOut);
+  }
 
   console.log('[template preview] Starting dev server (Ctrl+C to stop)...');
   const child = spawn(npmCommand(), ['run', 'dev'], {

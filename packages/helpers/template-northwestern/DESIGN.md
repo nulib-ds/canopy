@@ -15,14 +15,14 @@ The living record of layout, theme, and styling decisions for the Northwestern-b
 ## Brand & Identity
 
 - Institution: Northwestern University Libraries.
-- Header shows the official white "Northwestern" wordmark from Northwestern's CDN (`common.northwestern.edu/v8/css/images/northwestern.svg`) followed by a short unit/project label, separated by a Purple 60 hairline — the "Northwestern | Libraries" pattern used across Northwestern sites.
-- The header label is set by `<CanopyHeader title="Libraries" />` in `_app.mdx`, not `canopy.yml`. It omits "Northwestern" (the wordmark already says it), while `canopy.yml` `title` keeps the full name for page titles and metadata. Projects should change both.
-- Below `40rem`, and always inside the nav/search modals, the label stacks under the wordmark.
+- Header shows the official white "Northwestern" wordmark from Northwestern's CDN (`common.northwestern.edu/v8/css/images/northwestern.svg`) on its own, with no unit/project label beside it.
+- Canopy still renders the header's text label, the `canopy.yml` `title`. `northwestern.css` visually hides it so it can name the home link and the nav/search modals for screen readers. The wordmark image has empty `alt` so the name isn't read twice.
+- Below `40rem`, and inside the nav/search modals, the wordmark drops to `1rem` tall.
 - The wordmark is white-only. It must sit on Northwestern Purple (header, nav/search modal brand bar) or Purple 120 (footer). Never place it on white.
 
 ## Color
 
-Northwestern's exact ramps, mapped onto Canopy's tokens in `northwestern.css`. All `--color-*` overrides use `!important` because Canopy appends the `canopy.yml` theme after custom CSS in production builds.
+Northwestern's exact ramps, mapped onto Canopy's tokens in `northwestern.css`. Canopy places the `canopy.yml` theme before custom CSS, so these overrides win without `!important`.
 
 | Canopy token | Northwestern value |
 | --- | --- |
@@ -40,7 +40,12 @@ Northwestern's exact ramps, mapped onto Canopy's tokens in `northwestern.css`. A
 - Pure black (`#000000`) is never used.
 - `--color-gray-400` maps to Rich Black 40% (3.7:1) rather than 30% so UI borders clear the 3:1 component contrast minimum.
 - Raw brand values are exposed as `--nu-purple-*`, `--nu-rich-black-*`, `--nu-white`, `--nu-offwhite` for project CSS.
-- Clover 3.16 components (viewer, slider, image, scroll) read `--clover-color-*` variables, which Canopy's generated theme does not set yet; `northwestern.css` sets them on `:root` (accent = Purple 100, square corners). Remove once Canopy's theme emits them.
+- Clover components (viewer, slider, image, scroll) follow these tokens through Canopy's `--clover-color-*` mapping, with square corners. `northwestern.css` overrides three of them on `:root`:
+  - `accent-alt` → Purple 120, so hovers match the buttons
+  - `secondary-alt` → Rich Black 10%
+  - `secondary-muted` → Off-White
+
+  The last two keep Clover's borders and handles light; the mapped gray 400/300 steps would be Rich Black 40%/20%.
 
 ## Typography
 
@@ -87,7 +92,7 @@ All faces load from Northwestern's central CDN (`common.northwestern.edu/v8/css/
 - [x] Color tokens — exact ramps via `app/styles/northwestern.css`
 - [x] Typography — Akkurat Pro / Poppins / Noto Serif from the Northwestern CDN
 - [x] Logo — official white wordmark from the Northwestern CDN on a purple header
-- [ ] Confirm wordmark + title lockup with University Marketing, or replace with an official Libraries lockup
+- [ ] Confirm the standalone wordmark header with University Marketing, or replace it with an official Libraries lockup
 - [x] Hero treatment on the homepage — flat white, hairline base
 - [ ] Work-page layout variations from the default template
 - [ ] Content voice for starter copy

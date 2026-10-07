@@ -64,7 +64,7 @@ export default function SearchResults({
   );
   if (!results.length) {
     return (
-      <div className="text-slate-600">
+      <div className="text-gray-800">
         <em>{noResultsLabel}</em>
       </div>
     );

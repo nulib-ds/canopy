@@ -913,7 +913,7 @@ function ResultsMount(props = {}) {
   const {results, type, loading, query, resultSettings} = useStore();
   if (loading)
     return (
-      <div className="text-slate-600">
+      <div className="text-gray-800">
         {formatRuntimeMessage("common.statuses.loading", "Loading…")}
       </div>
     );
@@ -1009,7 +1009,7 @@ function SummaryMount() {
       {shown, total, type: typeLabel, query},
     );
   }, [query, type, shown, total]);
-  return <div className="text-sm text-slate-600">{text}</div>;
+  return <div className="text-sm text-gray-800">{text}</div>;
 }
 
 function parseProps(el) {

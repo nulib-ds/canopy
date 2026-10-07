@@ -1,11 +1,17 @@
 const fs = require("fs");
 const yaml = require("js-yaml");
-const radixColors = require("@radix-ui/colors");
 const {resolveCanopyConfigPath} = require("../lib/config-path");
+const {
+  AVAILABLE_PALETTES,
+  normalizePaletteName,
+  normalizeAppearance,
+  toTailwindScale,
+  buildVariablesMap,
+  variablesToCss,
+} = require("./theme-palette");
 
 const DEFAULT_ACCENT = "indigo";
 const DEFAULT_GRAY = "slate";
-const DEFAULT_APPEARANCE = "light";
 const DEBUG_FLAG_RAW = String(process.env.CANOPY_DEBUG_THEME || "");
 const DEBUG_ENABLED = /^(1|true|yes|on)$/i.test(DEBUG_FLAG_RAW.trim());
 
@@ -15,40 +21,6 @@ function debugLog(...args) {
     console.log("[canopy-theme]", ...args);
   } catch (_) {}
 }
-
-const LEVELS = [
-  "50",
-  "100",
-  "200",
-  "300",
-  "400",
-  "500",
-  "600",
-  "700",
-  "800",
-  "900",
-];
-const STEP_MAP = {
-  50: 1,
-  100: 2,
-  200: 3,
-  300: 4,
-  400: 7,
-  500: 8,
-  600: 9,
-  700: 10,
-  800: 11,
-  900: 12,
-};
-
-const AVAILABLE = new Set(
-  Object.keys(radixColors).filter(
-    (key) =>
-      /^[a-z]+$/.test(key) && radixColors[key] && radixColors[key][`${key}1`],
-  ),
-);
-
-const APPEARANCES = new Set(["light", "dark"]);
 
 function readYamlConfig(cfgPath) {
   try {
@@ -64,96 +36,6 @@ function readYamlConfig(cfgPath) {
   } catch (_) {
     return {};
   }
-}
-
-function normalizePaletteName(raw) {
-  if (!raw) return "";
-  const cleaned = String(raw).trim().toLowerCase();
-  const compact = cleaned.replace(/[^a-z]/g, "");
-  return AVAILABLE.has(compact) ? compact : "";
-}
-
-function normalizeAppearance(raw) {
-  if (!raw) return DEFAULT_APPEARANCE;
-  const cleaned = String(raw).trim().toLowerCase();
-  return APPEARANCES.has(cleaned) ? cleaned : DEFAULT_APPEARANCE;
-}
-
-function resolveRadixPalette(name, appearance) {
-  if (!name || !AVAILABLE.has(name)) return null;
-  const paletteKey = appearance === "dark" ? `${name}Dark` : name;
-  const palette = radixColors[paletteKey];
-  if (palette && palette[`${name}1`]) return palette;
-  const fallback = radixColors[name];
-  return fallback && fallback[`${name}1`] ? fallback : null;
-}
-
-function toTailwindScale(name, options = {}) {
-  if (!name || !AVAILABLE.has(name)) return null;
-  const appearance = normalizeAppearance(options.appearance);
-  const palette = resolveRadixPalette(name, appearance);
-  if (!palette) return null;
-  const prefix = name;
-  const scale = {};
-  const steps = STEP_MAP;
-  for (const lvl of LEVELS) {
-    const radixStep = steps[lvl];
-    const key = `${prefix}${radixStep}`;
-    const value = palette[key];
-    if (!value) return null;
-    scale[lvl] = value;
-  }
-  return scale;
-}
-
-function buildVariablesMap(brandScale, grayScale, options = {}) {
-  const appearance = normalizeAppearance(options.appearance);
-  const vars = {};
-  if (brandScale) {
-    for (const lvl of LEVELS) {
-      const value = brandScale[lvl];
-      if (value) vars[`--color-accent-${lvl}`] = value;
-    }
-    if (brandScale["800"]) vars["--color-accent-default"] = brandScale["800"];
-  }
-  if (grayScale) {
-    for (const lvl of LEVELS) {
-      const value = grayScale[lvl];
-      if (value) vars[`--color-gray-${lvl}`] = value;
-    }
-    if (grayScale["900"]) vars["--color-gray-default"] = grayScale["900"];
-    if (grayScale["800"]) vars["--color-gray-muted"] = grayScale["800"];
-  }
-  if (brandScale && grayScale) {
-    if (brandScale["800"]) {
-      vars["--colors-accent"] = `${brandScale["800"]} !important`;
-      vars["--colors-accentAlt"] = `${brandScale["800"]} !important`;
-      vars["--colors-accentMuted"] = `${brandScale["800"]} !important`;
-    }
-    if (grayScale["900"]) {
-      const primary = `${grayScale["900"]} !important`;
-      vars["--colors-primary"] = primary;
-      vars["--colors-primaryAlt"] = primary;
-      vars["--colors-primaryMuted"] = primary;
-    }
-    if (grayScale["50"]) {
-      const secondary = `${grayScale["50"]} !important`;
-      vars["--colors-secondary"] = secondary;
-      vars["--colors-secondaryAlt"] = secondary;
-      vars["--colors-secondaryMuted"] = secondary;
-    }
-  }
-  vars["color-scheme"] = appearance === "dark" ? "dark" : "light";
-  return vars;
-}
-
-function variablesToCss(vars) {
-  const entries = Object.entries(vars || {});
-  if (!entries.length) return "";
-  const body = entries
-    .map(([prop, value]) => `  ${prop}: ${value};`)
-    .join("\n");
-  return `@layer properties {\n  :root {\n${body}\n  }\n  :host {\n${body}\n  }\n}`;
 }
 
 function buildSassConfig(brandScale, grayScale) {
@@ -241,8 +123,9 @@ module.exports = {
   toTailwindScale,
   normalizePaletteName,
   normalizeAppearance,
-  AVAILABLE_PALETTES: Array.from(AVAILABLE).sort(),
+  AVAILABLE_PALETTES,
   __DEBUG_ENABLED: DEBUG_ENABLED,
   variablesToCss,
+  buildVariablesMap,
   buildSassConfig,
 };

@@ -97,21 +97,19 @@ export function Head() {
 
 Implementers can easily customize their Canopy projects by adding their own CSS rules that extend or override the default styles. Many Canopy components accept `className` and other valid HTML attributes so you can apply scoped changes without overriding the global theme. You can author these in your custom CSS files that extend the base styles.
 
-> **Note:** Custom styles may behave differently between `npm run dev` and `npm run build`. If your customizations work in development but not in production, see [Production Build Considerations](#production-build-considerations) below.
-
 First, ensure your custom CSS files are imported in the main stylesheet (`app/styles/index.css`):
 
 ```css filename="app/styles/index.css" {3}
 @import "tailwindcss";
 @import "@canopy-iiif/app/ui/styles/index.css";
-@import "./_custom.css";
+@import "./custom.css";
 ```
 
 ### CSS Variables
 
-You can then add your own CSS rules in `app/styles/_custom.css` or new files you import to extend or override existing styles. This can include modifying CSS variables, adding new classes, or defining more complex selectors. For example, a Northwestern University digital project might include the following customizations to match [institutional brand](https://www.northwestern.edu/brand/visual-identity/color-palettes/).
+You can then add your own CSS rules in `app/styles/custom.css` or new files you import to extend or override existing styles. This can include modifying CSS variables, adding new classes, or defining more complex selectors. For example, a Northwestern University digital project might include the following customizations to match [institutional brand](https://www.northwestern.edu/brand/visual-identity/color-palettes/).
 
-```css filename="app/styles/_custom.css" {8-17, 20-29} copy
+```css filename="app/styles/custom.css" {8-17, 20-29} copy
 /* Northwestern Brand */
 /* https://www.northwestern.edu/brand/visual-identity/color-palettes/ */
 
@@ -119,90 +117,112 @@ You can then add your own CSS rules in `app/styles/_custom.css` or new files you
   :root,
   :host {
     /* Northwestern Purple */
-    --color-accent-50: #ffffff !important;
-    --color-accent-100: #e4e0ee !important; /* Purple 10 */
-    --color-accent-200: #ccc4df !important; /* Purple 20 */
-    --color-accent-300: #b6acd1 !important; /* Purple 30 */
-    --color-accent-400: #a495c3 !important; /* Purple 40 */
-    --color-accent-500: #9380b6 !important; /* Purple 50 */
-    --color-accent-600: #765da0 !important; /* Purple 70 */
-    --color-accent-700: #4e2a84 !important; /* Northwestern Purple */
-    --color-accent-800: #401f68 !important; /* Purple 120 */
-    --color-accent-900: #200b48 !important; /* Purple 160 */
+    --color-accent-50: #ffffff;
+    --color-accent-100: #e4e0ee; /* Purple 10 */
+    --color-accent-200: #ccc4df; /* Purple 20 */
+    --color-accent-300: #b6acd1; /* Purple 30 */
+    --color-accent-400: #a495c3; /* Purple 40 */
+    --color-accent-500: #9380b6; /* Purple 50 */
+    --color-accent-600: #765da0; /* Purple 70 */
+    --color-accent-700: #4e2a84; /* Northwestern Purple */
+    --color-accent-800: #401f68; /* Purple 120 */
+    --color-accent-900: #200b48; /* Purple 160 */
 
     /* Northwestern Rich Black */
-    --color-gray-50: #ffffff !important;
-    --color-gray-100: #d8d6d6 !important; /* Rich Black 10% */
-    --color-gray-200: #bbb8b8 !important; /* Rich Black 20% */
-    --color-gray-300: #a29f9e !important; /* Rich Black 30% */
-    --color-gray-400: #8a8585 !important; /* Rich Black 40% */
-    --color-gray-500: #716c6b !important; /* Rich Black 50% */
-    --color-gray-600: #484342 !important; /* Rich Black 70% */
-    --color-gray-700: #342f2e !important; /* Rich Black 80% */
-    --color-gray-800: #1a1817 !important; /* Rich Black 90% */
-    --color-gray-900: #000000 !important; /* Rich Black */
+    --color-gray-50: #ffffff;
+    --color-gray-100: #d8d6d6; /* Rich Black 10% */
+    --color-gray-200: #bbb8b8; /* Rich Black 20% */
+    --color-gray-300: #a29f9e; /* Rich Black 30% */
+    --color-gray-400: #8a8585; /* Rich Black 40% */
+    --color-gray-500: #716c6b; /* Rich Black 50% */
+    --color-gray-600: #484342; /* Rich Black 70% */
+    --color-gray-700: #342f2e; /* Rich Black 80% */
+    --color-gray-800: #1a1817; /* Rich Black 90% */
+    --color-gray-900: #000000; /* Rich Black */
 
     /* Additional Variables */
     --color-northwestern-purple: var(--color-accent-700);
-    --color-accent-default: var(--color-northwestern-purple) !important;
-    --color-gray-default: var(--color-gray-900) !important;
-    --color-gray-muted: var(--color-gray-700) !important;
+    --color-accent-default: var(--color-northwestern-purple);
+    --color-gray-default: var(--color-gray-900);
+    --color-gray-muted: var(--color-gray-700);
   }
 }
 ```
 
-### Production Build Considerations
+### Override order
 
-When customizing CSS variables, it's important to understand how Canopy processes styles during the build. The build
-process:
+Canopy generates the `--color-*` and `--clover-*` tokens from `canopy.yml` and places them at the start of your compiled stylesheet, inside `@layer properties`. Everything in `app/styles/index.css`, including imported files like `custom.css`, comes after the generated tokens. A token you redefine inside `@layer properties`, or in a rule outside any layer, therefore takes precedence. This works the same in `npm run dev` and `npm run build`, and you don't need `!important`. Tokens you don't redefine keep the values generated from `canopy.yml`.
 
-1. Compiles `app/styles/index.css` (including imports like `_custom.css`)
-2. **Appends** theme tokens generated from `canopy.yml` settings after your custom CSS
-
-Because both the custom CSS and Canopy's generated theme use `@layer properties`, the later-appearing Canopy theme will
-override the custom variables in production builds even if everything works correctly in development mode (`npm run dev`).
-
-**Solution:** Add `!important` to your custom CSS variables to ensure they take precedence:
-
-```css filename="app/styles/_custom.css" {8-18}≈
+```css filename="app/styles/custom.css"
 @layer properties {
   :root,
   :host {
     /* Texas A&M Maroon */
-    --color-tamu-maroon: #500000;
-
-    /* Full maroon color scale */
-    --color-accent-50: #fdf2f2 !important;
-    --color-accent-100: #f9e3e3 !important;
-    --color-accent-200: #f0c5c5 !important;
-    --color-accent-300: #e09898 !important;
-    --color-accent-400: #c96666 !important;
-    --color-accent-500: #aa3939 !important;
-    --color-accent-600: #8b1a1a !important;
-    --color-accent-700: #6d0000 !important;
-    --color-accent-800: #500000 !important;
-    --color-accent-900: #300000 !important;
-    --color-accent-default: #500000 !important;
+    --color-accent-700: #6d0000;
+    --color-accent-800: #500000;
+    --color-accent-900: #300000;
+    --color-accent-default: #500000;
   }
 }
 ```
 
+> **Upgrading from 1.13.1 or earlier:** Older releases appended the generated tokens after your stylesheet, so overrides inside `@layer properties` needed `!important` to take effect in production builds. Existing `!important` declarations keep working, and you can remove them once you upgrade.
+
+### Tailwind
+
+Canopy compiles `app/styles/index.css` with Tailwind CSS v4, which you configure in CSS rather than in a JavaScript config file:
+
+- `@theme` adds design tokens and the utilities that use them. Tailwind's built-in scales, such as spacing and font sizes, stay available. Its gray utilities, such as `text-gray-700` and `bg-gray-100`, use your `grayColor` palette.
+- `@theme inline` creates utilities that point at an existing variable, such as a Canopy token, so they follow your theme.
+- `@utility` defines a custom utility, `@plugin` loads a Tailwind plugin package, and `@source` adds files for Tailwind to scan for class names.
+
+```css filename="app/styles/index.css"
+@import "tailwindcss";
+@import "@canopy-iiif/app/ui/styles/index.css";
+@import "./custom.css";
+
+@theme {
+  --font-heading: "Fraunces", Georgia, serif; /* font-heading */
+}
+
+@theme inline {
+  --color-brand: var(--color-accent-default); /* bg-brand, text-brand */
+}
+
+@utility max-w-content {
+  max-width: 1080px;
+}
+```
+
+Tailwind's theme layer sits below Canopy's tokens, so `@theme` can't change a token Canopy already sets, such as `--color-gray-500` or a font you set in `@layer properties`. Override those in `@layer properties` instead, as shown in [Override order](#override-order).
+
+If you need a JavaScript config, for example for a plugin that only ships in that form, load your own with `@config "./tailwind.config.js";` in `app/styles/index.css`. Earlier templates included a generated `app/styles/tailwind.config.cjs`; Tailwind v4 never loads it, so you can delete it. The `@canopy-iiif/app/ui/tailwind-config` helper it used is deprecated and will be removed in the next major release.
+
 ### Clover Component overrides
 
-The Image, Viewer, Slider, and Scroll components (derived from the Clover IIIF package) have their own theming system that uses **different CSS variable names**.
+The Image, Viewer, Slider, and Scroll components (derived from the Clover IIIF package) read their own `--clover-*` CSS variables. Canopy sets these for you from the theme tokens above, so Clover components follow your `canopy.yml` palette and any overrides you make to `--color-accent-*` or `--color-gray-*`.
 
-To customize these colors, add these rules **outside** the `@layer properties` block, targeting the
-`.clover-viewer` class directly. This targeting is necessary because Clover uses its own CSS variables. Standard `:root` variables won't override these component-scoped styles.
+| Clover variable                  | Canopy token             | Used for                                  |
+| -------------------------------- | ------------------------ | ----------------------------------------- |
+| `--clover-color-accent`          | `--color-accent-default` | Buttons and active states                 |
+| `--clover-color-accent-alt`      | `--color-accent-900`     | Button hover states                       |
+| `--clover-color-primary`         | `--color-gray-default`   | Text                                      |
+| `--clover-color-primary-alt`     | `--color-gray-900`       | Media player background, headings         |
+| `--clover-color-primary-muted`   | `--color-gray-muted`     | Placeholders and muted text               |
+| `--clover-color-secondary`       | `--color-gray-50`        | Panel backgrounds, text on accent buttons |
+| `--clover-color-secondary-alt`   | `--color-gray-400`       | Resize handles, popover arrows            |
+| `--clover-color-secondary-muted` | `--color-gray-300`       | Subtle borders                            |
+| `--clover-radius`                | `--canopy-radius-sm`     | Corner radius (`0`)                       |
+| `--clover-radius-pill`           | `--canopy-radius-pill`   | Pill buttons (`0`)                        |
 
-```css filename="app/styles/_custom.css"
-/* Clover IIIF Viewer theme overrides
- * Must target the component directly to override generated theme classes.
- */
+To give Clover components different colors from the rest of your site, set the `--clover-*` variables directly. Target `:root` to change every Clover component, or a component class such as `.clover-viewer` or `.canopy-slider` to scope the change. These overrides don't need `!important`.
+
+```css filename="app/styles/custom.css"
+/* Clover IIIF theme overrides */
 .clover-viewer,
-.clover-viewer [class*="t-"] {
-  --colors-accent: #500000 !important;
-  --colors-accentAlt: #300000 !important;
-  --colors-accentMuted: #8b1a1a !important;
+.canopy-slider {
+  --clover-color-accent: #500000;
+  --clover-color-accent-alt: #300000;
 }
 ```
 
@@ -210,7 +230,7 @@ To customize these colors, add these rules **outside** the `@layer properties` b
 
 You can also override existing styles by targeting specific classes. For example, to modify the default button styles across your project, you can add the following CSS rules:
 
-```css filename="app/styles/_custom.css"
+```css filename="app/styles/custom.css"
 /* overrides default button styling */
 .canopy-button {
   border-radius: 0;
@@ -227,7 +247,7 @@ You can also override existing styles by targeting specific classes. For example
 
 Implementers can easily add their own custom CSS classes like `custom-button` to modify button styles.
 
-```css filename="app/styles/_custom.css"
+```css filename="app/styles/custom.css"
 /* adds custom soft button styling */
 .custom-button {
   font-weight: 700;
@@ -252,7 +272,7 @@ Implementers can easily add their own custom CSS classes like `custom-button` to
 
 You can also extend existing button classes by explicitly defining new selectors like this example with the added `data-color="crimson"` attribute.
 
-```css filename="app/styles/_custom.css"
+```css filename="app/styles/custom.css"
 /* adds custom crimson shaded button */
 .canopy-button[data-color="crimson"] {
   background-color: #df3478;

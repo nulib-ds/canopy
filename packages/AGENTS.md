@@ -17,7 +17,7 @@ Active Themes
 -------------
 1. Keep helper scripts confined to `packages/helpers/`; add npm scripts instead of creating a root `scripts/` directory.
 2. Maintain the release contract: only `@canopy-iiif/app` is publishable, and UI assets must be built via `prepublishOnly`.
-3. Tailwind 4 is the baseline: CLI resolution goes through `@tailwindcss/cli` and the UI preset injects design tokens from Sass into root CSS variables. Ensure `app/styles/index.css` and the template generator’s CSS stay aligned with preset expectations.
+3. Tailwind 4 is the baseline: CLI resolution goes through `@tailwindcss/cli`, configuration is CSS-first in `app/styles/index.css`, and `lib/build/theme-tokens.js` injects the `canopy.yml` tokens (with `@layer theme, properties;` so Tailwind's defaults rank below them). The JS preset/plugin/`ui/tailwind-config` are deprecated no-ops.
 4. Guard SSR safety by importing UI code through `@canopy-iiif/app/ui/server` on the Node side and keeping browser bundles free of inlined React deps.
 5. Track search/IIIF roadmap items centrally so both lib and UI teams stay aligned.
 

@@ -1,7 +1,5 @@
 const React = require('react');
-
-const STORAGE_KEY = 'canopy_content_theme_preview';
-const STORAGE_VERSION = 2;
+const {STORAGE_KEY, STORAGE_VERSION} = require('./theme-preview-storage');
 
 function ThemeStorageHydrator() {
   const source = `(() => {

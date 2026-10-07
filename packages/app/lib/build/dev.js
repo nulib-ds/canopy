@@ -17,7 +17,6 @@ const {
 } = require("../common");
 const {
   injectThemeTokens,
-  stripTailwindThemeLayer,
 } = require("./styles");
 const APP_COMPONENTS_DIR = path.join(process.cwd(), "app", "components");
 
@@ -891,49 +890,11 @@ async function dev() {
   // Run the initial build synchronously now that the server is up
   await runBuild();
 
-  // Start Tailwind watcher if config + input exist (after initial build)
+  // Start the Tailwind watcher once an input stylesheet exists (after the
+  // initial build). Tailwind v4 reads a JS config only through `@config`.
   try {
     const root = process.cwd();
     const appStylesDir = path.join(root, "app", "styles");
-    const twConfigsRoot = [
-      "tailwind.config.js",
-      "tailwind.config.cjs",
-      "tailwind.config.mjs",
-      "tailwind.config.mts",
-      "tailwind.config.ts",
-    ].map((n) => path.join(root, n));
-    const twConfigsApp = [
-      "tailwind.config.js",
-      "tailwind.config.cjs",
-      "tailwind.config.mjs",
-      "tailwind.config.mts",
-      "tailwind.config.ts",
-    ].map((n) => path.join(appStylesDir, n));
-    let configPath = [...twConfigsApp, ...twConfigsRoot].find((p) => {
-      try {
-        return fs.existsSync(p);
-      } catch (_) {
-        return false;
-      }
-    });
-    const fallbackConfig = (() => {
-      try {
-        return require.resolve("@canopy-iiif/app/ui/tailwind-default-config");
-      } catch (_) {
-        return null;
-      }
-    })();
-    if (!configPath) {
-      configPath = fallbackConfig;
-      if (configPath) {
-        console.log(
-          "[tailwind] no local config found — using the built-in Canopy config"
-        );
-      }
-    }
-    if (!configPath) {
-      throw new Error("[tailwind] Unable to resolve a Tailwind config file.");
-    }
     const inputCandidates = [
       path.join(appStylesDir, "index.css"),
       path.join(CONTENT_DIR, "_styles.css"),
@@ -997,7 +958,6 @@ async function dev() {
       const details = [
         label,
         `  input: ${prettyPath(inputCss)}`,
-        `  config: ${configPath ? prettyPath(configPath) : "<unknown>"}`,
         `  cli: ${tailwindCmd(args)}`,
       ];
       if (result && typeof result.status === "number") {
@@ -1039,8 +999,6 @@ async function dev() {
       inputCss,
       "-o",
       outputCss,
-      "-c",
-      configPath,
       "--minify",
     ];
 
@@ -1060,7 +1018,6 @@ async function dev() {
       );
     }
     injectThemeTokens(outputCss);
-    stripTailwindThemeLayer(outputCss);
     console.log(
       `[tailwind] initial build ok (${fileSizeKb(outputCss)} KB) →`,
       prettyPath(outputCss)
@@ -1072,8 +1029,6 @@ async function dev() {
       "-o",
       outputCss,
       "--watch",
-      "-c",
-      configPath,
       "--minify",
     ];
     let child = null;
@@ -1086,7 +1041,6 @@ async function dev() {
       try {
         fs.watch(outputCss, { persistent: false }, () => {
           injectThemeTokens(outputCss);
-          stripTailwindThemeLayer(outputCss);
           if (!unmuted) {
             unmuted = true;
             console.log(
@@ -1114,7 +1068,6 @@ async function dev() {
         );
       }
       injectThemeTokens(outputCss);
-      stripTailwindThemeLayer(outputCss);
       console.log(
         `[tailwind] compiled (${fileSizeKb(outputCss)} KB) →`,
         prettyPath(outputCss)
@@ -1173,24 +1126,9 @@ async function dev() {
 
     child = startTailwindWatcher();
 
-    const uiPlugin = path.join(
-      APP_UI_DIR,
-      "tailwind-canopy-iiif-plugin.js"
-    );
-    const uiPreset = path.join(
-      APP_UI_DIR,
-      "tailwind-canopy-iiif-preset.js"
-    );
     const uiStylesDir = path.join(APP_UI_DIR, "styles");
     const uiStylesCss = path.join(uiStylesDir, "index.css");
     const uiStylesEntry = path.join(uiStylesDir, "index.scss");
-    const pluginFiles = [uiPlugin, uiPreset].filter((p) => {
-      try {
-        return fs.existsSync(p);
-      } catch (_) {
-        return false;
-      }
-    });
     let restartTimer = null;
     let uiCssWatcherAttached = false;
     const scheduleTailwindRestart = (message, compileLabel) => {
@@ -1205,16 +1143,6 @@ async function dev() {
         try { onBuildStart(); } catch (_) {}
       }, 120);
     };
-    for (const f of pluginFiles) {
-      try {
-        fs.watch(f, { persistent: false }, () => {
-          scheduleTailwindRestart(
-            "[tailwind] detected UI plugin/preset change — restarting Tailwind",
-            "[tailwind] compile after plugin change failed"
-          );
-        });
-      } catch (_) {}
-    }
     const rebuildUiStyles = () => {
       if (!sass || !fs.existsSync(uiStylesEntry)) return false;
       try {
@@ -1226,11 +1154,10 @@ async function dev() {
           loadPaths: [uiStylesDir],
           style: "expanded",
         });
-        let cssOutput = result && result.css ? result.css : "";
-        const themeCss = theme && theme.css ? theme.css.trim() : "";
-        if (themeCss) {
-          cssOutput = `/* canopy-theme */\n${themeCss}\n/* canopy-theme:end */\n${cssOutput}`;
-        }
+        // No theme here: injectThemeTokens() adds it to the site stylesheet.
+        // A copy baked into this package file would outlive canopy.yml edits
+        // and, once imported, override the fresh theme.
+        const cssOutput = result && result.css ? result.css : "";
         fs.writeFileSync(uiStylesCss, cssOutput, "utf8");
         console.log(
           "[tailwind] rebuilt @canopy-iiif/app/ui styles →",
@@ -1327,16 +1254,6 @@ async function dev() {
         watchDir(uiStylesDir);
         scan(uiStylesDir);
       }
-    }
-    if (fs.existsSync(configPath)) {
-      try {
-        fs.watch(configPath, { persistent: false }, () => {
-          scheduleTailwindRestart(
-            "[tailwind] tailwind.config change — restarting Tailwind",
-            "[tailwind] compile after config change failed"
-          );
-        });
-      } catch (_) {}
     }
     const stylesDir = path.dirname(inputCss);
     if (stylesDir && stylesDir.includes(path.join("app", "styles"))) {

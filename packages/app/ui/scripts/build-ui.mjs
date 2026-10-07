@@ -44,16 +44,9 @@ async function compileStylesOnce() {
     const source = `${theme && theme.sassConfig ? theme.sassConfig : ''}@use 'index';`;
     const out = sass.compileString(source, { style: 'expanded', loadPaths });
     fs.mkdirSync(path.dirname(indexCss), { recursive: true });
-    let css = out.css || '';
-    const embedTheme = String(process.env.CANOPY_EMBED_THEME || '').trim();
-    const shouldEmbed = /^(1|true|yes|on)$/i.test(embedTheme);
-    const tokens = shouldEmbed && theme && theme.css ? theme.css.trim() : '';
-    if (tokens) {
-      const marker = '/* canopy-theme */';
-      const markerEnd = '/* canopy-theme:end */';
-      const block = `${marker}\n${tokens}\n${markerEnd}\n`;
-      css = `${block}${css}`;
-    }
+    // The theme is added to each site's stylesheet at build time
+    // (lib/build/styles.js); never bake it into this published file.
+    const css = out.css || '';
     fs.writeFileSync(indexCss, css, 'utf8');
     console.log('[ui] wrote', path.relative(root, indexCss));
   } catch (e) {
