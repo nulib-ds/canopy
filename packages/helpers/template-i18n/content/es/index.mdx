@@ -5,10 +5,11 @@ image: https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-d
 lang: es
 ---
 
-import {LanguageToggle} from "@canopy-iiif/app/ui/server";
+import {LanguageToggle} from "@nulib/canopy/ui/server";
 
 <Interstitials.Hero
-  headline="Comienza en inglés y publica en español"
+  headline={<>Comienza en inglés y publica en <Swoosh>español</Swoosh></>}
+  variant="centered"
   description="Este proyecto demuestra cómo emparejar contenido, navegación y rutas entre idiomas usando el selector de Canopy."
   background="theme"
   random={true}

@@ -1,6 +1,11 @@
 Helpers Agent Notes
 ===================
 
+Prime directive: WCAG 2.2 AA
+----------------------------
+- The templates and the docs site these helpers prepare conform to WCAG 2.2 at Level AA, and that outranks every note below. The rules are in the root `AGENTS.md` and `packages/app/DESIGN.md` §0.
+- Each template ships its own accessibility guidance in its `AGENTS.md` (and the Northwestern template's `DESIGN.md`). Template preparation copies those files into the published repositories, so keep them current when a rule changes.
+
 Mission
 -------
 - Centralize repository maintenance scripts (release guards, verification hooks, automation glue).
@@ -8,7 +13,7 @@ Mission
 
 Key Scripts
 -----------
-- `guard-publish.js`: Protects publishes by ensuring only `@canopy-iiif/app` is public and preflight checks pass.
+- `guard-publish.js`: Protects publishes by ensuring only `@nulib/canopy` and `@canopy-iiif/app` (its 1.x name, `packages/app-alias`) are public, at one version, the alias depending on exactly it.
 - `run-changeset.js`, `version-bump.js`: Wrap Changesets commands with local conventions.
 - `template/`: Logic for preparing the GitHub Pages template repo during releases.
 - `template-i18n/`: Assets + overrides for the bilingual template (`en` default, `es` secondary) published by the `template-i18n` job.
@@ -39,6 +44,7 @@ Session Ritual
 
 Logbook
 -------
+- 2026-11-16 / claude (2.x Phase 8): Canopy is published as `@nulib/canopy`; `@canopy-iiif/app` is `packages/app-alias`, a pass-through at the same version. `guard-publish.js` allows both and fails unless the alias depends on exactly the main package's version; `version-bump.js` writes its changeset for `@nulib/canopy` (one fixed group with the alias). `prepare-template.js`'s `templatePackageJson()` (exported, tested in `tests/unit/packaging/template.test.js`) gives the template one Canopy dependency, `@nulib/canopy`, beside React and React DOM, and `canopy build`/`canopy dev` as its scripts (no tsx, esbuild or Tailwind: the package brings them); `APP_SOURCE` names another source for it. `preview-template.js` packs this checkout's `@nulib/canopy` into `.cache/template-preview/` first and passes it as `APP_SOURCE` (an unreleased name cannot come from npm), and takes `--build` to build once instead of serving. The template's workflows read Node from `.nvmrc` (24), and its update workflow installs `@nulib/canopy`.
 - 2026-10-02 / claude: The docs theme previewer (`docs/ThemeShowcaseScript.js`) no longer re-implements the token map. It merges the per-palette variables that `ThemeShowcase` precomputes with the build's `buildVariablesMap()`, and no longer emits the legacy `--colors-*` names. The preview script and `ThemeStorageHydrator.js` share `STORAGE_KEY`/`STORAGE_VERSION` through `docs/theme-preview-storage.js`, bumped to 3 so stored v2 previews (built from the drifted scales) are discarded. Verified in the browser: crimson/sand in light and dark match a real build on 7 tokens each, the preview carries across docs pages, Reset clears it, and a planted v2 preview is dropped.
 - 2026-10-02 / claude: `prepare-template.js` no longer writes `app/styles/tailwind.config.cjs`. Contrary to the 2025-10-19 entry, it was still being generated. Tailwind v4 never loaded it, and with `@config` it failed to build: it required `@canopy-iiif/app/ui/tailwind-config.js`, which the package's `exports` map doesn't expose.
 - 2025-09-26 / chatgpt: Removed fallback behaviour from helper CLIs—`run-changeset` now requires a local @changesets/cli install and `build-tailwind` throws when the Tailwind CLI is missing or fails; template rewrite now pins Tailwind `^4.1.13`.

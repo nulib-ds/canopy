@@ -4,9 +4,13 @@ import {
   SearchResultsUI,
   SearchTabsUI,
   SearchFiltersDialog,
-} from "@canopy-iiif/app/ui";
+} from "../../ui/dist/index.mjs";
 import resultTemplates from "__CANOPY_SEARCH_RESULT_TEMPLATES__";
+import FlexSearch from "flexsearch";
 import localeRuntime from "../locale-runtime.js";
+import {createEngine} from "./engine.js";
+import {apiUrl, loadSearchData, withBasePath} from "./data.js";
+import {openIndex} from "./index-cache.js";
 const SITE_TITLE_FALLBACK = "Site title";
 const {getRuntimeMessage, formatRuntimeMessage} = localeRuntime;
 
@@ -41,104 +45,22 @@ function readSiteTitleFromGlobals() {
   return "";
 }
 
-function readBasePath() {
-  const normalize = (val) => {
-    const raw = typeof val === "string" ? val.trim() : "";
-    if (!raw) return "";
-    const withLead = raw.startsWith("/") ? raw : `/${raw}`;
-    return withLead.replace(/\/+$/, "");
-  };
+// The header's dialogs carry the site's title as the header shows it (`_app.mdx`'s
+// `title`), which `canopy.yml`'s `title` need not be; the filters take the same.
+function readSiteTitleFromHeader() {
   try {
-    if (typeof window !== "undefined" && window.CANOPY_BASE_PATH != null) {
-      const fromWindow = normalize(window.CANOPY_BASE_PATH);
-      if (fromWindow) return fromWindow;
-    }
-  } catch (_) {}
-  try {
-    if (typeof globalThis !== "undefined" && globalThis.CANOPY_BASE_PATH != null) {
-      const fromGlobal = normalize(globalThis.CANOPY_BASE_PATH);
-      if (fromGlobal) return fromGlobal;
-    }
-  } catch (_) {}
-  try {
-    if (typeof process !== "undefined" && process.env && process.env.CANOPY_BASE_PATH) {
-      const fromEnv = normalize(process.env.CANOPY_BASE_PATH);
-      if (fromEnv) return fromEnv;
-    }
-  } catch (_) {}
-  return "";
-}
-
-function withBasePath(href) {
-  try {
-    const raw = typeof href === "string" ? href.trim() : "";
-    if (!raw) return href;
-    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(raw)) return raw;
-    if (!raw.startsWith("/")) return raw;
-    const base = readBasePath();
-    if (!base || base === "/") return raw;
-    if (raw === base || raw.startsWith(`${base}/`)) return raw;
-    return `${base}${raw}`;
+    const label =
+      document.getElementById("canopy-modal-search-label") ||
+      document.getElementById("canopy-modal-nav-label");
+    return label && label.textContent ? label.textContent.trim() : "";
   } catch (_) {
-    return href;
+    return "";
   }
-}
-
-function apiBasePath() {
-  return withBasePath('/api');
-}
-
-function apiUrl(pathname) {
-  const cleaned = typeof pathname === 'string' ? pathname.replace(/^\/+/, '') : '';
-  const base = apiBasePath();
-  return `${base}/${cleaned}`;
 }
 
 function resolveSiteTitle() {
-  const title = readSiteTitleFromGlobals();
+  const title = readSiteTitleFromHeader() || readSiteTitleFromGlobals();
   return title || SITE_TITLE_FALLBACK;
-}
-
-function readDocumentLocale() {
-  try {
-    if (
-      typeof document !== "undefined" &&
-      document.documentElement &&
-      document.documentElement.lang
-    ) {
-      const lang = document.documentElement.lang;
-      if (lang) return String(lang).trim();
-    }
-  } catch (_) {}
-  return "";
-}
-
-function resolveRecordHrefForLocale(record, fallbackHref) {
-  const routes =
-    record && record.routes && typeof record.routes === "object"
-      ? record.routes
-      : null;
-  if (!routes) return fallbackHref;
-  const docLocale = readDocumentLocale();
-  const candidates = [];
-  if (docLocale) candidates.push(docLocale);
-  if (docLocale && docLocale.includes("-")) {
-    const base = docLocale.split("-")[0];
-    if (base && base !== docLocale) candidates.push(base);
-  }
-  if (record && typeof record.locale === "string") {
-    const localeCandidate = record.locale.trim();
-    if (localeCandidate && !candidates.includes(localeCandidate))
-      candidates.push(localeCandidate);
-  }
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    if (routes[candidate]) return routes[candidate];
-    const lower = candidate.toLowerCase();
-    if (lower !== candidate && routes[lower]) return routes[lower];
-  }
-  const first = Object.values(routes).find((value) => value);
-  return first || fallbackHref;
 }
 
 function resolveTypeLabel(type) {
@@ -151,104 +73,8 @@ function resolveTypeLabel(type) {
   return key ? key.charAt(0).toUpperCase() + key.slice(1) : "";
 }
 
-// Lightweight IndexedDB utilities (no deps) with defensive guards
-function hasIDB() {
-  try {
-    return typeof indexedDB !== "undefined";
-  } catch (_) {
-    return false;
-  }
-}
-function idbOpen() {
-  return new Promise((resolve, reject) => {
-    if (!hasIDB()) return resolve(null);
-    try {
-      const req = indexedDB.open("canopy-search", 1);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains("indexes"))
-          db.createObjectStore("indexes", {keyPath: "version"});
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => resolve(null);
-    } catch (_) {
-      resolve(null);
-    }
-  });
-}
-async function idbGet(store, key) {
-  const db = await idbOpen();
-  if (!db) return null;
-  return new Promise((resolve) => {
-    try {
-      const tx = db.transaction(store, "readonly");
-      const st = tx.objectStore(store);
-      const req = st.get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => resolve(null);
-    } catch (_) {
-      resolve(null);
-    }
-  });
-}
-async function idbPut(store, value) {
-  const db = await idbOpen();
-  if (!db) return false;
-  return new Promise((resolve) => {
-    try {
-      const tx = db.transaction(store, "readwrite");
-      const st = tx.objectStore(store);
-      st.put(value);
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    } catch (_) {
-      resolve(false);
-    }
-  });
-}
-async function idbPruneOld(store, keepKey) {
-  const db = await idbOpen();
-  if (!db) return false;
-  return new Promise((resolve) => {
-    try {
-      const tx = db.transaction(store, "readwrite");
-      const st = tx.objectStore(store);
-      const req = st.getAllKeys();
-      req.onsuccess = () => {
-        try {
-          (req.result || []).forEach((k) => {
-            if (k !== keepKey) st.delete(k);
-          });
-        } catch (_) {}
-        resolve(true);
-      };
-      req.onerror = () => resolve(false);
-    } catch (_) {
-      resolve(false);
-    }
-  });
-}
-async function sha256Hex(str) {
-  try {
-    if (typeof crypto !== "undefined" && crypto.subtle) {
-      const data = new TextEncoder().encode(str);
-      const digest = await crypto.subtle.digest("SHA-256", data);
-      return Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    }
-  } catch (_) {}
-  // Defensive: simple non-crypto hash when Web Crypto is unavailable
-  try {
-    let h = 5381;
-    for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
-    return (h >>> 0).toString(16);
-  } catch (_) {
-    return String(str && str.length ? str.length : 0);
-  }
-}
-
 function createSearchStore() {
+  let engine = null;
   let state = {
     query: new URLSearchParams(location.search).get("q") || "",
     type: new URLSearchParams(location.search).get("type") || "all",
@@ -263,6 +89,7 @@ function createSearchStore() {
     activeFilterCount: 0,
     annotationsEnabled: false,
     resultSettings: {},
+    failed: false,
   };
   const listeners = new Set();
   function notify() {
@@ -285,7 +112,7 @@ function createSearchStore() {
         base = records;
       } else {
         try {
-          const ids = (index && index.search(query, {limit: 200})) || [];
+          const ids = engine ? engine.search(index, query, 200) : [];
           base = ids.map((i) => records[i]).filter(Boolean);
         } catch (_) {
           base = [];
@@ -525,7 +352,8 @@ function createSearchStore() {
   }
   // Initialize snapshot
   recomputeSnapshot();
-  // init
+  // Load the records, open the index (from the visitor's cache when it holds this
+  // version), and pick the first tab.
   (async () => {
     try {
       const DEBUG = (() => {
@@ -538,35 +366,23 @@ function createSearchStore() {
           return false;
         }
       })();
-      const Flex =
-        (window && window.FlexSearch) || (await import("flexsearch")).default;
-      // Broadcast new index installs to other tabs
-      let bc = null;
-      try {
-        if (typeof BroadcastChannel !== "undefined")
-          bc = new BroadcastChannel("canopy-search");
-      } catch (_) {}
-      // Try to load meta for cache-busting and tab order; fall back to hash of JSON
-      let version = "";
-      let tabsOrder = [];
-      let annotationsAssetPath = "";
+      engine = createEngine(FlexSearch);
+      const {
+        searchMeta,
+        version,
+        records: data,
+        annotationCount,
+      } = await loadSearchData();
+      const tabsOrder = (
+        searchMeta && searchMeta.tabs && Array.isArray(searchMeta.tabs.order)
+          ? searchMeta.tabs.order
+          : []
+      )
+        .map((s) => String(s).trim().toLowerCase())
+        .filter(Boolean);
       let resultsOrder = [];
       let resultLayoutMap = {};
       try {
-        const meta = await fetch(apiUrl('index.json'))
-          .then((r) => (r && r.ok ? r.json() : null))
-          .catch(() => null);
-        if (meta && typeof meta.version === "string") version = meta.version;
-        const searchMeta = meta && meta.search ? meta.search : {};
-        const ord =
-          searchMeta &&
-          searchMeta.tabs &&
-          Array.isArray(searchMeta.tabs.order)
-            ? searchMeta.tabs.order
-            : [];
-        tabsOrder = ord
-          .map((s) => String(s).trim().toLowerCase())
-          .filter(Boolean);
         const resultsMeta =
           searchMeta && searchMeta.results ? searchMeta.results : null;
         if (resultsMeta) {
@@ -605,213 +421,33 @@ function createSearchStore() {
             resultLayoutMap = normalizedMap;
           }
         }
-        const annotationsAsset =
-          searchMeta &&
-          searchMeta.assets &&
-          searchMeta.assets.annotations;
-        if (annotationsAsset && annotationsAsset.path) {
-          annotationsAssetPath = String(annotationsAsset.path);
-        }
       } catch (_) {}
-      const suffix = version ? `?v=${encodeURIComponent(version)}` : "";
-      const res = await fetch(`${apiUrl('search-index.json')}${suffix}`);
-      const text = await res.text();
-      const parsed = (() => {
-        try {
-          return JSON.parse(text);
-        } catch {
-          return [];
-        }
-      })();
-      const indexRecords = Array.isArray(parsed)
-        ? parsed
-        : parsed && parsed.records
-        ? parsed.records
-        : [];
-
-      let displayRecords = [];
-      try {
-        const displayRes = await fetch(`${apiUrl('search-records.json')}${suffix}`);
-        if (displayRes && displayRes.ok) {
-          const displayJson = await displayRes.json().catch(() => []);
-          displayRecords = Array.isArray(displayJson)
-            ? displayJson
-            : displayJson && Array.isArray(displayJson.records)
-            ? displayJson.records
-            : [];
-        }
-      } catch (_) {}
-
-      const displayMap = new Map();
-      displayRecords.forEach((rec) => {
-        if (!rec || typeof rec !== "object") return;
-        const key = rec.id ? String(rec.id) : rec.href ? String(rec.href) : "";
-        if (!key) return;
-        displayMap.set(key, rec);
-      });
-
-      let annotationsRecords = [];
-      if (annotationsAssetPath) {
-        try {
-          const cleanedAnnotationsPath = annotationsAssetPath.replace(/^\/+/, '');
-          const annotationsUrl = `${apiUrl(cleanedAnnotationsPath)}${suffix}`;
-          const annotationsRes = await fetch(annotationsUrl);
-          if (annotationsRes && annotationsRes.ok) {
-            const annotationsJson = await annotationsRes.json().catch(() => []);
-            annotationsRecords = Array.isArray(annotationsJson)
-              ? annotationsJson
-              : annotationsJson && Array.isArray(annotationsJson.records)
-              ? annotationsJson.records
-              : [];
-          }
-        } catch (_) {}
-      }
-
-      const annotationsMap = new Map();
-      annotationsRecords.forEach((rec, idx) => {
-        if (!rec || typeof rec !== "object") return;
-        const key = rec.id ? String(rec.id) : String(idx);
-        const text = rec.annotation ? String(rec.annotation) : rec.text ? String(rec.text) : "";
-        if (!key || !text) return;
-        annotationsMap.set(key, text);
-      });
-
-      const data = indexRecords.map((rec, i) => {
-        const key = rec && rec.id ? String(rec.id) : String(i);
-        const display = key ? displayMap.get(key) : null;
-        const merged = { ...(display || {}), ...(rec || {}), __docIndex: i };
-        if (!merged.id && key) merged.id = key;
-        const fallbackHref = merged.href || (display && display.href) || '';
-        const localeAwareHref = resolveRecordHrefForLocale(
-          display || merged,
-          fallbackHref,
-        );
-        if (localeAwareHref) {
-          merged.href = withBasePath(localeAwareHref);
-        } else if (fallbackHref) {
-          merged.href = withBasePath(fallbackHref);
-        }
-        if (!merged.title) merged.title = merged.href || "";
-        if (!Array.isArray(merged.metadata)) {
-          const meta = Array.isArray(rec && rec.metadata) ? rec.metadata : [];
-          merged.metadata = meta;
-        }
-        if (annotationsMap.has(key) && !merged.annotation)
-          merged.annotation = annotationsMap.get(key);
-        return merged;
-      });
-      if (!version)
-        version = (parsed && parsed.version) || (await sha256Hex(text));
-
-      const idx = new Flex.Index({tokenize: "forward"});
-      const collectSearchText = (rec) => {
-        const parts = [];
-        if (rec && rec.title) parts.push(String(rec.title));
-        const metadata = Array.isArray(rec && rec.metadata) ? rec.metadata : [];
-        for (const value of metadata) {
-          if (value) parts.push(String(value));
-        }
-        if (rec && rec.summary) parts.push(String(rec.summary));
-        if (rec && rec.annotation) parts.push(String(rec.annotation));
-        return parts.join(" ").trim();
-      };
-      let hydrated = false;
       const t0 =
         typeof performance !== "undefined" && performance.now
           ? performance.now()
           : Date.now();
-      try {
-        const cached = await idbGet("indexes", version);
-        if (cached && cached.exportData) {
-          try {
-            const dataObj = cached.exportData || {};
-            for (const k in dataObj) {
-              if (Object.prototype.hasOwnProperty.call(dataObj, k)) {
-                try {
-                  idx.import(k, dataObj[k]);
-                } catch (_) {}
-              }
-            }
-            hydrated = true;
-          } catch (_) {
-            hydrated = false;
-          }
-        }
-      } catch (_) {
-        /* no-op */
-      }
-
-      if (!hydrated) {
-        data.forEach((rec, i) => {
-          try {
-            const payload = collectSearchText(rec);
-            idx.add(i, payload);
-          } catch (_) {}
-        });
-        try {
-          const dump = {};
-          try {
-            await idx.export((key, val) => {
-              dump[key] = val;
-            });
-          } catch (_) {}
-          await idbPut("indexes", {version, exportData: dump, ts: Date.now()});
-          await idbPruneOld("indexes", version);
-          try {
-            if (bc) bc.postMessage({type: "search-index-installed", version});
-          } catch (_) {}
-        } catch (_) {}
-        if (DEBUG) {
-          const t1 =
-            typeof performance !== "undefined" && performance.now
-              ? performance.now()
-              : Date.now();
-          // eslint-disable-next-line no-console
-          console.info(
-            `[Search] Index built in ${Math.round(t1 - t0)}ms (records=${
-              data.length
-            }) v=${String(version).slice(0, 8)}`
-          );
-        }
-      } else if (DEBUG) {
+      const {index: idx, cached} = await openIndex({
+        engine,
+        records: data,
+        version,
+      });
+      if (DEBUG) {
         const t1 =
           typeof performance !== "undefined" && performance.now
             ? performance.now()
             : Date.now();
         // eslint-disable-next-line no-console
         console.info(
-          `[Search] Index imported from IndexedDB in ${Math.round(
+          `[Search] Index ${cached ? "imported from IndexedDB" : "built"} in ${Math.round(
             t1 - t0
-          )}ms v=${String(version).slice(0, 8)}`
+          )}ms (records=${data.length}) v=${String(version).slice(0, 8)}`
         );
       }
-      // Optional: debug-listen for install events from other tabs
-      try {
-        if (bc && DEBUG) {
-          bc.onmessage = (ev) => {
-            try {
-              const msg = ev && ev.data;
-              if (
-                msg &&
-                msg.type === "search-index-installed" &&
-                msg.version &&
-                msg.version !== version
-              ) {
-                // eslint-disable-next-line no-console
-                console.info(
-                  "[Search] Another tab installed version",
-                  String(msg.version).slice(0, 8)
-                );
-              }
-            } catch (_) {}
-          };
-        }
-      } catch (_) {}
 
       const ts = Array.from(
         new Set(data.map((r) => String((r && r.type) || "page")))
       );
-      if (annotationsRecords.length && !ts.includes("annotation"))
+      if (annotationCount && !ts.includes("annotation"))
         ts.push("annotation");
       const order =
         Array.isArray(resultsOrder) && resultsOrder.length
@@ -847,12 +483,16 @@ function createSearchStore() {
         records: data,
         types: ts,
         loading: false,
-        annotationsEnabled: annotationsRecords.length > 0,
+        annotationsEnabled: annotationCount > 0,
         resultSettings: resultLayoutMap,
       });
       await hydrateFacets();
-    } catch (_) {
-      set({loading: false});
+    } catch (error) {
+      // Say so, here and on the page, rather than show no results for every query.
+      try {
+        console.error("[Search] failed to load", error);
+      } catch (_) {}
+      set({loading: false, failed: true});
     }
   })();
   // API
@@ -892,6 +532,10 @@ function createSearchStore() {
   };
 }
 
+// The header's field (`search-form-runtime.js`) drives this page's results rather than
+// its own suggestions, whatever the page's route (`/es/buscar`, say).
+if (typeof window !== "undefined") window.CanopySearchPage = true;
+
 const store = typeof window !== "undefined" ? createSearchStore() : null;
 
 function useStore() {
@@ -909,12 +553,28 @@ function useStore() {
   };
 }
 
+function pageHas(selector) {
+  try {
+    return Boolean(document.querySelector(selector));
+  } catch (_) {
+    return false;
+  }
+}
+
 function ResultsMount(props = {}) {
-  const {results, type, loading, query, resultSettings} = useStore();
+  const {results, type, types, loading, failed, query, resultSettings} = useStore();
   if (loading)
     return (
       <div className="text-gray-800">
         {formatRuntimeMessage("common.statuses.loading", "Loading…")}
+      </div>
+    );
+  if (failed)
+    return (
+      <div className="text-gray-800">
+        {formatRuntimeMessage("common.statuses.unavailable", "{content} unavailable.", {
+          content: getRuntimeMessage("common.nouns.search", "Search"),
+        })}
       </div>
     );
   const normalizedType = String(type || "").trim().toLowerCase();
@@ -939,6 +599,12 @@ function ResultsMount(props = {}) {
       query={query}
       templates={resultTemplates}
       variant={variant}
+      tabbed={
+        pageHas("[data-canopy-search-tabs]") &&
+        Array.isArray(types) &&
+        types.includes(type)
+      }
+      headingLevel={props.headingLevel}
     />
   );
 }
@@ -975,6 +641,9 @@ function TabsMount() {
         onOpenFilters={allowFilters ? () => setOpen(true) : undefined}
         activeFilterCount={activeFilterCount || 0}
         filtersOpen={allowFilters ? open : false}
+        panelId={
+          pageHas("[data-canopy-search-results]") ? "search-results" : undefined
+        }
       />
       {allowFilters ? (
         <SearchFiltersDialog
@@ -991,9 +660,15 @@ function TabsMount() {
     </>
   );
 }
+// What the search found, as a status message (4.1.3): shown at once, and said to a
+// screen reader by a visually hidden twin once typing pauses, so it hears the count once
+// rather than at every key.
+const ANNOUNCE_DELAY = 800;
+
 function SummaryMount() {
-  const {query, type, shown, total} = useStore();
+  const {query, type, shown, total, loading, failed} = useStore();
   const text = useMemo(() => {
+    if (loading || failed) return "";
     const itemsLabel = getRuntimeMessage("common.nouns.items", "items");
     if (!query) {
       return formatRuntimeMessage(
@@ -1008,8 +683,27 @@ function SummaryMount() {
       'Found {shown} of {total} in {type} for "{query}"',
       {shown, total, type: typeLabel, query},
     );
-  }, [query, type, shown, total]);
-  return <div className="text-sm text-gray-800">{text}</div>;
+  }, [query, type, shown, total, loading, failed]);
+  const spoken = failed
+    ? formatRuntimeMessage("common.statuses.unavailable", "{content} unavailable.", {
+        content: getRuntimeMessage("common.nouns.search", "Search"),
+      })
+    : text;
+  const [announced, setAnnounced] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setAnnounced(spoken), ANNOUNCE_DELAY);
+    return () => clearTimeout(timer);
+  }, [spoken]);
+  return (
+    <>
+      <div className="text-sm text-gray-800" aria-hidden="true">
+        {text}
+      </div>
+      <div role="status" className="sr-only">
+        {announced}
+      </div>
+    </>
+  );
 }
 
 function parseProps(el) {
@@ -1071,12 +765,32 @@ function bindSearchInputToStore() {
   } catch (_) {}
 }
 
-function mountAt(selector, Comp) {
+// The results' headings sit one level below the last heading the page shows before them
+// (DESIGN.md §0, "Headings follow the page"; ACCESSIBILITY.md R7): under the search
+// layout's `h1`, `h2`. `<SearchResults headingLevel={n} />` says otherwise.
+function headingLevelBefore(node) {
+  try {
+    const before = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6")).filter(
+      (heading) =>
+        !node.contains(heading) &&
+        heading.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING &&
+        heading.getClientRects().length > 0 &&
+        !heading.closest('[aria-hidden="true"], [hidden], [inert]')
+    );
+    const last = before[before.length - 1];
+    return last ? Number(last.tagName.slice(1)) + 1 : 2;
+  } catch (_) {
+    return 2;
+  }
+}
+
+function mountAt(selector, Comp, extend) {
   const nodes = document.querySelectorAll(selector);
   nodes.forEach((n) => {
     try {
       const root = createRoot(n);
-      const props = parseProps(n);
+      const parsed = parseProps(n);
+      const props = typeof extend === "function" ? extend(n, parsed) : parsed;
       root.render(<Comp {...props} />);
     } catch (e) {
       // Surface helpful diagnostics in dev
@@ -1096,7 +810,10 @@ if (typeof document !== "undefined") {
   const run = () => {
     // Mount tabs and other search UI pieces
     mountAt("[data-canopy-search-tabs]", TabsMount);
-    mountAt("[data-canopy-search-results]", ResultsMount);
+    mountAt("[data-canopy-search-results]", ResultsMount, (node, props) => ({
+      ...props,
+      headingLevel: Number(props.headingLevel) || headingLevelBefore(node),
+    }));
     mountAt("[data-canopy-search-summary]", SummaryMount);
     bindSearchInputToStore();
     // Total mount removed

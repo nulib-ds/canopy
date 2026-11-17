@@ -4,12 +4,21 @@ const styles = `
 :where(.app-github-corner) {
   position: relative;
 }
+/* The header sticks as this wrapper does, with the link over it: the header's own
+   stickiness ends at the wrapper's edge (\`_header.scss\`). */
+@media (min-height: 36rem) {
+  :where(.app-github-corner) {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+}
 :where(.app-github-corner__content .canopy-header) {
   padding-right: 4.5rem;
 }
 :where(.app-github-corner .app-github-corner__link) {
   position: absolute;
-  top: 1rem;
+  top: 0.625rem;
   right: 1.25rem;
   display: inline-flex;
   width: 2.75rem;
@@ -18,7 +27,7 @@ const styles = `
   justify-content: center;
   border-radius: 999px;
   color: var(--color-gray-900);
-  z-index: 2;
+  z-index: 21;
 }
 :where(.app-github-corner .app-github-corner__link svg) {
   width: 1.65rem;
@@ -29,7 +38,7 @@ const styles = `
     padding-right: 3.5rem;
   }
   :where(.app-github-corner .app-github-corner__link) {
-    top: 0.75rem;
+    top: 0.625rem;
     right: 0.75rem;
   }
 }

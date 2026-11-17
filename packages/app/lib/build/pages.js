@@ -140,8 +140,8 @@ async function renderContentMdxToHtml(filePath, outPath, extraProps = {}, source
   const frontmatterDescription = frontmatterData && typeof frontmatterData.description === 'string'
     ? truncateDescription(frontmatterData.description)
     : '';
-  const extractedPlain = typeof mdx.extractPlainText === 'function'
-    ? mdx.extractPlainText(source)
+  const extractedPlain = typeof mdx.extractSearchText === 'function'
+    ? mdx.extractSearchText(source).excerpt
     : '';
   const derivedDescription = truncateDescription(extractedPlain);
   const resolvedDescription = frontmatterDescription || derivedDescription;
@@ -340,7 +340,7 @@ async function renderContentMdxToHtml(filePath, outPath, extraProps = {}, source
   if (moduleScriptRels.length) {
     moduleScriptRels.forEach((src) => pushModuleScript(src));
   }
-  // The hero runtime (Embla) ships no CSS; its styles live in the UI
+  // The hero runtime ships no CSS; its styles live in the UI
   // stylesheet, so only the map needs a runtime stylesheet.
   const extraStyles = [];
   if (mapCssRel) {

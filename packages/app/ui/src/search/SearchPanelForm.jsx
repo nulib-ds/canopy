@@ -72,6 +72,7 @@ export default function SearchPanelForm(props = {}) {
     searchPath = "/search/index.html",
     inputId: inputIdProp,
     clearLabel,
+    hotkey = "",
   } = props || {};
   const {getString, formatString} = useLocale();
   const searchLabel = getString("common.nouns.search", "Search");
@@ -195,6 +196,16 @@ export default function SearchPanelForm(props = {}) {
         >
           ×
         </button>
+      ) : null}
+      {hotkey ? (
+        // The shortcut's hint, filled in and shown by the search runtime, which knows the
+        // platform (⌘K or Ctrl K); the input's `aria-keyshortcuts` says it to a reader.
+        <kbd
+          className="canopy-search-form__hotkey"
+          data-canopy-search-hotkey
+          aria-hidden="true"
+          hidden
+        />
       ) : null}
       <button
         type="submit"

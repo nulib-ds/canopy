@@ -1,14 +1,39 @@
 @use "../../settings/breakpoints" as bp;
+@use "../../settings/focus" as focus;
 @use "../buttons" as buttons;
+@use "../../settings/type";
 
+// The header (`CanopyHeader`): 64px, solid, the brand at its start, the search field and
+// the primary navigation after it, the language switch and the compact layout's two
+// buttons at its end. Sticky only where the window is tall enough to spare it: zoomed in,
+// it scrolls away with the page (1.4.10), and the page leaves room under it for whatever
+// takes focus (2.4.11).
 @layer components {
   .canopy-header {
     position: relative;
     display: flex;
     align-items: center;
     gap: 1.618rem;
-    padding: 1rem 1.618rem;
-    z-index: 1;
+    min-height: 4rem;
+    box-sizing: border-box;
+    padding: 0.5rem clamp(1rem, 3vw, 2rem);
+    background-color: var(--color-gray-50);
+    box-shadow: 0 1px 0 var(--canopy-edge);
+    z-index: 20;
+  }
+
+  @media (min-height: 36rem) {
+    .canopy-header {
+      position: sticky;
+      top: 0;
+    }
+
+    // The header's height as its script measures it (`CanopyHeader.jsx`), 4rem before
+    // it runs.
+    :root:has(.canopy-header) {
+      --canopy-sticky-top: var(--canopy-header-height, 4rem);
+      scroll-padding-top: calc(var(--canopy-sticky-top) + 1rem);
+    }
   }
 
   .canopy-header__brand {
@@ -32,12 +57,6 @@
     border: none;
   }
 
-  .canopy-header__menu:hover,
-  .canopy-header__menu:focus-visible {
-    color: var(--color-gray-900);
-    outline: none;
-  }
-
   .canopy-header__menu-icon {
     width: 1.5rem;
     height: 1.5rem;
@@ -47,6 +66,7 @@
     display: none;
     flex: 1 1 20rem;
     min-width: 0;
+    max-width: 36rem;
   }
 
   .canopy-header__desktop-search [data-canopy-search-form] {
@@ -57,12 +77,13 @@
     display: none;
     align-items: center;
     gap: 1rem;
-    font-size: 1rem;
+    @include type.ui;
   }
 
   .canopy-header__actions {
     display: flex;
     align-items: center;
+    gap: 0.25rem;
     margin-left: auto;
     flex: 0 0 auto;
   }
@@ -71,7 +92,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
+    @include type.ui-sm;
   }
 
   .canopy-language-toggle__select {
@@ -80,8 +101,11 @@
   }
 
   .canopy-language-toggle__select-input {
-    border: 1px solid var(--color-gray-300);
+    min-height: 2rem;
+    border: 1px solid var(--canopy-control-edge);
+    border-radius: var(--canopy-radius-md);
     padding: 0.25rem 2rem 0.25rem 0.75rem;
+    background-color: var(--color-gray-50);
     color: var(--color-gray-900);
     appearance: none;
     min-width: 6.5rem;
@@ -89,8 +113,7 @@
   }
 
   .canopy-language-toggle__select-input:focus-visible {
-    outline: 2px solid var(--color-accent-default);
-    outline-offset: 2px;
+    @include focus.focus-ring;
   }
 
   .canopy-language-toggle__nav {
@@ -110,21 +133,29 @@
 
   .canopy-language-toggle__button,
   .canopy-language-toggle__nav a {
-    @include buttons.canopy-button-base(0.15rem, 0.5rem);
+    @include buttons.canopy-button-base(0.15rem, 0.618rem);
+    min-height: 1.75rem;
     border: none;
-    color: var(--color-gray-700);
+    border-radius: var(--canopy-radius-pill);
+    color: var(--color-gray-900);
   }
 
+  .canopy-language-toggle__button:hover,
+  .canopy-language-toggle__nav a:hover {
+    background-color: var(--canopy-surface);
+  }
+
+  // The language in use: filled and bold, never told apart by its color alone.
   .canopy-language-toggle__button[data-active="true"],
   .canopy-language-toggle__nav a[data-active="true"] {
-    color: var(--color-accent-900);
-    background: var(--color-accent-100);
+    color: var(--color-gray-900);
+    background: var(--canopy-surface);
+    font-weight: var(--canopy-weight-bold);
   }
 
   .canopy-language-toggle__button:focus-visible,
   .canopy-language-toggle__nav a:focus-visible {
-    outline: 2px solid var(--color-accent-default);
-    outline-offset: 2px;
+    @include focus.focus-ring;
   }
 
   .canopy-language-toggle--mobile {
@@ -172,22 +203,28 @@
     display: none;
   }
 
+  // The compact layout's search and menu buttons: 40px, the page's text, a fill under the
+  // pointer.
   .canopy-header__icon-button {
     @include buttons.canopy-button-base(0.25rem, 0.75rem);
     width: 2.5rem;
     height: 2.5rem;
-    color: var(--color-accent-900);
+    padding: 0;
     border: none;
+    border-radius: var(--canopy-radius-md);
+    color: var(--color-gray-900);
 
     svg path {
-      stroke-width: 2.618px;
+      stroke-width: 2px;
     }
   }
 
-  .canopy-header__icon-button:hover,
+  .canopy-header__icon-button:hover {
+    background-color: var(--canopy-surface);
+  }
+
   .canopy-header__icon-button:focus-visible {
-    color: var(--color-accent-default);
-    outline: none;
+    @include focus.focus-ring;
   }
 
   .canopy-header__search-icon {
@@ -219,6 +256,7 @@
   .canopy-modal--search .canopy-search-teaser {
     position: static;
     border: none;
+    box-shadow: none;
     max-height: clamp(20rem, 60vh, 32rem);
     padding: 0;
     display: block;

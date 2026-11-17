@@ -15,39 +15,67 @@ files) share a single FlexSearch store so filters and type tabs stay in sync.
   `id`, `title`, and `href` pointing at `/works/<slug>.html`. Metadata fields listed in
   `search.index.metadata` are flattened for indexing.
 - **Pages** — MDX files contribute `type: 'page'` records when they have no [front matter](./frontmatter) or when
-  they explicitly set `type`. Add `search: false` to opt out. Optional `searchSummary` and
-  `searchSummaryMarkdown` fields override the teaser.
+  they explicitly set `type` (or `searchType`). Add `search: false` to opt out. Optional
+  `searchSummary` and `searchSummaryMarkdown` fields override the teaser, and `description`
+  does where neither is set; `image` shows beside the result
+  ([Customize search](../user-guides/customize-the-search-index)).
+
+A page is found by its prose: its headings, paragraphs, lists, quotes and table cells, and the
+words its components hold. Code blocks, imports, `{expressions}` and the attributes of its
+components are left out. Without a teaser, its result shows the passage around the words
+searched for.
 
 `packages/app/lib/build/search-index.js` combines the records and keeps IDs stable between
 `search-index.json` (FlexSearch input) and `search-records.json` (display data).
 
+## How a search matches
+
+The search page and the header's field find the same things, the same way:
+
+- A word is found by its beginning: `manu` finds "manuscript", `ma` finds "map".
+- Case and accents do not matter: `haridwar` finds "Haridwār", and `México` finds "Mexico".
+- Every word of a query must be found: `seated woman` finds only what has both words.
+- A record is found by its title, then its metadata, summary and annotation, and a match in the
+  title ranks first.
+
+A visitor's browser builds the index the first time they search and keeps it until the site's
+index changes, so later pages search at once.
+
+## The header's field
+
+The search field in the header suggests works and pages as a visitor types, grouped by type, and
+says how many it found to screen readers. The down arrow moves into the suggestions, the up arrow
+and Escape come back to the field, and Enter on the field opens the search page. ⌘K (Ctrl K on
+Windows and Linux) goes to the field from anywhere on the page. A page loads nothing for search
+until its field is used.
+
+On the search page itself, the field drives the page's results instead.
+
 ## Page composition
 
-Create `content/search/_layout.mdx` to control the markup surrounding the runtime. The layout
-receives a `search` prop with `form`, `summary`, `count`, and `results` placeholders. Drop them
-anywhere in the document to change the layout without editing React code.
+`content/search/_layout.mdx` lays out the search page, and every site needs one (the templates
+ship it). Place the search components in it anywhere, in any markup: `<SearchTabs />`,
+`<SearchSummary />` and `<SearchResults />` read from the same results. The header's search
+field drives them. The layout receives the page's details as `props.page`, its title among them.
 
 ```mdx filename="content/search/_layout.mdx"
----
-title: Search
----
-
-<section>
-  <h1>{props.title}</h1>
-  {props.search.summary}
-  {props.search.form}
-  {props.search.count}
-</section>
-
-{props.search.results}
+<div className="canopy-search-results">
+  <h1>{props.page?.title || "Search"}</h1>
+  <SearchTabs />
+  <SearchSummary />
+  <SearchResults />
+</div>
 ```
 
-If you omit `_layout.mdx`, Canopy renders a fallback layout that stacks the form, summary, and
-results vertically.
+Open the layout with an `h1`, as above: each page's result is titled by a heading one level
+below the last heading before the results, `h2` under the page's `h1`. Set it yourself with
+`<SearchResults headingLevel={3} />`.
 
 ## Page metadata
 
-Configure the browser `<title>` and meta description via `search.page` inside `canopy.yml`:
+Configure the browser `<title>` and meta description via `search.page` inside `canopy.yml`. A
+search page in another of the site's languages takes that language's word for "search" from its
+`locale.yml` (`common.nouns.search`) as its title.
 
 ```yaml filename="canopy.yml"
 search:
@@ -82,6 +110,9 @@ search:
 - `tabs.order` reorders tabs without redefining `layout`/`result`. Types omitted from `results`
   inherit the default `grid` + `figure` combo.
 
+The tabs are one stop for the keyboard: the left and right arrows, Home and End move between them,
+and the results follow at once.
+
 ## Filtering and URL state
 
 The runtime watches `?q` and `?type` query params, so deep links remain stable when you switch
@@ -106,6 +137,10 @@ between tabs or refine a search. When you add more record types via [front matte
   externals (the repository is already configured this way).
 - Delete `.cache/search` (if present) plus `site/api/search-*` and rebuild when you change record
   shapes.
+- When the search page says "Search unavailable.", its runtime could not load the index; the
+  browser console says why.
+- Add `?searchDebug` to the search page's address to log how long the index took to build, or to
+  load from the browser's cache.
 
 ## Metadata browse
 

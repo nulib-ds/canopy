@@ -1,4 +1,5 @@
 @use "./buttons" as buttons;
+@use "../settings/type";
 
 .canopy-gallery {
   position: relative;
@@ -31,17 +32,15 @@
   }
 
   &__heading {
+    @include type.title;
     margin: 0;
     padding: 0;
-    font-size: 2.618rem;
-    line-height: 1.2;
   }
 
   &__description {
+    @include type.lede;
     margin: 1rem 0 0;
-    font-size: 1.222rem;
     max-width: unset;
-    color: var(--color-gray-muted);
   }
 
   &__grid {
@@ -106,21 +105,16 @@
   }
 
   &__kicker {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.75rem;
-    color: var(--color-gray-muted);
+    @include type.label;
   }
 
   &__title-text {
-    font-weight: 500;
-    font-size: 1.05rem;
-    line-height: 1.3;
+    @include type.ui(bold);
     color: var(--color-gray-900);
   }
 
   &__summary {
-    font-size: 0.95rem;
+    @include type.ui-sm;
     color: var(--color-gray-muted);
   }
 
@@ -131,11 +125,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    font-size: 0.8rem;
+    @include type.ui-sm;
     color: var(--color-gray-muted);
 
     &--modal {
-      font-size: 0.9rem;
       gap: 1rem;
     }
   }
@@ -230,24 +223,19 @@
   }
 
   &__modal-kicker {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.8rem;
-    color: var(--color-gray-muted);
+    @include type.label;
     margin: 0 0 0.5rem;
   }
 
   &__modal-title {
+    @include type.h3;
     margin: 0.382rem 0;
-    font-size: 1.382rem;
-    font-weight: 400;
-    line-height: 1.2;
   }
 
   &__modal-summary {
+    @include type.body;
     margin: 0;
     color: var(--color-gray-muted);
-    font-weight: 300;
   }
 
   &__modal-body {
@@ -410,7 +398,7 @@ body[data-canopy-gallery-locked="1"] {
     width: 5rem;
     height: 100%;
     color: var(--color-gray-900);
-    font-size: 1.25rem;
+    font-size: var(--canopy-text-xl);
     display: none;
     align-items: center;
     justify-content: center;
@@ -452,7 +440,7 @@ body[data-canopy-gallery-locked="1"] {
   }
 
   &__nav-button-icon {
-    font-size: 1.25rem;
+    font-size: var(--canopy-text-xl);
     line-height: 1;
   }
 }
@@ -475,18 +463,14 @@ body[data-canopy-gallery-locked="1"] {
   }
 
   dt {
-    text-transform: uppercase;
-    color: var(--color-gray-muted);
+    @include type.label;
     margin: 0;
-    font-size: 0.7222rem;
-    font-weight: 400;
     margin-top: 0.85rem;
   }
 
   dd {
+    @include type.ui;
     color: var(--color-gray-900);
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.45;
   }
 }

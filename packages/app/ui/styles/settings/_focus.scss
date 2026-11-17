@@ -1,0 +1,15 @@
+// The focus indicator every component draws (DESIGN.md §0, "Focus stays visible and in
+// view"): an outline in `--canopy-focus-color`, 2px wide, standing 2px off the element, so
+// the page shows between them as a second tone. An outline, not a shadow: forced-colors
+// mode keeps it, and it follows the element's corners.
+//
+// `$inset: true` draws it inside the element, for one in a container that clips what
+// stands outside it (a slider's track, a hero's stage).
+@mixin focus-ring($inset: false) {
+  outline: var(--canopy-focus-width) solid var(--canopy-focus-color);
+  @if $inset {
+    outline-offset: calc(-1 * (var(--canopy-focus-width) + var(--canopy-focus-offset)));
+  } @else {
+    outline-offset: var(--canopy-focus-offset);
+  }
+}

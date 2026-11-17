@@ -1,6 +1,8 @@
 export {HelloWorld} from "./src/HelloWorld.jsx";
 export {Viewer} from "./src/iiif/Viewer.jsx";
 export {Slider} from "./src/iiif/Slider.jsx";
+// A slider's breakpoints in rem, which the runtime turns into pixels (`<Slider options>`).
+export {rem} from "./src/iiif/sliderOptions.js";
 export {Scroll} from "./src/iiif/Scroll.jsx";
 export {Image} from "./src/iiif/Image.jsx";
 export {ImageStory} from "./src/iiif/ImageStory.jsx";
@@ -15,6 +17,7 @@ export {default as Layout} from "./src/layout/Layout.jsx";
 export {default as CanopyHeader} from "./src/layout/CanopyHeader.jsx";
 export {default as CanopyFooter} from "./src/layout/CanopyFooter.jsx";
 export {default as LanguageToggle} from "./src/layout/LanguageToggle.jsx";
+export {default as AppearanceToggle} from "./src/layout/AppearanceToggle.jsx";
 export {default as CanopyBrand} from "./src/layout/CanopyBrand.jsx";
 export {default as CanopyModal} from "./src/layout/CanopyModal.jsx";
 export {default as TeaserCard} from "./src/layout/TeaserCard.jsx";
@@ -22,6 +25,9 @@ export {default as GoogleAnalytics} from "./src/layout/GoogleAnalytics.jsx";
 export {default as Container} from "./src/layout/Container.jsx";
 export {default as Button} from "./src/layout/Button.jsx";
 export {default as ButtonWrapper} from "./src/layout/ButtonWrapper.jsx";
+export {default as Swoosh} from "./src/layout/Swoosh.jsx";
+export {default as Band} from "./src/layout/Band.jsx";
+export {default as Feature} from "./src/layout/Feature.jsx";
 export {default as Card} from "./src/layout/Card.jsx";
 export {default as ReferencedItems} from "./src/content/ReferencedItems.jsx";
 export {default as References} from "./src/content/References.jsx";

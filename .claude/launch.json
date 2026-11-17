@@ -2,10 +2,30 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "docs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5001
+    },
+    {
       "name": "template-northwestern",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview:template-northwestern"],
       "port": 5001
+    },
+    {
+      "name": "a11y-fixture",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tests/a11y/lib/serve.mjs", "tests/a11y/.site/template-light", "4317"],
+      "port": 4317,
+      "url": "http://127.0.0.1:4317"
+    },
+    {
+      "name": "a11y-fixture-auto",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tests/a11y/lib/serve.mjs", "tests/a11y/.site/template-auto", "4340"],
+      "port": 4340,
+      "url": "http://127.0.0.1:4340"
     }
   ]
 }

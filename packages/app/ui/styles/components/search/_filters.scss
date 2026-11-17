@@ -1,4 +1,6 @@
 @use "../buttons" as buttons;
+@use "../../settings/focus" as focus;
+@use "../../settings/type";
 
 @layer components {
   .canopy-modal--filters {
@@ -22,9 +24,8 @@
   }
 
   .canopy-search-filters__subtitle {
+    @include type.ui-sm;
     margin: 0 0 0.75rem;
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-sm);
     color: var(--color-gray-muted);
   }
 
@@ -40,14 +41,14 @@
   }
 
   .canopy-search-filters__empty {
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-sm);
+    @include type.ui-sm;
     color: var(--color-gray-muted);
   }
 
+  // Each facet a panel: a solid fill, rounded, no outline around it.
   .canopy-search-filters__facet {
-    border: 1px solid var(--color-gray-200);
-    background: var(--color-gray-50);
+    border-radius: var(--canopy-radius-lg);
+    background: var(--canopy-surface);
     overflow: hidden;
   }
 
@@ -57,11 +58,16 @@
     justify-content: space-between;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    font-size: var(--font-size-sm);
-    font-weight: 500;
+    @include type.ui-sm(bold);
     color: var(--color-gray-900);
     cursor: pointer;
     list-style: none;
+  }
+
+  // Inside, as the facet clips what stands outside it.
+  .canopy-search-filters__facet-summary:focus-visible {
+    @include focus.focus-ring($inset: true);
+    border-radius: var(--canopy-radius-lg);
   }
 
   .canopy-search-filters__facet-summary::-webkit-details-marker {
@@ -69,13 +75,12 @@
   }
 
   .canopy-search-filters__facet-count {
-    font-size: var(--font-size-xs);
-    font-weight: 400;
+    @include type.ui-sm;
     color: var(--color-gray-muted);
   }
 
   .canopy-search-filters__facet-content {
-    border-top: 1px solid var(--color-gray-200);
+    border-top: 1px solid var(--canopy-edge);
     padding: 1rem;
     max-height: 15rem;
     overflow-y: auto;
@@ -88,30 +93,43 @@
     margin-bottom: 0.75rem;
   }
 
+  // Its edge 3:1 against the panel (1.4.11; ACCESSIBILITY.md C35) and its placeholder
+  // the muted text (1.4.3; C31).
   .canopy-search-filters__quick-input {
     flex: 1;
     min-width: 0;
-    border: 1px solid var(--color-gray-300);
+    border: 1px solid var(--canopy-control-edge);
+    border-radius: var(--canopy-radius-md);
+    background-color: var(--color-gray-50);
     padding: 0.375rem 0.75rem;
-    font-size: var(--font-size-sm);
+    @include type.ui-sm;
     color: var(--color-gray-muted);
-    transition: border-color var(--duration-fast) var(--easing-standard);
+    transition: border-color 120ms ease;
+
+    // Drawn inside, over the edge, where the filters' panel would clip a ring outside.
+    &::placeholder {
+      color: var(--color-gray-muted);
+      opacity: 1;
+    }
 
     &:focus {
-      outline: none;
-      border-color: var(--color-accent-500);
+      outline: 2px solid var(--color-accent-default);
+      outline-offset: -1px;
+      border-color: var(--color-accent-default);
     }
   }
 
   .canopy-search-filters__quick-clear {
-    border: 1px solid var(--color-gray-200);
+    border: 1px solid var(--canopy-control-edge);
+    border-radius: var(--canopy-radius-md);
+    min-height: 24px;
     padding: 0.25rem 0.5rem;
-    font-size: var(--font-size-xs);
+    @include type.ui-sm;
     color: var(--color-gray-muted);
     background: var(--color-gray-100);
     transition:
-      background-color var(--duration-fast) var(--easing-standard),
-      color var(--duration-fast) var(--easing-standard);
+      background-color 120ms ease,
+      color 120ms ease;
 
     &:hover {
       background: var(--color-gray-100);
@@ -126,7 +144,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    font-size: var(--font-size-sm);
+    @include type.ui-sm;
     color: var(--color-gray-muted);
   }
 
@@ -141,8 +159,9 @@
     width: 1rem;
     height: 1rem;
     border: 1px solid var(--color-gray-300);
-    color: var(--color-accent-500);
-    accent-color: var(--color-accent-500);
+    // The accent's text step, so the checked box holds 3:1 on the page (1.4.11).
+    color: var(--color-accent-default);
+    accent-color: var(--color-accent-default);
   }
 
   .canopy-search-filters__facet-label {
@@ -153,7 +172,7 @@
   }
 
   .canopy-search-filters__facet-empty {
-    font-size: var(--font-size-sm);
+    @include type.ui-sm;
     color: var(--color-gray-muted);
   }
 
@@ -163,7 +182,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    border-top: 1px solid var(--color-gray-200);
+    border-top: 1px solid var(--canopy-edge);
     padding-top: 1.25rem;
   }
 
@@ -175,31 +194,43 @@
 
   .canopy-search-filters__button {
     @include buttons.canopy-button-base(0.5rem, 1.25rem);
-    font-size: var(--font-size-sm);
+    min-height: 2.5rem;
+    border-radius: var(--canopy-radius-lg);
+    @include type.ui-sm;
   }
 
   .canopy-search-filters__button--secondary {
-    border: 1px solid var(--color-gray-300);
-    color: var(--color-gray-muted);
+    border: 1px solid var(--canopy-control-edge);
+    color: var(--color-gray-900);
   }
 
   .canopy-search-filters__button--secondary:hover,
   .canopy-search-filters__button--secondary:focus-visible {
     background: var(--color-gray-100);
     color: var(--color-gray-900);
-    outline: none;
   }
 
+  // Nothing to clear: in place and focusable, its words muted.
+  .canopy-search-filters__button--secondary[aria-disabled="true"] {
+    color: var(--color-gray-muted);
+    cursor: not-allowed;
+  }
+
+  // A primary button as `.canopy-button--primary` draws one: its label on the accent's
+  // text step, and darker (lighter, in dark mode) under the pointer, both at 4.5:1.
   .canopy-search-filters__button--primary {
     border: none;
-    background: var(--color-accent-600);
-    color: var(--color-gray-50);
+    background: var(--color-accent-default);
+    color: var(--color-accent-50);
   }
 
   .canopy-search-filters__button--primary:hover,
   .canopy-search-filters__button--primary:focus-visible {
-    background: var(--color-accent-default);
-    outline: none;
+    background: var(--color-accent-hover);
+  }
+
+  .canopy-search-filters__button:focus-visible {
+    @include focus.focus-ring;
   }
 
   @media (max-width: 48rem) {

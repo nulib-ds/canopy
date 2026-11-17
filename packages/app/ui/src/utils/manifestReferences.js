@@ -41,7 +41,7 @@ export function normalizeManifestId(raw) {
 
 const PageContextFallback = React.createContext(null);
 let referencedModule = null;
-const REFERENCED_SPEC = '@canopy-iiif/app/lib/components/referenced.js';
+const REFERENCED_SPEC = '@nulib/canopy/lib/components/referenced.js';
 
 function getReferencedModule() {
   if (typeof window !== 'undefined') return null;

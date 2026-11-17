@@ -2,6 +2,10 @@
 
 The living record of layout, theme, and styling decisions for the Northwestern-branded Canopy template. Decisions follow Northwestern's [brand guidelines](https://www.northwestern.edu/brand/) as encoded in the `northwestern-brand-skills` color, typography, and "unstated rules" skills.
 
+## 0. Prime directive: WCAG 2.2 AA
+
+Every decision in this brief conforms to WCAG 2.2 at Level AA, and that outranks the brand. Northwestern's rules apply where they conform. When one conflicts with a criterion, conformance wins, and the deviation is recorded in this file with its reason. Canopy's rules are in [`packages/app/DESIGN.md`](https://github.com/nulib-ds/canopy/blob/main/packages/app/DESIGN.md) §0.
+
 ## Where things live
 
 | File | Role |
@@ -65,18 +69,21 @@ All faces load from Northwestern's central CDN (`common.northwestern.edu/v8/css/
 ## Links & Focus
 
 - In-copy links (`main p a`, `li a`, `dd a`, `blockquote a`) are always underlined. Purple next to Rich Black body text is only ~1.3:1, so color alone fails WCAG 1.4.1.
-- Focus rings: 2px Northwestern Purple, white on purple surfaces.
+- Focus rings: 2px Northwestern Purple, white on purple surfaces, 2px outside the element.
+  - Inside anything that clips its content (the hero's slides, the viewers, Scroll), the ring is drawn inside the element instead, where it stays in sight (WCAG 2.4.7). The map shows it on its frame, because its own panes paint over anything drawn inside it.
+  - The header's visually hidden Search button shows itself, in Purple with white text, while it has focus (WCAG 2.4.7, 2.4.11).
+- The footer's wordmark link is named by its image's `alt`, so if the image fails to load, the link still shows its name rather than collapsing to nothing.
 
 ## Shape & Borders
 
-- Square corners everywhere — Canopy's UI already forces `border-radius: 0`, which matches the brand.
+- Square corners and no shadows everywhere, by choice: `northwestern.css` sets Canopy's radius tokens to `0` and its shadows to a zero shadow (Canopy 2 rounds and lifts by default), so every component, Clover's among them, is square and flat.
 - No decorative borders. The footer drops Canopy's top rule in favor of the Purple 120 band.
 - Cards (`.canopy-card`, used by search results and referenced items) drop their box border and sit on Off-White `#F0F0F0`.
 - The hero keeps a single Rich Black 10% hairline at its base as a structural divider.
 
 ## Components
 
-- **Header (v4):** three rows aligned to a 1120px column. Top bar Purple 120, 63px. Site-name row white, `2rem` padding, with search on the right: an underlined field (Purple 60 rule, Purple 30 placeholder, trailing Purple 60 icon; the submit button is visually hidden). Nav row between Purple 30 hairlines; links Akkurat Pro Bold in Northwestern Purple, Purple 70 fill with white text on hover, Purple 10 fill for the current page. Below Canopy's `70rem` breakpoint the nav and search collapse to purple icon buttons. The header is opaque, so the hero's `-5rem` tuck-under margin is reset to `0`.
+- **Header (v4):** three rows aligned to a 1120px column. Top bar Purple 120, 63px. Site-name row white, `2rem` padding, with search on the right: an underlined field (Purple 60 rule, Purple 70 placeholder at 5.2:1 where the brief's Purple 30 is 2.2:1, trailing Purple 60 icon; the submit button is visually hidden). Nav row between Purple 30 hairlines; links Akkurat Pro Bold in Northwestern Purple, Purple 70 fill with white text on hover, Purple 10 fill for the current page. Below Canopy's `70rem` breakpoint the nav and search collapse to purple icon buttons. The header is opaque, so the hero's `-5rem` tuck-under margin is reset to `0`.
 - **Nav/search modals:** white, with the site name in the same uppercase purple treatment.
 - **Hero:** flat white (Canopy's lavender gradient removed); purple Poppins headline, Rich Black description, brand buttons.
 - **Buttons:** primary = Purple 100 fill, Purple 120 on hover; secondary = white with Purple 100 outline/text, Purple 10 on hover. Akkurat Pro Bold, `0.75rem 1.5rem` padding.

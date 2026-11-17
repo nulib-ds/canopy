@@ -38,6 +38,7 @@ function getSiteLanguageToggle() {
   } catch (_) {}
   return null;
 }
+const rehypeTaskListLabels = require("./rehype-task-list-labels");
 let remarkGfm = null;
 try {
   const mod = require("remark-gfm");
@@ -82,8 +83,27 @@ function buildCompileOptions(overrides = {}) {
   if (remarkPlugins.length) {
     base.remarkPlugins = remarkPlugins;
   }
+  // Names Markdown task lists' checkboxes (WCAG 4.1.2; ACCESSIBILITY.md C15).
+  base.rehypePlugins = [rehypeTaskListLabels];
+  if (overrides && Array.isArray(overrides.rehypePlugins)) {
+    base.rehypePlugins.push(...overrides.rehypePlugins);
+  }
+  // The page's imports of this package, by either name; `server: true` for a page that
+  // renders on the server, where its UI imports take the SSR-safe entry (`ui/server`).
+  base.recmaPlugins = [
+    [recmaPackageImports, {server: Boolean(overrides && overrides.server)}],
+  ];
+  if (overrides && Array.isArray(overrides.recmaPlugins)) {
+    base.recmaPlugins.push(...overrides.recmaPlugins);
+  }
   if (overrides && typeof overrides === "object") {
-    const {remarkPlugins: _omit, ...rest} = overrides;
+    const {
+      remarkPlugins: _omit,
+      rehypePlugins: _omitRehype,
+      recmaPlugins: _omitRecma,
+      server: _omitServer,
+      ...rest
+    } = overrides;
     Object.assign(base, rest);
   }
   return base;
@@ -91,14 +111,14 @@ function buildCompileOptions(overrides = {}) {
 const yaml = require("js-yaml");
 const {getPageContext} = require("../page-context");
 
-const UI_PACKAGE_SPEC = "@canopy-iiif/app/ui";
-const UI_SERVER_SPEC = "@canopy-iiif/app/ui/server";
-const UI_SPEC_REGEX = new RegExp(`(['"])${UI_PACKAGE_SPEC.replace(/\//g, '\\/')}(['"])`, "g");
-
-function rewriteUiImportsForServer(source) {
-  if (typeof source !== "string" || !source.includes(UI_PACKAGE_SPEC)) return source;
-  return source.replace(UI_SPEC_REGEX, ($0, open, close) => `${open}${UI_SERVER_SPEC}${close}`);
-}
+// An import of this package by its name or its 1.x name (`@canopy-iiif/app`), read as
+// this package wherever a site's code is compiled or bundled (`package-names.js`).
+const {
+  PACKAGE_NAME,
+  recmaPackageImports,
+  esbuildPackageNames,
+  esbuildServerPackageNames,
+} = require("./package-names");
 
 function parseFrontmatter(src) {
   let input = String(src || "");
@@ -305,9 +325,9 @@ async function loadServerComponentFromPath(name, spec) {
       "react-dom",
       "react-dom/server",
       "react-dom/client",
-      "@canopy-iiif/app",
-      "@canopy-iiif/app/*",
     ],
+    // As in 1.x, a component loaded by its own path keeps the UI entry it imports.
+    plugins: [esbuildServerPackageNames({server: false})],
     allowOverwrite: true,
   });
   const bust = mtime || Date.now();
@@ -365,13 +385,14 @@ async function loadCoreUiComponents() {
       );
       if (fs.existsSync(wsDist)) resolved = wsDist;
     } catch (_) {}
-    // Prefer explicit dist path to avoid export-map issues
+    // This package's own dist, beside this file, then its export.
     if (!resolved) {
-      try {
-        resolved = require.resolve("@canopy-iiif/app/ui/dist/server.mjs");
-      } catch (_) {
+      const own = path.join(__dirname, "..", "..", "ui", "dist", "server.mjs");
+      if (fs.existsSync(own)) {
+        resolved = own;
+      } else {
         try {
-          resolved = require.resolve("@canopy-iiif/app/ui/server");
+          resolved = require.resolve(`${PACKAGE_NAME}/ui/server`);
         } catch (_) {
           resolved = null;
         }
@@ -448,12 +469,12 @@ async function loadCoreUiComponents() {
     if (!mod) {
       // Try package subpath as a secondary resolution path to avoid export-map issues
       try {
-        mod = await import("@canopy-iiif/app/ui/server");
+        mod = await import(`${PACKAGE_NAME}/ui/server`);
       } catch (e2) {
         const msgA = importErr && (importErr.stack || importErr.message);
         const msgB = e2 && (e2.stack || e2.message);
         throw new Error(
-          "Failed to load @canopy-iiif/app/ui/server. Ensure the UI package is built.\nPath import error: " +
+          `Failed to load ${PACKAGE_NAME}/ui/server. Ensure the UI package is built.\nPath import error: ` +
             (msgA || "") +
             "\nExport-map import error: " +
             (msgB || "")
@@ -597,20 +618,10 @@ async function compileCustomComponentModule(entryPath, signature) {
         "react-dom",
         "react-dom/server",
         "react-dom/client",
-        "@canopy-iiif/app",
-        "@canopy-iiif/app/*",
-        "@canopy-iiif/app/ui",
-        "@canopy-iiif/app/ui/*",
       ],
+      plugins: [esbuildServerPackageNames()],
       allowOverwrite: true,
     });
-    try {
-      const built = fs.readFileSync(tmpFile, "utf8");
-      const rewritten = rewriteUiImportsForServer(built);
-      if (rewritten !== built) {
-        fs.writeFileSync(tmpFile, rewritten, "utf8");
-      }
-    } catch (_) {}
   } catch (err) {
     const msg = err && (err.message || err.stack) ? err.message || err.stack : err;
     throw new Error(
@@ -809,7 +820,7 @@ function extractPlainText(mdxSource) {
   content = content.replace(/```[\s\S]*?```/g, " ");
   content = content.replace(/`{1,3}([^`]+)`{1,3}/g, "$1");
   content = content.replace(/!\[[^\]]*\]\([^)]*\)/g, " ");
-  content = content.replace(/\[[^\]]*\]\([^)]*\)/g, "$1");
+  content = content.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
   content = content.replace(/<[^>]+>/g, " ");
   content = content.replace(/\{#([^}]+)\}/g, " ");
   content = content.replace(/\{\/[A-Za-z0-9_.-]+\}/g, " ");
@@ -833,6 +844,18 @@ function extractMarkdownSummary(mdxSource) {
   content = content.replace(/^#{1,6}\s+.*$/gm, " ");
   content = content.replace(/\s+/g, " ").trim();
   return content;
+}
+
+// A page's words: { text } it is found by, { excerpt } its prose without headings (a meta
+// description where the page gives none) and { markdown } its result's excerpt is drawn
+// from, read with the MDX parser (`search-text.js`), or the patterns above where it cannot.
+function extractSearchText(mdxSource) {
+  const {content} = parseFrontmatter(String(mdxSource || ""));
+  if (!content) return {text: "", excerpt: "", markdown: ""};
+  const parsed = require("./search-text").searchTextFromMdx(content);
+  if (parsed) return parsed;
+  const text = extractPlainText(mdxSource);
+  return {text, excerpt: text, markdown: extractMarkdownSummary(mdxSource)};
 }
 
 function extractTitle(mdxSource) {
@@ -890,8 +913,7 @@ async function loadAppWrapper() {
   const {compile} = await import("@mdx-js/mdx");
   const raw = await fsp.readFile(appPath, "utf8");
   const {content: source} = parseFrontmatter(raw);
-  const safeSource = rewriteUiImportsForServer(source);
-  let code = String(await compile(safeSource, buildCompileOptions()));
+  let code = String(await compile(source, buildCompileOptions({server: true})));
   // MDX v3 default export (MDXContent) does not forward external children.
   // When present, expose the underlying layout function as __MDXLayout for wrapping.
   if (
@@ -939,8 +961,7 @@ async function compileMdxFile(filePath, outPath, Layout, extraProps = {}) {
   const {compile} = await import("@mdx-js/mdx");
   const raw = await fsp.readFile(filePath, "utf8");
   const {content: source} = parseFrontmatter(raw);
-  const safeSource = rewriteUiImportsForServer(source);
-  const compiled = await compile(safeSource, buildCompileOptions());
+  const compiled = await compile(source, buildCompileOptions({server: true}));
   const code = String(compiled);
   ensureDirSync(CACHE_DIR);
   const relCacheName =
@@ -1162,6 +1183,25 @@ async function loadCustomLayout(defaultLayout) {
   return defaultLayout;
 }
 
+/**
+ * A module that reads React from `window.React` (`react-globals.js`), for the runtimes
+ * that hydrate beside the page's React, exporting every name React exports. Clover 4
+ * imports `lazy` and `Suspense` too; a list kept by hand missed them, and every runtime
+ * that reaches Clover then failed to bundle, the timeline's and map's among them, as
+ * esbuild parses the targets of the UI bundle's dynamic imports.
+ */
+function reactGlobalShim() {
+  return (
+    "const React = (typeof window !== 'undefined' && window.React) || {};\n" +
+    "export default React;\n" +
+    Object.keys(require("react"))
+      .filter((name) => name !== "default" && /^[A-Za-z_$][\w$]*$/.test(name))
+      .map((name) => `export const ${name} = React.${name};`)
+      .join("\n") +
+    "\n"
+  );
+}
+
 function resolveEsbuild() {
   try {
     return require("../../ui/node_modules/esbuild");
@@ -1175,35 +1215,7 @@ function resolveEsbuild() {
 }
 
 function createReactShimPlugin() {
-  const reactShim = `
-    const React = (typeof window !== 'undefined' && window.React) || {};
-    export default React;
-    export const Children = React.Children;
-    export const Component = React.Component;
-    export const Fragment = React.Fragment;
-    export const createElement = React.createElement;
-    export const cloneElement = React.cloneElement;
-    export const createContext = React.createContext;
-    export const forwardRef = React.forwardRef;
-    export const memo = React.memo;
-    export const startTransition = React.startTransition;
-    export const isValidElement = React.isValidElement;
-    export const useEffect = React.useEffect;
-    export const useLayoutEffect = React.useLayoutEffect;
-    export const useMemo = React.useMemo;
-    export const useState = React.useState;
-    export const useRef = React.useRef;
-    export const useCallback = React.useCallback;
-    export const useContext = React.useContext;
-    export const useReducer = React.useReducer;
-    export const useId = React.useId;
-    export const useImperativeHandle = React.useImperativeHandle;
-    export const useTransition = React.useTransition;
-    export const useDeferredValue = React.useDeferredValue;
-    export const useDebugValue = React.useDebugValue;
-    export const useSyncExternalStore = React.useSyncExternalStore;
-    export const useInsertionEffect = React.useInsertionEffect;
-  `;
+  const reactShim = reactGlobalShim();
   const rdomShim = `
     const ReactDOM = (typeof window !== 'undefined' && window.ReactDOM) || {};
     export default ReactDOM;
@@ -1452,7 +1464,8 @@ async function buildCustomClientRuntime(entries) {
     sourcemap: false,
     minify: true,
     logLevel: "silent",
-    plugins: [createReactShimPlugin()],
+    // A site's client components may import this package by its 1.x name.
+    plugins: [esbuildPackageNames(), createReactShimPlugin()],
   });
   try {
     const {logLine} = require("./log");
@@ -1736,35 +1749,7 @@ async function ensureTimelineRuntime() {
     "components",
     "timeline-runtime.js"
   );
-  const reactShim = `
-    const React = (typeof window !== 'undefined' && window.React) || {};
-    export default React;
-    export const Children = React.Children;
-    export const Component = React.Component;
-    export const Fragment = React.Fragment;
-    export const createElement = React.createElement;
-    export const cloneElement = React.cloneElement;
-    export const createContext = React.createContext;
-    export const forwardRef = React.forwardRef;
-    export const memo = React.memo;
-    export const startTransition = React.startTransition;
-    export const isValidElement = React.isValidElement;
-    export const useEffect = React.useEffect;
-    export const useLayoutEffect = React.useLayoutEffect;
-    export const useMemo = React.useMemo;
-    export const useState = React.useState;
-    export const useRef = React.useRef;
-    export const useCallback = React.useCallback;
-    export const useContext = React.useContext;
-    export const useReducer = React.useReducer;
-    export const useId = React.useId;
-    export const useImperativeHandle = React.useImperativeHandle;
-    export const useTransition = React.useTransition;
-    export const useDeferredValue = React.useDeferredValue;
-    export const useDebugValue = React.useDebugValue;
-    export const useSyncExternalStore = React.useSyncExternalStore;
-    export const useInsertionEffect = React.useInsertionEffect;
-  `;
+  const reactShim = reactGlobalShim();
   const rdomShim = `
     const ReactDOM = (typeof window !== 'undefined' && window.ReactDOM) || {};
     export default ReactDOM;
@@ -1859,35 +1844,7 @@ async function ensureMapRuntime() {
     "components",
     "map-runtime.js"
   );
-  const reactShim = `
-    const React = (typeof window !== 'undefined' && window.React) || {};
-    export default React;
-    export const Children = React.Children;
-    export const Component = React.Component;
-    export const Fragment = React.Fragment;
-    export const createElement = React.createElement;
-    export const cloneElement = React.cloneElement;
-    export const createContext = React.createContext;
-    export const forwardRef = React.forwardRef;
-    export const memo = React.memo;
-    export const startTransition = React.startTransition;
-    export const isValidElement = React.isValidElement;
-    export const useEffect = React.useEffect;
-    export const useLayoutEffect = React.useLayoutEffect;
-    export const useMemo = React.useMemo;
-    export const useState = React.useState;
-    export const useRef = React.useRef;
-    export const useCallback = React.useCallback;
-    export const useContext = React.useContext;
-    export const useReducer = React.useReducer;
-    export const useId = React.useId;
-    export const useImperativeHandle = React.useImperativeHandle;
-    export const useTransition = React.useTransition;
-    export const useDeferredValue = React.useDeferredValue;
-    export const useDebugValue = React.useDebugValue;
-    export const useSyncExternalStore = React.useSyncExternalStore;
-    export const useInsertionEffect = React.useInsertionEffect;
-  `;
+  const reactShim = reactGlobalShim();
   const rdomShim = `
     const ReactDOM = (typeof window !== 'undefined' && window.ReactDOM) || {};
     export default ReactDOM;
@@ -1964,6 +1921,7 @@ module.exports = {
   extractHeadings,
   extractPlainText,
   extractMarkdownSummary,
+  extractSearchText,
   isReservedFile,
   parseFrontmatter,
   compileMdxFile,

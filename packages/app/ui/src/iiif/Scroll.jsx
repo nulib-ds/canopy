@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { cloverScroll, noticeUnsupported } from "./clover-compat.js";
 
-// SSR-safe wrapper around Clover's scroll component. The library touches the DOM
-// during import, so we only load it in the browser and render a placeholder on the
-// server for the hydration runtime to mount.
+// Scroll, for now Clover 4's Document template, until a text-focused reader composed
+// from Clover's parts replaces it. The server draws a placeholder, which the viewer
+// runtime mounts; in a page's own React tree, Clover loads on demand.
 export const Scroll = (props) => {
   const [CloverScroll, setCloverScroll] = useState(null);
 
@@ -11,10 +12,13 @@ export const Scroll = (props) => {
     const canUseDom =
       typeof window !== "undefined" && typeof document !== "undefined";
     if (canUseDom) {
-      import("@samvera/clover-iiif/scroll")
-        .then((mod) => {
+      Promise.all([
+        import("@nulib/clover/viewer"),
+        import("@nulib/clover/templates"),
+      ])
+        .then(([viewer, templates]) => {
           if (!mounted) return;
-          const Comp = mod && (mod.default || mod.Scroll || mod);
+          const Comp = cloverScroll(viewer, templates);
           setCloverScroll(() => Comp);
         })
         .catch(() => {
@@ -27,6 +31,7 @@ export const Scroll = (props) => {
   }, []);
 
   if (!CloverScroll) {
+    noticeUnsupported("Scroll", props);
     // SSR placeholder for client hydration; props provided as JSON
     let json = "{}";
     try {

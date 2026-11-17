@@ -19,6 +19,7 @@ function pagesToRecords(pageRecords) {
       };
       if (summary) record.summaryValue = summary;
       if (summaryMarkdown) record.summaryMarkdown = summaryMarkdown;
+      if (typeof p.thumbnail === 'string' && p.thumbnail.trim()) record.thumbnail = p.thumbnail.trim();
       return record;
     });
 }

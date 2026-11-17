@@ -16,16 +16,18 @@ export const CanopyVersion = () => {
 
 # Updating Canopy
 
-Occasionally, new versions of Canopy are released with bug fixes, new features, and improvements. To update your Canopy installation to the latest version, you can use `npm`. Run the following command in the root of your Canopy project directory:
+Occasionally, new versions of Canopy are released with bug fixes, new features, and improvements. Canopy is published to npm as `@nulib/canopy`; update it from GitHub Actions, or with `npm` in your project's folder.
+
+A site made with Canopy 1.x names it `@canopy-iiif/app`, its 1.x name, which keeps working and updates the same way. [Upgrading to 2.0](/docs/developers/upgrading) says what changes, and how to move to the new name.
 
 ## Updating via GitHub Actions
 
-If your project was created from the official Canopy template, you can also update `@canopy-iiif/app` without touching your local environment by running the **Update Canopy App** workflow in GitHub Actions.
+If your project was created from the official Canopy template, you can update Canopy without touching your local environment by running the **Update Canopy App** workflow in GitHub Actions.
 
 **Note:** You may need to make sure your repository allows workflows to be run manually. Check **Settings → Actions → General → Workflow permissions** and ensure that "Read and write permissions" is selected.
 
 1. Open your repository in GitHub, go to **Actions**, and select **Update Canopy App** in the sidebar.
-2. Click **Run workflow**. You can optionally provide a specific version (for example `1.0.2`); leave it blank to install the latest release.
+2. Click **Run workflow**. You can optionally provide a specific version (for example `2.0.1`); leave it blank to install the latest release.
 3. The workflow installs the requested version and opens a pull request with the updated `package.json` / `package-lock.json`.
 4. After a few minutes, you should see the pull request appear in your repository.
 5. Review the pull request and merge when you are ready.
@@ -34,8 +36,10 @@ This keeps Canopy dependencies current while giving you the chance to audit chan
 
 ## Updating in your local environment
 
-If you have a local development environment set up, you can update `@canopy-iiif/app` by running the command below. The current latest version of <CanopyVersion/> will be installed:
+If you have a local development environment set up, you can update Canopy by running the command below. The current latest version of <CanopyVersion/> will be installed:
 
 ```sh
-npm i @canopy-iiif/app@latest @samvera/clover-iiif@latest
+npm i @nulib/canopy@latest
 ```
+
+A site that still names Canopy by its 1.x name updates with `npm i @canopy-iiif/app@latest`.

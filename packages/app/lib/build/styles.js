@@ -7,32 +7,40 @@ const {
   ensureDirSync,
 } = require("../common");
 const {withThemeBlock} = require("./theme-tokens");
+const {copyFonts, fontFaceCss} = require("./fonts");
 
+// The site's own Tailwind CLI where it installs one, else this package's (a dependency
+// since 2.0, so a site need not install it).
 function resolveTailwindCli() {
-  const root = process.cwd();
-  try {
-    const pkgPath = require.resolve("@tailwindcss/cli/package.json", {paths: [root]});
-    const cliEntry = path.join(path.dirname(pkgPath), "dist", "index.mjs");
-    if (fs.existsSync(cliEntry)) {
-      return {cmd: process.execPath || "node", args: [cliEntry]};
-    }
-  } catch (_) {}
+  for (const from of [process.cwd(), __dirname]) {
+    try {
+      const pkgPath = require.resolve("@tailwindcss/cli/package.json", {paths: [from]});
+      const cliEntry = path.join(path.dirname(pkgPath), "dist", "index.mjs");
+      if (fs.existsSync(cliEntry)) {
+        return {cmd: process.execPath || "node", args: [cliEntry]};
+      }
+    } catch (_) {}
+  }
   return null;
 }
 
+// The theme's tokens and the package's font faces, at the top of the compiled
+// stylesheet, with the faces' files copied beside it (`fonts.js`).
 function injectThemeTokens(targetPath) {
   try {
-    const {loadCanopyTheme} = require("@canopy-iiif/app/ui/theme");
+    const {loadCanopyTheme} = require("../../ui/theme");
     const theme = loadCanopyTheme();
     const themeCss = theme && theme.css ? theme.css.trim() : "";
     if (!themeCss) return;
+
+    copyFonts(path.dirname(targetPath));
 
     let existing = "";
     try {
       existing = fs.readFileSync(targetPath, "utf8");
     } catch (_) {}
 
-    const next = withThemeBlock(existing, themeCss);
+    const next = withThemeBlock(existing, `${fontFaceCss()}\n${themeCss}`);
     // Dev re-runs this from a watcher on the same file; skip no-op writes.
     if (next !== existing) fs.writeFileSync(targetPath, next, "utf8");
   } catch (_) {}

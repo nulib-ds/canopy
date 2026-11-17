@@ -5,3 +5,5 @@ dist
 coverage
 package-lock.json
 test-results
+**/a11y/.site
+**/a11y/.results

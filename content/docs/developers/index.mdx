@@ -41,8 +41,6 @@ Canopy templates are intentionally designed to be simple and modular. The projec
 ├── app/
 │   ├── components/
 │   │   └── mdx.tsx                # registers custom React components for MDX
-│   ├── scripts/
-│   │   └── canopy-build.mts       # orchestrates Canopy build
 │   └── styles/
 │       └── index.css              # global CSS styles
 ├── assets/                        # directory for files, e.g. robots.txt, favicon.ico, images/**/
@@ -54,11 +52,11 @@ Canopy templates are intentionally designed to be simple and modular. The projec
 │   └── works/                     # special route for all IIIF works
 ├── site/                          # generated site output (on build)
 ├── canopy.yml                     # Canopy configuration file
-└── package.json                   # depends on @canopy-iiif/app
+└── package.json                   # depends on @nulib/canopy; runs `canopy build` and `canopy dev`
 ```
 
 - `.cache/` is where build artifacts are stored to speed up subsequent builds.
-- `app/` is intended for server-side scripts that developers could customize or extend.
+- `app/` holds the site's own components and its stylesheet, which developers can customize or extend.
 - `assets/` is for static files like images, fonts, scripts, or other resources.
 - `content/` is where all site content lives, including MDX files and IIIF work layouts.
 - `site/` is the output directory for the deployed static site.

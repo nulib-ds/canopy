@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const React = require("react");
-const {Container, DocsCodeBlock} = require("@canopy-iiif/app/ui/server");
+const {Container, DocsCodeBlock} = require("@nulib/canopy/ui/server");
 
 const MAX_ITEMS = 30;
 const RATIO_OPTIONS = [0.618, 1, 1.382];
@@ -68,9 +68,16 @@ const componentStyles = `
 }
 
 .collection-example__heading {
-  color: var(--color-accent-default);
-  font-weight: 300;
+  font-size: var(--canopy-text-title, 2rem);
+  line-height: 1.1;
   margin: 0;
+}
+
+.collection-example__description {
+  color: var(--color-gray-muted);
+  font-size: var(--canopy-text-lede, 1.125rem);
+  line-height: 1.5;
+  text-wrap: balance;
 }
 
 .collection-example__code-shell {
@@ -84,7 +91,7 @@ const componentStyles = `
 
 .collection-example__code-block {
   font-family: var(--font-mono);
-  font-size: 0.9375rem;
+  font-size: var(--canopy-text-code);
   line-height: 1.6;
   mask-image: linear-gradient(to right, black calc(100% - 5rem), transparent calc(100% - 1rem));
 }
@@ -108,10 +115,11 @@ const componentStyles = `
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
-  letter-spacing: 0.02em;
+  font-size: var(--canopy-text-label);
+  font-weight: var(--canopy-weight-bold);
+  letter-spacing: var(--canopy-tracking-label);
   text-transform: uppercase;
-  color: var(--color-gray-600, #4b5563);
+  color: var(--color-gray-muted);
 }
 
 .collection-example__columns {
@@ -156,9 +164,10 @@ const componentStyles = `
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: var(--canopy-text-sm);
 }
 
+/* A picture of a collection page, drawn small: its captions at the picture's scale. */
 .collection-example__caption {
   font-size: 0.5rem;
   line-height: 1.1;
@@ -182,7 +191,7 @@ const componentStyles = `
 
 .collection-example__code-block {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-size: 0.875rem;
+  font-size: var(--canopy-text-code);
   line-height: 1.6;
 }
 

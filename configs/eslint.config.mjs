@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import importPlugin from 'eslint-plugin-import';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
@@ -17,6 +18,9 @@ const commonIgnores = [
   'packages/app/ui/server.mjs',
   '**/tests/coverage/**',
   'tests/coverage/**/*',
+  // The accessibility fixture sites and their findings (tests/a11y).
+  'tests/a11y/.site/**',
+  'tests/a11y/.results/**',
 ];
 
 const reactHooksFlatRecommended = reactHooksPlugin.configs['flat/recommended'];
@@ -140,6 +144,18 @@ export default [
     },
     linterOptions: {
       reportUnusedDisableDirectives: 0,
+    },
+  },
+  // WCAG 2.2 AA (packages/app/DESIGN.md §0): the UI components' JSX.
+  {
+    files: ['packages/app/ui/src/**/*.{js,jsx}'],
+    ignores: commonIgnores,
+    ...jsxA11y.flatConfigs.recommended,
+    rules: {
+      ...jsxA11y.flatConfigs.recommended.rules,
+      // `role="list"` is not redundant on a list styled without bullets: Safari's
+      // VoiceOver drops the list semantics otherwise.
+      'jsx-a11y/no-redundant-roles': ['error', { nav: ['navigation'], ul: ['list'], ol: ['list'] }],
     },
   },
   {

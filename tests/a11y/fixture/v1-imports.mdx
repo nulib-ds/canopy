@@ -1,0 +1,16 @@
+---
+title: Imports as Canopy 1.x wrote them
+---
+
+{/* Canopy's 1.x name, as the pages of sites made before 2.0 import it. The build reads it
+   as @nulib/canopy (lib/build/package-names.js); were it not to, this page, and with it
+   every fixture site, would not build. The MDX API is a contract (AGENTS.md). */}
+
+import {Card} from "@canopy-iiif/app/ui";
+import {withBasePath} from "@canopy-iiif/app/base-path";
+
+# Imports as Canopy 1.x wrote them
+
+A site made before Canopy 2 imports Canopy by its 1.x name. The page builds as it was written.
+
+<Card href={withBasePath("/components")} title="Components" subtitle="Every component, on one page" />

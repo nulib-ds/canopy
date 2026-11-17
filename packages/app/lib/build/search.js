@@ -190,8 +190,81 @@ async function writeFacetsSearchApi() {
   await fsp.writeFile(dest, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function frontmatterString(data, key) {
+  const raw = data && typeof data === 'object' ? data[key] : null;
+  return typeof raw === 'string' ? raw.trim() : '';
+}
+
+// A search result's image: an absolute URL as it is, any other path from the site's root
+// (`/images/a.jpg`); the search runtimes put the site's base path before it.
+function resolvePageImage(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(raw)) return raw;
+  const { rootRelativeHref } = require('../common');
+  return rootRelativeHref(raw);
+}
+
+// What an MDX page gives search, from its source and its front matter
+// (content/docs/user-guides/customize-the-search-index.mdx):
+//   search: false           left out
+//   searchType, or type     its type, and so its tab; else its folder's layout's, else
+//                           `page`. A `type` given empty leaves it out, as before.
+//   searchSummaryMarkdown   its result's text, in inline Markdown
+//   searchSummary           its result's text, plain
+//   description             its result's text where neither is given
+//   image (or og:image)     its result's image
+// Its result shows the passage around the words searched for where none of the three is
+// given. A summary's or description's words are searched, before the page's own.
+function pageSearchRecord(source, { href = '', layoutType = '' } = {}) {
+  const mdx = require('./mdx');
+  const { escapeMarkdown } = require('./search-text');
+  const fm = mdx.parseFrontmatter(source);
+  const data = fm && fm.data && typeof fm.data === 'object' ? fm.data : null;
+  const title = String(mdx.extractTitle(source) || '').trim();
+  const words = mdx.extractSearchText(source);
+
+  // The search page is not a result; its folder holds only its layout and templates.
+  let include = !/^\/?search(?:\/|\.html$)/i.test(href);
+  if (data && data.search === false) include = false;
+  let type = frontmatterString(data, 'searchType');
+  if (!type && include && data && Object.prototype.hasOwnProperty.call(data, 'type')) {
+    if (data.type) type = String(data.type).trim();
+    else include = false;
+  }
+  if (!type) type = String(layoutType || '').trim() || 'page';
+
+  const summaryMarkdown = frontmatterString(data, 'searchSummaryMarkdown');
+  const summary = frontmatterString(data, 'searchSummary');
+  const description = frontmatterString(data, 'description');
+  const shownMarkdown =
+    summaryMarkdown ||
+    (summary ? escapeMarkdown(summary) : '') ||
+    (description ? escapeMarkdown(description) : '') ||
+    words.markdown;
+  const leadText = summaryMarkdown
+    ? mdx.extractSearchText(summaryMarkdown).text
+    : summary || description;
+  const image = resolvePageImage(
+    frontmatterString(data, 'image') ||
+      frontmatterString(data, 'og:image') ||
+      frontmatterString(data, 'ogImage'),
+  );
+
+  const record = {
+    title,
+    href,
+    searchInclude: include && !!type,
+    searchType: type || undefined,
+    searchSummary: [leadText, words.text].filter(Boolean).join(' '),
+    searchSummaryMarkdown: shownMarkdown,
+  };
+  if (image) record.thumbnail = image;
+  return record;
+}
+
 async function collectMdxPageRecords() {
-  const { fs, fsp, path, CONTENT_DIR, rootRelativeHref } = require('../common');
+  const { fsp, path, CONTENT_DIR, rootRelativeHref } = require('../common');
   const mdx = require('./mdx');
   const pagesHelpers = require('./pages');
   const pages = [];
@@ -202,42 +275,16 @@ async function collectMdxPageRecords() {
       if (e.isDirectory()) await walk(p);
       else if (e.isFile() && /\.mdx$/i.test(p) && !mdx.isReservedFile(p)) {
         const base = path.basename(p).toLowerCase();
+        if (base === 'sitemap.mdx') continue;
         const src = await fsp.readFile(p, 'utf8');
-        const fm = mdx.parseFrontmatter(src);
-        const titleRaw = mdx.extractTitle(src);
-        const title = typeof titleRaw === 'string' ? titleRaw.trim() : '';
         const rel = path.relative(CONTENT_DIR, p).replace(/\.mdx$/i, '.html');
-        if (base !== 'sitemap.mdx') {
-          const href = rootRelativeHref(rel.split(path.sep).join('/'));
-          const plainText = mdx.extractPlainText(src);
-          const markdownSummary = mdx.extractMarkdownSummary(src);
-          const summary = plainText || '';
-          const underSearch = /^search\//i.test(href) || href.toLowerCase() === 'search.html';
-          let include = !underSearch;
-          let resolvedType = null;
-          const pageFm = fm && fm.data ? fm.data : null;
-          if (pageFm && pageFm.search === false) include = false;
-          if (include && pageFm && Object.prototype.hasOwnProperty.call(pageFm, 'type')) {
-            if (pageFm.type) resolvedType = String(pageFm.type);
-            else include = false;
-          }
-          if (include && !resolvedType) {
-            const layoutMeta = await pagesHelpers.getNearestDirLayoutMeta(p);
-            if (layoutMeta && layoutMeta.type) resolvedType = String(layoutMeta.type);
-          }
-          if (include && !resolvedType) {
-            resolvedType = 'page';
-          }
-          const trimmedType = resolvedType && String(resolvedType).trim();
-          pages.push({
-            title,
-            href,
-            searchInclude: include && !!trimmedType,
-            searchType: trimmedType || undefined,
-            searchSummary: summary,
-            searchSummaryMarkdown: markdownSummary,
-          });
-        }
+        const href = rootRelativeHref(rel.split(path.sep).join('/'));
+        let layoutType = '';
+        try {
+          const layoutMeta = await pagesHelpers.getNearestDirLayoutMeta(p);
+          if (layoutMeta && layoutMeta.type) layoutType = String(layoutMeta.type);
+        } catch (_) {}
+        pages.push(pageSearchRecord(src, { href, layoutType }));
       }
     }
   }
@@ -246,4 +293,10 @@ async function collectMdxPageRecords() {
 }
 
 
-module.exports = { buildFacetsForWorks, writeFacetCollections, writeFacetsSearchApi, collectMdxPageRecords };
+module.exports = {
+  buildFacetsForWorks,
+  writeFacetCollections,
+  writeFacetsSearchApi,
+  collectMdxPageRecords,
+  pageSearchRecord,
+};

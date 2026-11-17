@@ -753,22 +753,8 @@ async function writeMetadataIndexFile(payload) {
   } catch (_) {}
 }
 
-async function normalizeToV3(resource) {
-  try {
-    const helpers = await import("@iiif/helpers");
-    if (helpers && typeof helpers.toPresentation3 === "function") {
-      return helpers.toPresentation3(resource);
-    }
-    if (helpers && typeof helpers.normalize === "function") {
-      return helpers.normalize(resource);
-    }
-    if (helpers && typeof helpers.upgradeToV3 === "function") {
-      return helpers.upgradeToV3(resource);
-    }
-  } catch (_) {}
-  return resource;
-}
-
+// Presentation 2 upgraded to 3 by `@iiif/parser`'s upgrader (a dependency of
+// @nulib/canopy); a resource it cannot read stays as it was.
 let upgradeModulePromise = null;
 async function loadUpgradeModule() {
   if (!upgradeModulePromise) {
@@ -790,7 +776,7 @@ async function upgradeIiifResource(resource) {
       if (upgraded) return inheritProvenance(resource, upgraded);
     }
   } catch (_) {}
-  return inheritProvenance(resource, await normalizeToV3(resource));
+  return resource;
 }
 
 async function ensurePresentation3Manifest(manifest) {
@@ -2973,6 +2959,8 @@ module.exports.__TESTING__ = {
   resolveThumbnailPreferences,
   loadManifestIndex,
   saveManifestIndex,
+  upgradeIiifResource,
+  ensurePresentation3Manifest,
   paths: {
     IIIF_CACHE_INDEX,
     IIIF_CACHE_INDEX_LEGACY,

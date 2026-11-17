@@ -3,8 +3,9 @@ import ArticleCard from "../layout/ArticleCard.jsx";
 import Card from "../layout/Card.jsx";
 import React from "react";
 import {useLocale} from "../locale/index.js";
+import {searchTabId} from "./SearchTabs.jsx";
 
-function DefaultArticleTemplate({ record, query }) {
+function DefaultArticleTemplate({ record, query, headingLevel }) {
   if (!record) return null;
   const metadata = Array.isArray(record.metadata) ? record.metadata : [];
   return (
@@ -17,6 +18,8 @@ function DefaultArticleTemplate({ record, query }) {
       metadata={metadata}
       query={query}
       recordType={record.type}
+      thumbnail={record.thumbnail || ""}
+      headingLevel={headingLevel}
     />
   );
 }
@@ -37,7 +40,7 @@ function DefaultFigureTemplate({ record, thumbnailAspectRatio }) {
     <Card
       href={record.href}
       title={record.title || record.href}
-      src={record.type === 'work' ? record.thumbnail : undefined}
+      src={record.thumbnail || undefined}
       imgWidth={record.thumbnailWidth}
       imgHeight={record.thumbnailHeight}
       aspectRatio={aspect}
@@ -45,6 +48,10 @@ function DefaultFigureTemplate({ record, thumbnailAspectRatio }) {
   );
 }
 
+// `tabbed`, where the page has search tabs (`SearchTabs`) and `type` is one of them,
+// makes the results that tab's panel, named by it; without tabs they are a region named
+// "Search results". Either way the panel is there with no matches too, so the tabs
+// always control something.
 export default function SearchResults({
   results = [],
   type = "all",
@@ -52,6 +59,8 @@ export default function SearchResults({
   query = "",
   templates = {},
   variant = "auto",
+  tabbed = false,
+  headingLevel,
 }) {
   const {getString} = useLocale();
   const resultsRegionLabel = getString(
@@ -62,9 +71,27 @@ export default function SearchResults({
     "common.statuses.no_matches",
     "No matches found.",
   );
+  const tabId = tabbed ? searchTabId(type) : "";
+  const panelProps = tabId
+    ? {id: "search-results", role: "tabpanel", "aria-labelledby": tabId}
+    : {id: "search-results", role: "region", "aria-label": resultsRegionLabel};
   if (!results.length) {
+    // An empty tab panel takes focus itself, so Tab from the tabs reaches what it says.
+    if (tabId) {
+      return (
+        <div
+          id="search-results"
+          role="tabpanel"
+          aria-labelledby={tabId}
+          tabIndex={0}
+          className="canopy-search-results__panel text-gray-800"
+        >
+          <em>{noResultsLabel}</em>
+        </div>
+      );
+    }
     return (
-      <div className="text-gray-800">
+      <div {...panelProps} className="canopy-search-results__panel text-gray-800">
         <em>{noResultsLabel}</em>
       </div>
     );
@@ -79,7 +106,7 @@ export default function SearchResults({
 
   if (isAnnotationView) {
     return (
-      <div id="search-results" className="space-y-4" role="region" aria-label={resultsRegionLabel}>
+      <div {...panelProps} className="canopy-search-results__panel space-y-4">
         {results.map((r, i) => {
           if (!r) return null;
           return (
@@ -88,6 +115,7 @@ export default function SearchResults({
               record={r}
               query={query}
               layout={layout}
+              headingLevel={headingLevel}
             />
           );
         })}
@@ -105,12 +133,12 @@ export default function SearchResults({
 
   if (layout === "list") {
     return (
-      <div id="search-results" className="space-y-6" role="region" aria-label={resultsRegionLabel}>
+      <div {...panelProps} className="canopy-search-results__panel space-y-6">
         {results.map((r, i) => {
           if (shouldRenderAsArticle(r)) {
             return (
               <div key={i} className={`search-result ${r && r.type}`}>
-                <ArticleTemplate record={r} query={query} layout={layout} />
+                <ArticleTemplate record={r} query={query} layout={layout} headingLevel={headingLevel} />
               </div>
             );
           }
@@ -143,13 +171,13 @@ export default function SearchResults({
 
   // Default: grid (masonry)
   return (
-    <div id="search-results" role="region" aria-label={resultsRegionLabel}>
+    <div {...panelProps} className="canopy-search-results__panel">
       <Grid>
         {results.map((r, i) => {
           if (shouldRenderAsArticle(r)) {
             return (
               <GridItem key={i} className={`search-result ${r && r.type}`}>
-                <ArticleTemplate record={r} query={query} layout={layout} />
+                <ArticleTemplate record={r} query={query} layout={layout} headingLevel={headingLevel} />
               </GridItem>
             );
           }

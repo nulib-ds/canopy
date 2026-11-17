@@ -29,3 +29,5 @@ packages/app/ui/dist/
 tests/coverage/
 playwright-report/
 test-results/
+tests/a11y/.site/
+tests/a11y/.results/

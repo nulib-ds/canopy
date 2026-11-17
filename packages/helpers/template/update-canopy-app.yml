@@ -4,11 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       npm_version:
-        description: "Optional @canopy-iiif/app version (default latest)"
-        required: false
-        type: string
-      clover_version:
-        description: "Optional @samvera/clover-iiif version (default latest)"
+        description: "Optional @nulib/canopy version (default latest)"
         required: false
         type: string
 
@@ -26,21 +22,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: npm
 
       - name: Install updated packages
         env:
           APP_VERSION: ${{ github.event.inputs.npm_version }}
-          CLOVER_VERSION: ${{ github.event.inputs.clover_version }}
+        # Clover, esbuild and Tailwind come with @nulib/canopy since Canopy 2.
         run: |
           npm config set fund false
           npm config set audit false
           APP_TARGET=${APP_VERSION:-latest}
-          CLOVER_TARGET=${CLOVER_VERSION:-latest}
-          npm install --no-audit --no-fund \
-            @canopy-iiif/app@"${APP_TARGET}" \
-            @samvera/clover-iiif@"${CLOVER_TARGET}"
+          npm install --no-audit --no-fund @nulib/canopy@"${APP_TARGET}"
 
       - name: Record changes
         id: git-status
@@ -56,14 +49,14 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: chore/update-canopy-app
-          commit-message: "chore: update @canopy-iiif/app and @samvera/clover-iiif"
-          title: "chore: update @canopy-iiif/app and @samvera/clover-iiif"
+          commit-message: "chore: update @nulib/canopy"
+          title: "chore: update @nulib/canopy"
           body: |
-            Automated update of `@canopy-iiif/app` and `@samvera/clover-iiif` triggered from the Actions tab.
+            Automated update of `@nulib/canopy` triggered from the Actions tab.
 
             Review the diff, run `npm install`, and rerun your usual checks before merging.
           delete-branch: true
 
       - name: No update needed
         if: steps.git-status.outputs.changed != 'true'
-        run: echo "@canopy-iiif/app and @samvera/clover-iiif are already up to date."
+        run: echo "@nulib/canopy is already up to date."

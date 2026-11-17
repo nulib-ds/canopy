@@ -121,7 +121,14 @@ title: British India Art
 
 ### Hero interstitial
 
-`<Interstitials.Hero />` renders at the top of the page and rotates through the `featured` manifests listed in `canopy.yml`.
+`<Interstitials.Hero />` renders at the top of the page and rotates through the `featured` manifests listed in `canopy.yml`, one every six seconds.
+
+- A **pause** button comes first in the carousel, before its slides, and plays it again once paused.
+- Rotation holds while the pointer is over the carousel, and stops for good when keyboard focus moves into it or a visitor uses previous, next, a slide's dot, or a swipe.
+- It never starts for a visitor whose system asks for reduced motion.
+- Screen readers hear a slide a visitor moves to, never the rotation itself.
+- Its labels come from `common.carousel` in `locale.yml`, so a Spanish page reads them in Spanish.
+- Without JavaScript, the first featured work shows alone.
 
 ```yaml filename="canopy.yml" {5-7}
 collection:
@@ -143,7 +150,18 @@ Behavior notes:
 - Featured manifests are normalized during the IIIF build so duplicates collapse to a single entry.
 - If you omit `featured`, Canopy falls back to a random manifest from the cached collection.
 - The hero supports props like `headline`, `description`, `links`, `variant`, `background`, `homeLabel`, and `height`. Pass them via `content/index.mdx` (e.g., `<Interstitials.Hero headline="Explore" />`).
+- Set `variant="centered"` to lay the hero down the page: the headline large and centered, the description and links under it, and the featured works below in a raised card. The carousel behaves as it does in the default `featured` layout.
+- `headline` takes a string, or words with a `<Swoosh>` in them to draw the brush stroke under a word or two: `headline={<>Explore <Swoosh>the collection</Swoosh></>}`.
 - Set `variant="breadcrumb"` to render a centered, copy-driven hero with a breadcrumb that mirrors the current docs path; override the leading crumb with `homeLabel` when needed.
+
+```mdx filename="content/index.mdx" {2-3}
+<Interstitials.Hero
+  variant="centered"
+  headline={<>Explore <Swoosh>British India Art</Swoosh></>}
+  description="Paintings and prints from Northwestern University Libraries and the Victoria and Albert Museum."
+  links={[{ title: 'Browse works', href: '/search' }]}
+/>
+```
 
 ```mdx filename="content/index.mdx" {1-6}
 <Interstitials.Hero
@@ -175,7 +193,7 @@ Tips:
 
 ## Layout components
 
-Use layout primitives from `@canopy-iiif/app/ui/server` to keep spacing and call-to-action styling consistent across MDX pages.
+Use layout primitives from `@nulib/canopy/ui/server` to keep spacing and call-to-action styling consistent across MDX pages.
 
 ### Container
 
@@ -210,6 +228,8 @@ Render calls to action with the Canopy button styles. `label` provides the text 
 | `rel`       | string (optional)      | Custom `rel` attribute; overrides the auto-generated value when present. |
 | `className` | string (optional)      | Appends classes before the variant modifier.                             |
 
+On a `<Band>`, each variant takes the band's colors: the primary white with black words, the secondary a white edge.
+
 ### ButtonWrapper
 
 Arrange multiple buttons with a consistent gap. Useful for callouts with several actions.
@@ -224,5 +244,77 @@ Arrange multiple buttons with a consistent gap. Useful for callouts with several
 | Attribute   | Values            | Purpose                                     |
 | ----------- | ----------------- | ------------------------------------------- |
 | `className` | string (optional) | Extends the default flex and gap utilities. |
+
+### Swoosh
+
+Draws Canopy's brush stroke under a word or two, in the site's accent. Use it once or twice on a page: in a hero's headline, or a section's title. It is decoration only, so the words read the same to everyone, and it draws in once as the page loads, at once for a visitor whose system asks for reduced motion.
+
+```mdx
+## Thoughtful and <Swoosh>flexible</Swoosh>.
+```
+
+### Feature
+
+Introduces a section: a short eyebrow, a title, and a sentence or two under it, a step larger and muted. Anything else you put inside, such as a `<Button>`, follows the words.
+
+```mdx
+<Feature eyebrow="Search" title="Find anything in the collection">
+  Every work, by its title, subjects and summary.
+
+  <Button href="/search" label="Search the collection" />
+</Feature>
+```
+
+| Attribute      | Values                       | Purpose                                                                        |
+| -------------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| `title`        | string or Markdown nodes     | The section's title, a heading.                                                |
+| `eyebrow`      | string (optional)            | A short label above the title, read with it as one heading group.              |
+| `headingLevel` | `1` to `6`; defaults to `2`  | The title's heading level. Pick the level the section has in the page's outline. |
+| `align`        | `start`, `center`            | Where the words sit; defaults to `'start'`.                                    |
+
+### Band
+
+A call to action on black, white words, the same in light and dark mode. Put a heading, a sentence and buttons in it.
+
+```mdx
+<Band>
+  <h2>Have an idea for a project?</h2>
+  <p>Start from a template, point it at your IIIF collection, and publish.</p>
+  <ButtonWrapper>
+    <Button href="/about/get-started" label="Get started" />
+    <Button href="/docs" label="Documentation" variant="secondary" />
+  </ButtonWrapper>
+</Band>
+```
+
+| Attribute   | Values            | Purpose                                   |
+| ----------- | ----------------- | ----------------------------------------- |
+| `align`     | `center`, `start` | Where the words sit; defaults to `'center'`. |
+| `className` | string (optional) | Adds classes to the band.                 |
+
+### CanopyFooter
+
+The site's footer, used in `content/_app.mdx`. Whatever you put inside it shows as it always has. Give it a `logo`, `title` or `description` and it opens with the site's mark, name and a sentence about it; give it `links` and they sit in a row under a line at its foot. With `theme.appearance: auto` in `canopy.yml`, that row holds the appearance switch too.
+
+```mdx filename="content/_app.mdx"
+<CanopyFooter
+  logo={Logo}
+  description="A digital collection of IIIF works, with context and narrative."
+  links={[
+    {href: "/about", label: "About"},
+    {href: "https://github.com/your/repository", label: "Code"},
+  ]}
+>
+  <p>Copyright 2026 Site Title.</p>
+</CanopyFooter>
+```
+
+| Attribute     | Values                        | Purpose                                                           |
+| ------------- | ----------------------------- | ----------------------------------------------------------------- |
+| `logo`        | component (optional)          | The site's mark, as `CanopyHeader` takes it.                      |
+| `title`       | string (optional)             | The site's name beside the mark; defaults to `canopy.yml`'s `title`. |
+| `description` | string (optional)             | A sentence about the site, under its name.                        |
+| `links`       | `{href, label}` list (optional) | Links in the row at the footer's foot.                          |
+| `className`   | string (optional)             | Adds classes to the footer.                                       |
 
 [^1]: Footnotes defined later in the file display at the bottom of the rendered page.

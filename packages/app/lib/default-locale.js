@@ -4,8 +4,8 @@
  */
 module.exports = {
   routes: {
-    search: 'search',
-    works: 'works'
+    search: '/search',
+    works: '/works'
   },
   common: {
     actions: {
@@ -15,7 +15,9 @@ module.exports = {
       clear_all: 'Clear all',
       done: 'Done',
       show: 'Show',
-      hide: 'Hide'
+      hide: 'Hide',
+      view_work: 'View work',
+      copy: 'Copy'
     },
     nouns: {
       search: 'Search',
@@ -37,7 +39,9 @@ module.exports = {
       item_label: 'Item',
       details: 'details',
       breadcrumb: 'Breadcrumb',
-      home: 'Home'
+      home: 'Home',
+      suggestion: 'suggestion',
+      suggestions: 'suggestions'
     },
     types: {
       work: 'Works',
@@ -73,7 +77,10 @@ module.exports = {
       scroll_direction_content: 'Scroll {direction} through {content}',
       step_content: '{direction} {content}',
       item_numbered: '{content} {index}',
-      content_key: '{content} key'
+      content_key: '{content} key',
+      copy_code: 'Copy code to clipboard',
+      copied_code: 'Copied to clipboard',
+      count_content: '{count} {content}'
     },
     directions: {
       left: 'left',
@@ -84,6 +91,23 @@ module.exports = {
     misc: {
       referenced_by: 'Referenced by',
       on_this_page: 'On this page'
+    },
+    appearance: {
+      label: 'Appearance',
+      system: 'System',
+      light: 'Light',
+      dark: 'Dark'
+    },
+    carousel: {
+      label: 'Featured content',
+      role: 'carousel',
+      slide_role: 'slide',
+      slide: '{index} of {total}',
+      previous: 'Previous slide',
+      next: 'Next slide',
+      go_to: 'Go to slide {index}',
+      stop: 'Pause the slideshow',
+      start: 'Play the slideshow'
     }
   }
 };

@@ -1,3 +1,9 @@
+@use "../settings/focus" as focus;
+@use "../settings/type";
+
+// What every control Canopy draws as a button starts from: a box of its padding, a 1px
+// edge in its text color, its corners `--canopy-radius-md`. Each control sets its own
+// edge, fill and focus after it.
 @mixin canopy-button-base($padding-y: 0.6rem, $padding-x: 1.4rem) {
   display: inline-flex;
   align-items: center;
@@ -5,15 +11,16 @@
   gap: 0.35rem;
   padding: $padding-y $padding-x;
   border: 1px solid currentColor;
+  border-radius: var(--canopy-radius-md);
   color: inherit;
   font: inherit;
   text-decoration: none;
   cursor: pointer;
   line-height: 1.4;
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+    background-color 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
 }
 
 @mixin canopy-button-variant($variant) {
@@ -22,20 +29,23 @@
     border-color: var(--color-accent-default);
     color: var(--color-accent-50);
 
+    // Darker (lighter, in dark mode) than the rest fill, never toward the label, so the
+    // label keeps 4.5:1 (`--color-accent-hover`, theme-palette.js; ACCESSIBILITY.md C5).
     &:hover,
     &:focus-visible {
-      background-color: var(--color-accent-600);
-      border-color: var(--color-accent-600);
+      background-color: var(--color-accent-hover);
+      border-color: var(--color-accent-hover);
     }
   } @else if $variant == "secondary" {
-    border-color: var(--color-gray-400);
-    background-color: var(--color-gray-50);
+    // No fill; its edge 3:1 against the page (1.4.11), the accent's text step under the
+    // pointer.
+    border-color: var(--canopy-control-edge);
+    background-color: transparent;
     color: var(--color-gray-900);
 
-    &:hover,
-    &:focus-visible {
-      border-color: var(--color-accent-400);
-      color: var(--color-accent-900);
+    &:hover {
+      border-color: var(--color-accent-default);
+      color: var(--color-accent-default);
     }
   } @else if $variant == "ghost" {
     border-color: transparent;
@@ -43,9 +53,34 @@
 }
 
 @layer components {
+  // `<Button>`: a link (or `as` another element) drawn as a call to action, 44px tall,
+  // its corners `--canopy-radius-lg`. On a `<Band>`, each variant takes the band's colors.
   .canopy-button {
-    @include canopy-button-base();
+    @include canopy-button-base(0.625rem, 1.125rem);
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    gap: 0.5rem;
     border-color: currentColor;
+    border-radius: var(--canopy-radius-lg);
+    // The interface's, wherever it sits: a `<Feature>`'s words are the serif.
+    @include type.ui-sm;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease,
+      border-color 0.12s ease,
+      transform 0.12s ease;
+
+    &:hover {
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      @include focus.focus-ring;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
 
     &--primary {
       @include canopy-button-variant("primary");
@@ -60,6 +95,16 @@
     }
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .canopy-button {
+      transition: none;
+    }
+
+    .canopy-button:active {
+      transform: none;
+    }
+  }
+
   .canopy-button-group {
     display: flex;
     flex-direction: column;
@@ -68,16 +113,16 @@
   }
 
   .canopy-button-group__text {
+    @include type.h4;
     color: var(--color-gray-900);
     margin-bottom: 1rem;
-    letter-spacing: -0.0125em;
   }
 
   .canopy-button-group__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     padding: 0.618rem 0 1.618rem;
     width: 100%;
   }
@@ -93,7 +138,6 @@
   .canopy-button-group--interstitial .canopy-button-group__actions {
     justify-content: center;
     padding: 0;
-    gap: 1rem;
+    gap: 0.75rem;
   }
-
 }

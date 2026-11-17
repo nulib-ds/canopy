@@ -1,12 +1,15 @@
 @use "./buttons" as buttons;
+@use "../settings/focus" as focus;
 
 @layer components {
   .canopy-nav-tree {
     color: inherit;
   }
 
+  // A section's name over its pages: bold, so it reads as a heading of what is under it.
   .canopy-nav-tree__heading {
-    font-weight: 500;
+    font-weight: var(--canopy-weight-bold);
+    color: var(--color-gray-900);
     margin-bottom: 0.618rem;
   }
 
@@ -52,15 +55,13 @@
       stroke-width: 2.618px;
     }
 
-    &:hover,
-    &:focus {
+    &:hover {
       color: var(--color-accent-default);
     }
   }
 
   .canopy-nav-tree__toggle:focus-visible {
-    outline: 2px solid var(--color-accent-default);
-    outline-offset: 2px;
+    @include focus.focus-ring;
   }
 
   .canopy-nav-tree__toggle-icon {

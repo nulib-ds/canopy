@@ -1,0 +1,56 @@
+---
+title: Components
+description: Every Clover-backed component, for the accessibility checks.
+---
+
+<Container>
+
+# Components
+
+Each component below draws a fixture Manifest served by this site.
+
+## Viewer
+
+<Viewer iiifContent="__BASE__/iiif/m1.json" />
+
+## Viewer with a Collection
+
+<Viewer iiifContent="/api/facet/subject/bicycles.json" />
+
+## Slider
+
+<Slider iiifContent="/api/facet/subject/bicycles.json" />
+
+## Image
+
+<Image
+  src="__BASE__/iiif/images/m2-map.png"
+  alt="A map of the coast in shades of blue"
+  caption="A map of the coast."
+  height="420px"
+/>
+
+## Scroll
+
+<Scroll iiifContent="__BASE__/iiif/m1.json" />
+
+## Map
+
+<Map defaultZoom={2}>
+  <MapPoint
+    lat="41.8781"
+    lng="-87.6298"
+    title="Chicago"
+    summary="Where the bicycle catalog was printed."
+    thumbnail="__BASE__/iiif/images/m1-cover.png"
+  />
+  <MapPoint
+    lat="48.8566"
+    lng="2.3522"
+    title="Paris"
+    summary="Where the sketchbook was drawn."
+    thumbnail="__BASE__/iiif/images/m3-sketch.png"
+  />
+</Map>
+
+</Container>

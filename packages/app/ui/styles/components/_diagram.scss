@@ -1,3 +1,5 @@
+@use "../settings/type";
+
 .canopy-diagram {
   display: flex;
   flex-direction: column;
@@ -18,8 +20,8 @@
   display: block;
   text-align: center;
   padding-bottom: 1.618rem;
+  @include type.ui;
   color: var(--color-gray-muted);
-  font-weight: 300;
 }
 
 .canopy-diagram__grid {
@@ -37,15 +39,15 @@
   }
 
   h3 {
+    @include type.h4;
     margin: 0 0 0.382rem;
-    font-weight: 500;
     text-align: center;
     color: var(--color-accent-default);
   }
 
   ul {
+    @include type.ui-sm;
     padding-top: 1rem;
-    font-size: 0.9222rem;
   }
 }
 

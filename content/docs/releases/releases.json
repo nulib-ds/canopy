@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.1",
+    "date": "2026-11-17",
+    "summary": "Canopy 2: published as @nulib/canopy, drawn with Clover 4, with a new look and rebuilt search.",
+    "highlights": [
+      "Published as @nulib/canopy; @canopy-iiif/app passes through to it, so 1.x sites upgrade without edits.",
+      "IIIF drawn with Clover 4; a work page loads about half the JavaScript it did.",
+      "A new look: Google Sans Flex and Source Serif 4, a new header and footer, restyled components and a Style guide.",
+      "Search on FlexSearch 0.8: accents fold, and the header's suggestions rank by relevance and load when first used.",
+      "The canopy command (canopy build, canopy dev), with esbuild, Tailwind and tsx included.",
+      "Held to WCAG 2.2 AA; ACCESSIBILITY.md lists the fixes and the two failures still open.",
+      "Upgrading: https://nulib-ds.github.io/canopy/docs/developers/upgrading.html"
+    ]
+  },
+  {
     "version": "1.14.1",
     "date": "2026-10-07",
     "summary": "Refine Northwestern template header.",

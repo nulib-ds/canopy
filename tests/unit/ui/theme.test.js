@@ -68,14 +68,6 @@ test.each([
   expect(vars['color-scheme']).toBe(appearance);
 });
 
-test('keeps legacy Clover variables for Stitches-based releases', () => {
-  const [brand, gray] = scales();
-  const vars = buildVariablesMap(brand, gray);
-  expect(vars['--colors-accent']).toBe(`${brand['800']} !important`);
-  expect(vars['--colors-primary']).toBe(`${gray['900']} !important`);
-  expect(vars['--colors-secondary']).toBe(`${gray['50']} !important`);
-});
-
 test('emits Clover tokens only for the scales that are present', () => {
   const [brand, gray] = scales();
   const accentOnly = buildVariablesMap(brand, null);
@@ -88,6 +80,69 @@ test('emits Clover tokens only for the scales that are present', () => {
   expect(grayOnly['--clover-color-secondary']).toBeDefined();
 
   expect(buildVariablesMap(null, null)).toEqual({ 'color-scheme': 'light' });
+});
+
+// Builds the theme from a `canopy.yml` holding `theme` as given.
+function themeFrom(themeYaml) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'canopy-theme-'));
+  try {
+    const configPath = path.join(directory, 'canopy.yml');
+    fs.writeFileSync(configPath, `theme:\n${themeYaml}`);
+    return loadCanopyTheme({ configPath });
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+test("names Clover's text accent and the accent's hover fill", () => {
+  const vars = buildVariablesMap(...scales());
+  expect(vars['--clover-color-accent-text']).toBe('var(--color-accent-default)');
+  // Mixed from the accent itself, so a site's own `--color-accent-default` reaches it.
+  expect(vars['--color-accent-hover']).toBe(
+    'color-mix(in oklab, var(--color-accent-default) 80%, #000000)',
+  );
+  const dark = buildVariablesMap(...scales('dark'), { appearance: 'dark' });
+  expect(dark['--color-accent-hover']).toBe(
+    'color-mix(in oklab, var(--color-accent-default) 80%, #ffffff)',
+  );
+});
+
+test('takes a hex accent and derives its steps', () => {
+  const theme = themeFrom('  accentColor: "#0f62fe"\n');
+  expect(theme.accent.name).toBe('#0f62fe');
+  expect(theme.accent.scale['600']).toBe('#0f62fe');
+  for (const level of ['50', '100', '200', '300', '400', '500', '700', '800', '900']) {
+    expect(theme.accent.scale[level]).toMatch(/^#[0-9a-f]{6}$/);
+  }
+  expect(theme.css).toContain('--color-accent-600: #0f62fe;');
+  // Short hex, and no `#`, as YAML may hand it over.
+  expect(themeFrom('  accentColor: "#06f"\n').accent.scale['600']).toBe('#0066ff');
+  expect(themeFrom('  accentColor: "0f62fe"\n').accent.name).toBe('#0f62fe');
+  // Not a palette or a color: the default accent.
+  expect(themeFrom('  accentColor: notacolor\n').accent.name).toBe('indigo');
+});
+
+test('appearance auto emits light tokens, and dark ones for a dark system or a dark page', () => {
+  const theme = themeFrom('  appearance: auto\n  accentColor: plum\n  grayColor: sand\n');
+  expect(theme.appearance).toBe('auto');
+  expect(theme.variables['color-scheme']).toBe('light');
+  expect(theme.variablesDark['color-scheme']).toBe('dark');
+  expect(theme.variablesDark['--color-gray-50']).toBe(
+    toTailwindScale('sand', { appearance: 'dark' })['50'],
+  );
+  const { css } = theme;
+  const media = css.indexOf('@media (prefers-color-scheme: dark)');
+  const darkRoot = css.indexOf(':root.dark {');
+  expect(css.indexOf(':root {')).toBeLessThan(media);
+  expect(css).toContain(':root:not(.light) {');
+  // The page's own `dark` class follows the media query, so it wins either way.
+  expect(media).toBeLessThan(darkRoot);
+  expect(css.slice(darkRoot)).toContain(
+    `--color-gray-50: ${theme.variablesDark['--color-gray-50']};`,
+  );
+  // Light and dark keep their meaning.
+  expect(themeFrom('  appearance: dark\n').variablesDark).toBeNull();
+  expect(themeFrom('  appearance: light\n').css).not.toContain('prefers-color-scheme');
 });
 
 test('writes Clover tokens into the generated theme CSS', () => {

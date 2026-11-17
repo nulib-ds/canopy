@@ -1,8 +1,8 @@
 @use "./buttons" as buttons;
+@use "../settings/type";
 
 .canopy-timeline {
-  font-size: 1rem;
-  line-height: 1.5;
+  @include type.ui;
   color: var(--color-gray-900);
   display: flex;
   flex-direction: column;
@@ -20,22 +20,20 @@
 }
 
 .canopy-timeline__title {
+  @include type.h3;
   margin: 0;
-  font-size: 1.382rem;
-  font-weight: 500;
 }
 
 .canopy-timeline__description {
+  @include type.ui-sm;
   margin: 0;
-  font-size: 0.9222rem;
   color: var(--color-gray-muted);
 }
 
 .canopy-timeline__range {
+  @include type.h3;
   margin: 0;
   color: var(--color-accent-default);
-  font-size: 1.382rem;
-  font-weight: 500;
 }
 
 .canopy-timeline__body {
@@ -97,8 +95,7 @@
 }
 
 .canopy-timeline__step-label {
-  font-size: 0.8333rem;
-  font-weight: 300;
+  @include type.ui-sm;
   color: var(--color-gray-muted);
   transform: translateX(0.5rem);
   margin-top: -0.618rem;
@@ -138,26 +135,21 @@
 
 .canopy-timeline__point-date,
 .canopy-timeline__group-point-date {
-  font-size: 1.111rem;
-  letter-spacing: 0.0125em;
-  color: var(--color-gray-muted);
-  font-weight: 300;
+  @include type.label;
   margin-bottom: 0.382rem;
 }
 
 .canopy-timeline__point-title,
 .canopy-timeline__group-point-title {
+  @include type.ui(bold);
   display: block;
-  font-size: 1rem;
-  font-weight: 500;
   color: var(--color-gray-900);
   margin-top: 0.382rem 0;
 }
 
 .canopy-timeline__point-summary,
 .canopy-timeline__group-count {
-  font-size: 0.9222rem;
-  font-weight: 300;
+  @include type.ui-sm;
   color: var(--color-gray-muted);
 }
 
@@ -208,7 +200,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.382rem;
-  font-size: 0.9222rem;
+  @include type.ui-sm;
   color: var(--color-gray-800);
 }
 
@@ -219,7 +211,7 @@
 }
 
 .canopy-timeline__key-label {
-  font-weight: 500;
+  font-weight: var(--canopy-weight-bold);
 }
 
 .canopy-timeline__resources {
@@ -253,10 +245,9 @@
 
 .canopy-timeline__group-toggle {
   @include buttons.canopy-button-base(0.25rem, 0.5rem);
-  font-size: 1rem;
+  @include type.ui(bold);
   border: none;
   color: var(--color-accent-default);
-  font-weight: 500;
 }
 
 .canopy-timeline__group-points {

@@ -2,6 +2,8 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const { PACKAGE_NAME } = require('./build/package-names');
+
 const log = (msg) => console.log(`[canopy] ${msg}`);
 const warn = (msg) => console.warn(`[canopy][warn] ${msg}`);
 const err = (msg) => console.error(`[canopy][error] ${msg}`);
@@ -39,8 +41,8 @@ function ensureUiDistReady(context = 'build') {
     const list = missing.map((file) => prettyPath(file)).join(', ');
     const label = context ? `${context} ` : '';
     throw new Error(
-      `@canopy-iiif/app/ui ${label}did not produce required bundle(s): ${list}. ` +
-        'Run "npm -w @canopy-iiif/app run ui:build" and ensure it completes successfully.'
+      `${PACKAGE_NAME}/ui ${label}did not produce required bundle(s): ${list}. ` +
+        `Run "npm -w ${PACKAGE_NAME} run ui:build" and ensure it completes successfully.`
     );
   }
 }
@@ -86,9 +88,9 @@ function start(cmd, args, opts = {}) {
 async function buildUiOnce(label, env = process.env) {
   if (!hasAppWorkspace) return;
   const prefix = label || 'Building';
-  log(`${prefix} UI assets (@canopy-iiif/app/ui)`);
+  log(`${prefix} UI assets (${PACKAGE_NAME}/ui)`);
   try {
-    await runOnce('npm', ['-w', '@canopy-iiif/app', 'run', 'ui:build'], { env });
+    await runOnce('npm', ['-w', PACKAGE_NAME, 'run', 'ui:build'], { env });
   } catch (error) {
     const message = (error && error.message) || String(error);
     throw new Error(`[canopy] Failed to ${prefix.toLowerCase()} UI assets: ${message}`);
@@ -99,7 +101,7 @@ async function buildUiOnce(label, env = process.env) {
 
 async function prepareUi(mode, env = process.env) {
   if (!hasAppWorkspace) {
-    log('Using bundled UI assets from @canopy-iiif/app (workspace not detected)');
+    log(`Using bundled UI assets from ${PACKAGE_NAME} (workspace not detected)`);
     return null;
   }
 
@@ -110,9 +112,9 @@ async function prepareUi(mode, env = process.env) {
 
   await buildUiOnce('Prebuilding', env);
 
-  log('Starting UI watcher (@canopy-iiif/app/ui)');
+  log(`Starting UI watcher (${PACKAGE_NAME}/ui)`);
   try {
-    uiWatcherChild = start('npm', ['-w', '@canopy-iiif/app', 'run', 'ui:watch'], { env });
+    uiWatcherChild = start('npm', ['-w', PACKAGE_NAME, 'run', 'ui:watch'], { env });
   } catch (error) {
     warn(`UI watch skipped: ${(error && error.message) || String(error)}`);
     uiWatcherChild = null;
@@ -126,7 +128,7 @@ function loadLibraryApi() {
     lib = require('./index.js');
   } catch (e) {
     const hint = [
-      'Unable to load @canopy-iiif/app.',
+      `Unable to load ${PACKAGE_NAME}.`,
       'Ensure dependencies are installed (npm install)',
       "and that peer deps like 'react' are present.",
     ].join(' ');
@@ -141,7 +143,7 @@ function loadLibraryApi() {
     : lib;
 
   if (!api || (typeof api.build !== 'function' && typeof api.dev !== 'function')) {
-    throw new TypeError('Invalid @canopy-iiif/app export: expected functions build() and/or dev().');
+    throw new TypeError(`Invalid ${PACKAGE_NAME} export: expected functions build() and/or dev().`);
   }
 
   return api;

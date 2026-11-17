@@ -1,7 +1,8 @@
 {
-  "name": "@canopy-iiif/app",
-  "version": "1.14.1",
+  "name": "@nulib/canopy",
+  "version": "2.0.1",
   "private": false,
+  "description": "Canopy builds a static site for discovering and telling stories with IIIF collections, from Markdown and MDX.",
   "license": "MIT",
   "author": "Mat Jordan <mat@northwestern.edu>",
   "homepage": "https://nulib-ds.github.io/canopy/",
@@ -12,8 +13,12 @@
   },
   "type": "commonjs",
   "main": "./lib/index.js",
+  "bin": {
+    "canopy": "bin/canopy.js"
+  },
   "exports": {
     ".": "./lib/index.js",
+    "./package.json": "./package.json",
     "./ui": "./ui/dist/index.mjs",
     "./ui/server": "./ui/dist/server.mjs",
     "./ui/styles/index.css": "./ui/styles/index.css",
@@ -47,9 +52,11 @@
     "./docs-legacy-compat": "./docs-legacy-compat.mjs"
   },
   "files": [
+    "bin/**",
     "lib/**",
     "ui/dist/**",
     "ui/styles/**",
+    "ui/fonts/**",
     "ui/tailwind-canopy-iiif-plugin.js",
     "ui/tailwind-canopy-iiif-preset.js",
     "ui/tailwind-config.js",
@@ -57,6 +64,7 @@
     "ui/tailwind-default.config.mjs",
     "ui/theme.js",
     "ui/theme-palette.js",
+    "ui/theme-color.js",
     "types/**"
   ],
   "publishConfig": {
@@ -64,37 +72,38 @@
   },
   "dependencies": {
     "@allmaps/leaflet": "^1.0.0-beta.53",
-    "@iiif/helpers": "^1.4.0",
+    "@iiif/parser": "^4.0.7",
     "@mdx-js/mdx": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
+    "@nulib/clover": "~4.10.2",
     "@radix-ui/colors": "^3.0.0",
+    "@tailwindcss/cli": "^4.1.13",
     "charm": "^1.0.2",
+    "esbuild": "^0.21.4",
+    "flexsearch": "~0.8.212",
     "hast-util-to-html": "^9.0.5",
     "js-yaml": "^4.1.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-gfm": "^3.1.0",
     "mdast-util-gfm-footnote": "^2.1.0",
+    "mdast-util-mdx": "^3.0.0",
     "mdast-util-to-hast": "^13.2.0",
     "mdast-util-to-string": "^4.0.0",
+    "micromark-extension-gfm": "^3.0.0",
     "micromark-extension-gfm-footnote": "^2.1.0",
+    "micromark-extension-mdxjs": "^3.0.0",
     "react-masonry-css": "^1.0.16",
     "remark-gfm": "^4.0.0",
     "sass": "^1.77.0",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "tailwindcss": "^4.1.13",
+    "tsx": "^4.19.1"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0",
-    "tailwindcss": "^4.0.0"
-  },
-  "peerDependenciesMeta": {
-    "tailwindcss": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "esbuild": "^0.21.4"
+    "react-dom": "^18.2.0 || ^19.0.0"
   },
   "scripts": {
     "ui:build": "node ./ui/scripts/build-ui.mjs",

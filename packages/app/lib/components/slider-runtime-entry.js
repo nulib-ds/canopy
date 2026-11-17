@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import {
+  cloverSlider,
   mergeSliderOptions,
   normalizeSliderOptions,
 } from '../../ui/dist/index.mjs';
@@ -41,9 +42,13 @@ let cloverSliderPromise = null;
 
 function loadCloverSlider() {
   if (!cloverSliderPromise) {
-    cloverSliderPromise = import('@samvera/clover-iiif/slider')
-      .then((mod) => (mod && (mod.default || mod.Slider || mod)) || null)
-      .catch(() => null);
+    // Clover's Items, from its own entry: the slider's part and nothing else up front.
+    cloverSliderPromise = import('@nulib/clover/items')
+      .then(cloverSlider)
+      .catch((error) => {
+        console.error('[canopy] Clover failed to load', error);
+        return null;
+      });
   }
   return cloverSliderPromise;
 }

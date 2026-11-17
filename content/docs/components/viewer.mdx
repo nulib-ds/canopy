@@ -24,7 +24,7 @@ description: Using the Clover IIIF viewer for manifests and collections.
 
 ## Options
 
-The `options` prop allows you to customize Clover viewer features on a per-instance basis. Adding this will override the default options set in Canopy. For further information on available options, see the [Clover Viewer documentation](https://samvera-labs.github.io/clover-iiif/docs/viewer).
+The `options` prop customizes the viewer on a per-instance basis, over Canopy's defaults. They are the options Canopy 1 passed to [Clover 3's Viewer](https://samvera-labs.github.io/clover-iiif/docs/viewer). Canopy 2 draws the viewer with [Clover 4](https://clover.iiif.library.northwestern.edu/) and keeps each option Clover 4 can carry out: the title (`showTitle`) and downloads (`showDownload`); the information panel (`informationPanel`'s `open`, `renderToggle`, `renderAbout`, `renderContents`, `renderContentSearch`, `renderSupplementing`, `renderAnnotation` and `annotationTabLabel`, and `localeText.contentSearch.tabLabel`); the map (`map.enabled`, `map.workerUrl`); the canvas's height and grounds (`canvasHeight`, `canvasBackgroundColor`, `background`); requests (`withCredentials`, `crossOrigin`, `requestHeaders`); and the zoom and motion settings Clover shares with OpenSeadragon (`openSeadragon`). The build names any other option given, which has no effect.
 
 ### Information Panel
 
@@ -79,7 +79,7 @@ An example showing all lithographs in the Canopy demo repository.
 export const CollectionStyles = () => {
   return (
     <style>{`
-      .clover-viewer-header button > span:first-child {
+      .clover-template-default-collection {
         /* clamp to one line with ellipsis */
         white-space: nowrap;
         overflow: hidden;

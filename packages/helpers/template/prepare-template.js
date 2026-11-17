@@ -142,77 +142,37 @@ function applyTemplateOverrides(templateRoot) {
   }
 }
 
+// The template's package.json, from the repository's: the published @nulib/canopy, which
+// brings Clover, esbuild, tsx, Tailwind and its parsers itself, beside React and React DOM;
+// its scripts run the package's `canopy` command. `APP_SOURCE` names another source for
+// @nulib/canopy (a packed tarball, `file:…`), as `preview-template.js` passes one.
+function templatePackageJson(source, appVersion, appSource) {
+  const j = JSON.parse(JSON.stringify(source));
+  const dependencies = j.dependencies || {};
+  const devDependencies = j.devDependencies || {};
+  const react = dependencies.react || devDependencies.react || '^19.0.0';
+  const reactDom = dependencies['react-dom'] || devDependencies['react-dom'] || '^19.0.0';
+  delete j.workspaces;
+  delete j.optionalDependencies;
+  delete j.main;
+  delete j.devDependencies;
+  j.scripts = {
+    build: 'canopy build',
+    dev: 'canopy dev',
+  };
+  j.dependencies = {
+    '@nulib/canopy': appSource || (appVersion ? '^' + appVersion : '*'),
+    react,
+    'react-dom': reactDom,
+  };
+  return j;
+}
+
 function rewritePackageJson(appVersion) {
   const p = path.join(OUTPUT_ROOT, 'package.json');
   const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-  const vApp = appVersion || '';
-  if (j.dependencies) {
-    if (j.dependencies['@canopy-iiif/app']) {
-      j.dependencies['@canopy-iiif/app'] = vApp ? ('^' + vApp) : '*';
-    }
-    for (const k of Object.keys(j.dependencies)) {
-      if (j.dependencies[k] === 'workspace:*') j.dependencies[k] = '*';
-    }
-  }
-  if (j.workspaces) delete j.workspaces;
-  if (j.optionalDependencies) delete j.optionalDependencies;
-  j.scripts = {
-    build: 'tsx app/scripts/canopy-build.mts',
-    dev: 'tsx app/scripts/canopy-build.mts',
-  };
-  j.devDependencies = j.devDependencies || {};
-  const devDeps = {};
-  const setDevDep = (name, fallback) => {
-    const existing =
-      (j.devDependencies && j.devDependencies[name]) ||
-      (j.dependencies && j.dependencies[name]) ||
-      null;
-    if (existing) {
-      devDeps[name] = existing;
-    } else if (fallback) {
-      devDeps[name] = fallback;
-    }
-  };
-
-  setDevDep('@tailwindcss/cli', '^4.1.13');
-  setDevDep('tailwindcss', '^4.1.13');
-  setDevDep('tsx', '^4.19.1');
-
-  const setDependency = (name, fallback) => {
-    const existing =
-      (j.dependencies && j.dependencies[name]) ||
-      (j.devDependencies && j.devDependencies[name]) ||
-      null;
-    if (!j.dependencies) j.dependencies = {};
-    if (existing) {
-      j.dependencies[name] = existing;
-    } else if (fallback) {
-      j.dependencies[name] = fallback;
-    }
-    if (j.devDependencies) delete j.devDependencies[name];
-  };
-
-  setDependency('esbuild', '^0.21.4');
-
-  const reactVersion =
-    (j.dependencies && j.dependencies.react) ||
-    (j.devDependencies && j.devDependencies.react) ||
-    '^19.0.0';
-  const reactDomVersion =
-    (j.dependencies && j.dependencies['react-dom']) ||
-    (j.devDependencies && j.devDependencies['react-dom']) ||
-    '^19.0.0';
-
-  if (!j.dependencies) j.dependencies = {};
-  j.dependencies.react = reactVersion;
-  j.dependencies['react-dom'] = reactDomVersion;
-
-  delete j.devDependencies.react;
-  delete j.devDependencies['react-dom'];
-
-  j.devDependencies = devDeps;
-
-  fs.writeFileSync(p, JSON.stringify(j, null, 2));
+  const next = templatePackageJson(j, appVersion, process.env.APP_SOURCE || '');
+  fs.writeFileSync(p, JSON.stringify(next, null, 2));
 }
 
 function writeTailwindFiles() {
@@ -234,7 +194,7 @@ function writeTailwindFiles() {
 
   if (!copiedIndex) {
     const fallbackCss = `@import 'tailwindcss';
-@import '@canopy-iiif/app/ui/styles/index.css';
+@import '@nulib/canopy/ui/styles/index.css';
 `;
     fs.writeFileSync(path.join(stylesDir, 'index.css'), fallbackCss, 'utf8');
   }
@@ -269,6 +229,8 @@ function main(templateRoot) {
   writeTailwindFiles();
   applyTemplateAppOverrides(resolvedTemplateRoot);
 }
+
+module.exports = { templatePackageJson };
 
 if (require.main === module) {
   try { main(); } catch (e) { console.error(e); process.exit(1); }

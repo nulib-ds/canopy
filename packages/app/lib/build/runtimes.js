@@ -23,6 +23,7 @@ async function prepareAllRuntimes() {
     }
   }
   await prepareSearchFormRuntime();
+  await prepareSearchEngineRuntime();
   await prepareDiscoveryRuntime();
   try { logLine('✓ Prepared client hydration runtimes', 'cyan', { dim: true }); } catch (_) {}
 }
@@ -57,6 +58,36 @@ async function prepareSearchFormRuntime() {
   try {
     let size = 0;
     try { const st = fs.statSync(outFile); size = st.size || 0; } catch (_) {}
+    const kb = size ? ` (${(size / 1024).toFixed(1)} KB)` : '';
+    const rel = path.relative(process.cwd(), outFile).split(path.sep).join('/');
+    logLine(`✓ Wrote ${rel}${kb}`, 'cyan');
+  } catch (_) {}
+}
+
+// The header's suggestions load this the first time a visitor uses the field
+// (`search/search-engine-runtime.js`): FlexSearch's compact build and the index.
+async function prepareSearchEngineRuntime() {
+  const esbuild = await resolveEsbuild();
+  if (!esbuild) throw new Error('Search engine runtime bundling requires esbuild. Install dependencies before building.');
+  const { flexSearchPlugin } = require('../search/bundle');
+  const scriptsDir = path.join(OUT_DIR, 'scripts');
+  ensureDirSync(scriptsDir);
+  const outFile = path.join(scriptsDir, 'canopy-search-engine.js');
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, '..', 'search', 'search-engine-runtime.js')],
+    outfile: outFile,
+    platform: 'browser',
+    format: 'iife',
+    bundle: true,
+    sourcemap: false,
+    target: ['es2020'],
+    logLevel: 'silent',
+    minify: true,
+    plugins: [flexSearchPlugin()],
+  });
+  try {
+    let size = 0;
+    try { size = fs.statSync(outFile).size || 0; } catch (_) {}
     const kb = size ? ` (${(size / 1024).toFixed(1)} KB)` : '';
     const rel = path.relative(process.cwd(), outFile).split(path.sep).join('/');
     logLine(`✓ Wrote ${rel}${kb}`, 'cyan');
@@ -101,4 +132,10 @@ async function prepareSearchRuntime(timeoutMs = 10000, label = '') {
   }
 }
 
-module.exports = { prepareAllRuntimes, prepareSearchFormRuntime, prepareSearchRuntime, prepareDiscoveryRuntime };
+module.exports = {
+  prepareAllRuntimes,
+  prepareSearchFormRuntime,
+  prepareSearchEngineRuntime,
+  prepareSearchRuntime,
+  prepareDiscoveryRuntime,
+};

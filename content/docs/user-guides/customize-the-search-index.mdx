@@ -80,9 +80,18 @@ referencedManifests:
 Fields:
 
 - `search: false` — opt out entirely.
-- `searchType` — overrides the default `page` type. Match this with an entry under
-  `search.results` to give the type its own tab/layout.
-- `searchSummary` / `searchSummaryMarkdown` — concise teaser shown in list layouts.
+- `searchType` — overrides the default `page` type (`type` works too; `searchType` comes
+  first). Match this with an entry under `search.results` to give the type its own
+  tab/layout.
+- `searchSummary` — a concise teaser the page's result shows, in place of an excerpt. Its
+  words are searched too, ahead of the page's own.
+- `searchSummaryMarkdown` — the same teaser with inline Markdown: `code`, *emphasis*,
+  **strong**.
+- `description` — the teaser when neither is set, as it is the page's
+  `<meta name="description">`. With none of the three, a result shows the passage around
+  the words searched for.
+- `image` — an image shown beside the result, and in the header's suggestions: an absolute
+  URL, or a path from the site's root (`/images/boondi.jpg`).
 
 ## 3. Verify the generated artifacts
 

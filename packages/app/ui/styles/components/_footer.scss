@@ -1,29 +1,136 @@
+@use "../settings/focus" as focus;
+@use "../settings/type";
+
+// The footer (`CanopyFooter`), in Clover's layout: set off from the page by white space,
+// no line over it; what the site is, at the golden ratio of its width; its own content in
+// the muted text; a row under a hairline with its links and the appearance switch. Links
+// are the accent's text step, underlined (1.4.1), and each line of the row is 24px tall at
+// the least (2.5.8).
 @layer components {
   .canopy-footer {
-    border-top: 1px solid var(--color-gray-200);
     color: var(--color-gray-muted);
   }
 
   .canopy-footer__inner {
+    box-sizing: border-box;
     margin: 0 auto;
     width: 100%;
-    max-width: 72rem;
-    padding: 1.618rem 1rem;
+    max-width: 80rem;
+    padding: 2.618rem clamp(1rem, 3vw, 2rem) 4.236rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    font-size: 0.8333rem;
-    line-height: 1.5;
-    text-align: center;
+    align-items: flex-start;
+    gap: 0.618rem;
+    @include type.ui-sm;
   }
 
   .canopy-footer__inner > * {
     margin: 0;
   }
 
-  @media (min-width: 48rem) {
-    .canopy-footer__inner {
-      padding: 2.618rem 1.618rem;
+  .canopy-footer a {
+    color: var(--color-accent-default);
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .canopy-footer a:hover {
+    text-decoration-thickness: max(2px, 0.1em);
+  }
+
+  .canopy-footer a:focus-visible {
+    @include focus.focus-ring;
+  }
+
+  // As wide as the footer, to the golden ratio of it, so a long site name shortens to
+  // fit rather than push the page sideways at 320px (1.4.10).
+  .canopy-footer__about {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: stretch;
+    gap: 0.618rem;
+    max-width: 61.8%;
+    min-width: 0;
+    margin-bottom: 1rem;
+  }
+
+  .canopy-footer .canopy-footer__brand {
+    color: var(--color-gray-default);
+    text-decoration: none;
+  }
+
+  .canopy-footer__lede {
+    @include type.lede;
+    text-wrap: balance;
+  }
+
+  .canopy-footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.618rem 1.618rem;
+    align-self: stretch;
+    margin-top: 1.618rem;
+    padding-top: 1.618rem;
+    border-top: 1px solid var(--canopy-edge);
+  }
+
+  .canopy-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.382rem 1.618rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .canopy-footer__links li {
+    min-block-size: 24px;
+    margin: 0;
+    list-style: none;
+  }
+
+  // The appearance switch (`AppearanceToggle`, `theme.appearance: auto`): its label in
+  // the footer's muted text, the select's edge 3:1 against the page.
+  .canopy-appearance {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .canopy-appearance[hidden] {
+    display: none;
+  }
+
+  .canopy-appearance__label {
+    color: var(--color-gray-muted);
+  }
+
+  .canopy-appearance__select {
+    min-height: 2rem;
+    padding: 0.25rem 0.618rem;
+    border: 1px solid var(--canopy-control-edge);
+    border-radius: var(--canopy-radius-md);
+    background-color: var(--color-gray-50);
+    color: var(--color-gray-900);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .canopy-appearance__select:focus-visible {
+    @include focus.focus-ring;
+  }
+
+  @media (max-width: 48rem) {
+    .canopy-footer__about {
+      max-width: none;
+    }
+
+    .canopy-appearance {
+      margin-left: 0;
     }
   }
 }

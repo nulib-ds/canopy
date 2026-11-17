@@ -138,6 +138,9 @@
     --color-accent-800: var(--nu-purple-120);
     --color-accent-900: var(--nu-purple-140);
     --color-accent-default: var(--nu-purple-100);
+    /* A primary button under the pointer: Purple 90, as it was before Canopy 2 gave
+       the hover its own token. White on it is 8.55:1. */
+    --color-accent-hover: var(--nu-purple-90);
 
     /* Canopy gray ramp → White, Off-White, Rich Black 10–80% */
     --color-gray-50: var(--nu-white);
@@ -158,6 +161,25 @@
     --font-display: "Poppins", Arial, sans-serif;
     --font-serif: "Noto Serif", Georgia, serif;
     --default-font-family: var(--font-sans);
+    --canopy-font-display: var(--font-display);
+    /* Body copy in Akkurat Pro, as the brand sets it, at its own size: Canopy 2 reads
+       pages in a serif, a step larger. */
+    --canopy-font-body: var(--font-sans);
+    --canopy-text-body: 1rem;
+
+    /* Square and flat, by choice (DESIGN.md): Canopy 2's corners and shadows are
+       tokens, set to nothing here. A zero shadow rather than `none`, so a shadow Canopy
+       builds from several (a hairline and a lift) stays valid. */
+    --canopy-radius-sm: 0;
+    --canopy-radius-md: 0;
+    --canopy-radius-lg: 0;
+    --canopy-radius-xl: 0;
+    --canopy-radius-pill: 0;
+    --canopy-radius-circle: 0;
+    --canopy-shadow-sm: 0 0 #0000;
+    --canopy-shadow-md: 0 0 #0000;
+    --canopy-shadow-lg: 0 0 #0000;
+    --canopy-card-shadow: 0 0 #0000;
   }
 }
 
@@ -180,10 +202,27 @@
   border-bottom: 1px solid var(--nu-rich-black-10);
 }
 
-/* Cards: no box border — an Off-White surface separates them from the page. */
+/* Cards: no box border — an Off-White surface separates them from the page —
+ * and no lift under the pointer. */
 .canopy-card {
   border: none;
   background: var(--nu-offwhite);
+}
+
+.canopy-card:hover {
+  transform: none;
+}
+
+/* The v4 header scrolls with the page: Canopy 2's sticks, at 64px, and this one's
+ * three rows would cover too much of the window and what takes focus under it (WCAG
+ * 2.4.11). Unlayered, over Canopy's components. */
+.canopy-header {
+  position: relative;
+}
+
+:root:has(.canopy-header) {
+  --canopy-sticky-top: 0px;
+  scroll-padding-top: auto;
 }
 
 /* Canopy tucks the hero under a transparent header; this header is opaque. */
@@ -238,8 +277,17 @@
   color: var(--nu-rich-black-80);
 }
 
+/* Purple 70, 5.2:1 on white: the brief's Purple 30 is 2.2:1, under the 4.5:1 text
+ * needs (WCAG 1.4.3; Canopy's ACCESSIBILITY.md C31). */
 .canopy-header .canopy-search-form__input::placeholder {
-  color: var(--nu-purple-30);
+  color: var(--nu-purple-70);
+  opacity: 1;
+}
+
+/* Focused, the underline thickens in the accent, as the v4 field's does; no box. */
+.canopy-header .canopy-search-form:focus-within {
+  border-bottom-color: var(--color-accent-default);
+  box-shadow: 0 1px 0 var(--color-accent-default);
 }
 
 .canopy-header .canopy-search-form__submit {
@@ -251,6 +299,22 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* The hidden submit button shows itself while it has focus, so a keyboard user can
+ * see where focus is (WCAG 2.4.7, 2.4.11; Canopy's ACCESSIBILITY.md C19). */
+.canopy-header .canopy-search-form__submit:focus-visible {
+  position: static;
+  width: auto;
+  height: 2rem;
+  padding: 0 0.75rem;
+  overflow: visible;
+  clip-path: none;
+  background: var(--nu-purple-100);
+  color: var(--nu-white);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 /* -------------------------------------------------------------------------
@@ -310,6 +374,27 @@
   }
 
   :focus-visible {
+    outline: 2px solid var(--nu-purple-100);
+    outline-offset: 2px;
+  }
+
+  /* Inside something that clips its content (the hero's slides, the viewers, the map,
+   * Scroll), a ring drawn outside the element is cut away, so there it is drawn inside
+   * (WCAG 2.4.7; Canopy's ACCESSIBILITY.md C19). */
+  :is(
+      .canopy-interstitial__slider,
+      [data-canopy-viewer],
+      [data-canopy-image],
+      [data-canopy-scroll],
+      [data-canopy-map]
+    )
+    :focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* The map's own panes paint over a ring drawn inside it, so its frame shows where
+   * focus is instead. */
+  [data-canopy-map]:has(.leaflet-container:focus-visible) {
     outline: 2px solid var(--nu-purple-100);
     outline-offset: 2px;
   }
@@ -433,10 +518,14 @@
     color: var(--nu-white);
   }
 
+  /* A Rich Black 80 fill with white words; and a transparent outline, which forced-colors
+   * mode draws in the system's color where it drops the fill (WCAG 2.4.7; Canopy's
+   * ACCESSIBILITY.md C37). */
   .canopy-header .canopy-nav-links a:focus-visible {
     background: var(--nu-rich-black-80);
     color: var(--nu-white);
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
   }
 
   .canopy-header .canopy-header__icon-button,

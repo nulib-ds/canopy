@@ -1,3 +1,4 @@
+@use "../../settings/type";
 .canopy-iiif-image {
   --canopy-iiif-image-height: 600px;
   --canopy-iiif-image-bg: var(--color-gray-200);
@@ -17,42 +18,15 @@
     display: none;
   }
 
+  // Clover 4's Canvas, mounted in the placeholder, fills it, on the image's ground: its
+  // controls draw themselves in both appearances, from Clover's tokens (theme-palette.js).
+  &__placeholder .clover-canvas {
+    --clover-canvas-background: var(--canopy-iiif-image-bg);
+  }
+
   &__caption {
     margin: 0.75rem 0 0;
+    @include type.ui-sm;
     color: var(--color-gray-muted);
-    font-size: 0.875rem;
-    line-height: 1.4;
-  }
-}
-
-html.dark {
-  .clover-iiif-image-openseadragon {
-    div[data-testid="clover-iiif-image-openseadragon-controls"] {
-      button {
-        background-color: var(--color-gray-50);
-        color: var(--color-gray-900);
-        fill: var(--color-gray-900);
-        stroke: var(--color-gray-900);
-
-        svg {
-          color: inherit;
-          fill: inherit;
-          stroke: inherit;
-          filter: unset !important;
-        }
-
-        &:hover,
-        &:focus {
-          background-color: var(--color-accent-default);
-        }
-      }
-    }
-
-    .clover-iiif-image-openseadragon-annotation {
-      label {
-        background-color: var(--color-gray-100);
-        color: var(--color-gray-900);
-      }
-    }
   }
 }

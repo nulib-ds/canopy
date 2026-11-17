@@ -10,6 +10,38 @@ permissions:
   contents: read
 
 jobs:
+  authors:
+    # Commits are a person's work (AGENTS.md): every commit a push or pull request brings is
+    # checked for an AI tool credited as its author or co-author. A release waits on this
+    # workflow, so such a commit is never released.
+    name: Commits authored by people
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Check the commits this run brings
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ -n "$BASE" ]; then
+            RANGE="$BASE..$HEAD_SHA"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            RANGE="$BEFORE..$HEAD_SHA"
+          else
+            RANGE="$HEAD_SHA~1..$HEAD_SHA"
+          fi
+          node packages/helpers/check-commit-authors.js --range "$RANGE"
+
   unit:
     name: Unit Tests (Jest)
     runs-on: ubuntu-latest
@@ -31,3 +63,46 @@ jobs:
 
       - name: Run unit tests
         run: npm run test:unit
+
+  a11y:
+    # WCAG 2.2 AA is the prime directive (packages/app/DESIGN.md §0). The release
+    # workflow waits on this workflow, so a new failure blocks a release.
+    name: Accessibility (WCAG 2.2 AA)
+    # Ubuntu 24.04, not ubuntu-latest: Playwright 1.56 has no Chromium for Ubuntu 26.04,
+    # which ubuntu-latest moved to in November 2026. Move on with a Playwright that has one.
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm config set fund false
+          npm config set audit false
+          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Lint components for accessibility
+        run: npm run lint:a11y
+
+      - name: Check the fixture sites
+        run: npm run test:a11y
+
+      - name: Keep the findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-findings
+          path: |
+            tests/a11y/.results/summary.md
+            tests/a11y/.results/summary.json
+            tests/a11y/.results/findings/
+          if-no-files-found: ignore

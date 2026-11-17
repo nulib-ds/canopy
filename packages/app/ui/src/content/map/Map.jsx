@@ -925,7 +925,19 @@ export default function Map({
       const colorOverride = markerMeta && markerMeta.color ? markerMeta.color : null;
       const markerStyle = markerMeta && markerMeta.markerType ? markerMeta.markerType : null;
       const icon = buildMarkerIcon(marker, leafletLib, colorOverride, markerStyle);
-      const leafletMarker = leafletLib.marker(latlng, icon ? {icon} : undefined);
+      // A marker is a button: it carries its point's title as its name, or its
+      // coordinates where it has none (WCAG 4.1.2; ACCESSIBILITY.md C14).
+      const markerName =
+        String(marker.title || marker.label || "").trim() ||
+        `${marker.lat.toFixed(4)}, ${marker.lng.toFixed(4)}`;
+      const leafletMarker = leafletLib.marker(latlng, {
+        ...(icon ? {icon} : {}),
+        title: markerName,
+      });
+      leafletMarker.on("add", () => {
+        const el = leafletMarker.getElement && leafletMarker.getElement();
+        if (el) el.setAttribute("aria-label", markerName);
+      });
       const shouldShowPopup = markerStyle !== "small";
       const popup = shouldShowPopup ? renderPopup(marker) : null;
       const handleMouseOver = () => {

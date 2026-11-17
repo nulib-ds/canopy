@@ -1,4 +1,5 @@
 import React from "react";
+import {useLocale} from "../locale/index.js";
 
 function parseHighlightAttr(attr) {
   if (!attr) return new Set();
@@ -42,17 +43,6 @@ function normaliseCode(children) {
   return "";
 }
 
-const baseLineStyle = {
-  display: "block",
-  padding: "0.125rem 1.25rem",
-  boxSizing: "border-box",
-};
-
-const highlightBaseStyle = {
-  background:
-    "linear-gradient(to right, var(--color-accent-200, #bfdbfe), var(--color-accent-100, #bfdbfe))",
-};
-
 export default function DocsCodeBlock(props = {}) {
   const {children, ...rest} = props;
   const childArray = React.Children.toArray(children);
@@ -70,6 +60,7 @@ export default function DocsCodeBlock(props = {}) {
   const trimmedCode = rawCode.endsWith("\n") ? rawCode.slice(0, -1) : rawCode;
   const lines = trimmedCode.split("\n");
   const filename = codeProps["data-filename"] || "";
+  const language = (String(className).match(/language-([\w-]+)/) || [])[1] || "";
   const highlightAttr = codeProps["data-highlight"] || "";
   const highlightSet = parseHighlightAttr(highlightAttr);
   const copyAttr = codeProps["data-copy"];
@@ -78,6 +69,12 @@ export default function DocsCodeBlock(props = {}) {
       ? copyAttr === true || copyAttr === "true" || copyAttr === ""
       : false;
 
+  const {getString} = useLocale();
+  // Every word from the page's locale (3.1.2; ACCESSIBILITY.md C34), handed to the copy
+  // runtime as it reads them (`data-docs-copy-*`).
+  const copyLabel = getString("common.actions.copy", "Copy");
+  const copyAriaLabel = getString("common.phrases.copy_code", "Copy code to clipboard");
+  const copiedAriaLabel = getString("common.phrases.copied_code", "Copied to clipboard");
   const [copied, setCopied] = React.useState(false);
   const buttonRef = React.useRef(null);
 
@@ -120,97 +117,42 @@ export default function DocsCodeBlock(props = {}) {
     else buttonRef.current.removeAttribute("data-docs-copy-active");
   }, [copied]);
 
-  const containerStyle = {
-    borderRadius: "12px",
-    overflow: "hidden",
-    margin: "1.5rem 0",
-    background: "var(--color-accent-100)",
-    fontFamily: "var(--font-mono)",
-    fontSize: "0.8333rem",
-  };
-
-  const headerStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "1rem 1.25rem",
-    fontWeight: 700,
-    background: "var(--color-accent-100)",
-    borderBottom: "1px solid var(--color-accent-200)",
-    color: "var(--color-gray-900)",
-  };
-
-  const preStyle = {
-    margin: 0,
-    background: "var(--color-accent-100)",
-    color: "var(--color-accent-800)",
-    lineHeight: 1.55,
-    padding: "1rem 0",
-    overflowX: "auto",
-  };
-
-  const buttonStyle = {
-    border: "1px solid var(--color-accent-200, )",
-    borderRadius: "6px",
-    padding: "0.25rem 0.65rem",
-    fontSize: "0.7rem",
-    fontWeight: 600,
-    color: "var(--color-accent-default)",
-    cursor: "pointer",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.3rem",
-    background: "var(--docs-copy-bg, rgba(255,255,255,0.08))",
-    transform: "var(--docs-copy-transform, scale(1))",
-    transition:
-      "transform 150ms ease, background-color 150ms ease, color 150ms ease",
-  };
-
-  const codeStyle = {
-    display: "block",
-    padding: 0,
-  };
-
-  const lineContentStyle = {
-    whiteSpace: "pre",
-    display: "inline",
-  };
-
   const showFilename = Boolean(filename);
   const showHeader = showFilename || enableCopy;
 
   const {style: preStyleOverride, className: preClassName, ...preRest} = rest;
-  const mergedPreStyle = Object.assign({}, preStyle, preStyleOverride || {});
 
   const lineElements = lines.map((line, index) => {
     const lineNumber = index + 1;
     const highlight = highlightSet.has(lineNumber);
-    const style = highlight
-      ? {...baseLineStyle, ...highlightBaseStyle}
-      : baseLineStyle;
     const displayLine = line === "" ? " " : line;
     return React.createElement(
       "span",
       {
         key: lineNumber,
-        style,
+        className: "canopy-code-block__line",
+        "data-highlighted": highlight ? "true" : undefined,
         "data-docs-code-line": line,
       },
-      React.createElement("span", {style: lineContentStyle}, displayLine),
+      React.createElement("span", {className: "canopy-code-block__text"}, displayLine),
     );
   });
 
   return React.createElement(
     "div",
     {
-      style: containerStyle,
+      className: "canopy-code-block",
       "data-docs-code-block": "true",
     },
     showHeader
       ? React.createElement(
           "div",
-          {style: headerStyle},
-          React.createElement("span", null, showFilename ? filename : null),
+          {className: "canopy-code-block__header"},
+          React.createElement(
+            "span",
+            {className: "canopy-code-block__filename"},
+            showFilename ? filename : null,
+          ),
           enableCopy
             ? React.createElement(
                 "button",
@@ -219,13 +161,15 @@ export default function DocsCodeBlock(props = {}) {
                   type: "button",
                   onClick: handleCopy,
                   "aria-live": "polite",
-                  "aria-label": copied
-                    ? "Copied to clipboard"
-                    : "Copy code to clipboard",
+                  "aria-label": copied ? copiedAriaLabel : copyAriaLabel,
                   "data-docs-copy-button": "true",
-                  style: buttonStyle,
+                  "data-docs-copy-label": copyLabel,
+                  "data-docs-copy-label-copied": copyLabel,
+                  "data-docs-copy-aria-label": copyAriaLabel,
+                  "data-docs-copy-aria-label-copied": copiedAriaLabel,
+                  className: "canopy-code-block__copy",
                 },
-                React.createElement("span", null, "Copy"),
+                React.createElement("span", null, copyLabel),
                 React.createElement(
                   "span",
                   {
@@ -257,8 +201,18 @@ export default function DocsCodeBlock(props = {}) {
       : null,
     React.createElement(
       "pre",
-      {...preRest, className: preClassName, style: mergedPreStyle},
-      React.createElement("code", {style: codeStyle}, lineElements),
+      {
+        ...preRest,
+        className: ["canopy-code-block__pre", preClassName].filter(Boolean).join(" "),
+        style: preStyleOverride,
+        // A block that scrolls sideways can be reached and scrolled by keyboard, named
+        // by its file or its language (WCAG 2.1.1; ACCESSIBILITY.md C12).
+        tabIndex: 0,
+        ...(filename || language
+          ? {role: "region", "aria-label": filename || language}
+          : {}),
+      },
+      React.createElement("code", {className: "canopy-code-block__code"}, lineElements),
     ),
   );
 }

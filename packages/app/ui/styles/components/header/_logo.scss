@@ -1,16 +1,27 @@
+@use "../../settings/focus" as focus;
+
+// The brand (`CanopyBrand`): the site's mark and its title, in the page's text. Under the
+// pointer or keyboard focus, the brush stroke draws under the title (`--canopy-swoosh`),
+// at once where motion is reduced.
 @layer components {
   .canopy-logo {
     display: flex;
     align-items: center;
     gap: 0.618rem;
-    font-size: 1.382rem;
+    min-height: 2.5rem;
+    font-size: var(--canopy-text-lg);
     color: var(--color-gray-default) !important;
     line-height: 1;
     min-width: 0;
     max-width: 100%;
+    border-radius: var(--canopy-radius-sm);
 
     &:hover {
       text-decoration: none;
+    }
+
+    &:focus-visible {
+      @include focus.focus-ring;
     }
 
     svg {
@@ -31,14 +42,44 @@
 
     span {
       display: block;
+      position: relative;
+      isolation: isolate;
       min-width: 0;
       max-width: 100%;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      padding-bottom: 0.3em;
+      margin-bottom: -0.3em;
+      line-height: 1.5;
+    }
 
-      height: 3rem;
-      line-height: 3rem;
+    span::after {
+      content: "";
+      position: absolute;
+      left: -0.04em;
+      right: -0.06em;
+      bottom: 0;
+      height: 0.42em;
+      rotate: 1.5deg;
+      z-index: -1;
+      background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-accent-600) 30%, transparent),
+        var(--color-accent-600)
+      );
+      mask: var(--canopy-swoosh) center / 100% 100% no-repeat;
+      clip-path: inset(0 100% 0 0);
+    }
+
+    &:is(:hover, :focus-visible) span::after {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .canopy-logo span::after {
+      transition: clip-path 480ms var(--canopy-ease);
     }
   }
 

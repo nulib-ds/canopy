@@ -1,0 +1,104 @@
+@use "../settings/focus" as focus;
+@use "../settings/type";
+
+// `<Band>`: a call to action on black, after Clover's homepage, in both appearances: its
+// words white (21:1), its quieter words `--canopy-band-muted` (9:1 or more), its links
+// white and underlined, its focus ring white. A `<Button>` in it is drawn for the dark:
+// the primary white with black words, the secondary a white edge. On a dark page, black
+// on near-black, a hairline sets it off (`--canopy-band-edge`).
+@layer components {
+  .canopy-band {
+    --canopy-focus-color: var(--canopy-band-text);
+    box-sizing: border-box;
+    margin: 2.618rem 0;
+    padding: clamp(1.618rem, 5vw, 4.236rem) clamp(1.25rem, 5vw, 4.236rem);
+    border-radius: var(--canopy-radius-xl);
+    background-color: var(--canopy-band-background);
+    box-shadow: inset 0 0 0 1px var(--canopy-band-edge);
+    color: var(--canopy-band-text);
+  }
+
+  .canopy-band__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: 48rem;
+  }
+
+  .canopy-band[data-align="center"] .canopy-band__inner {
+    align-items: center;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .canopy-band__inner > * {
+    margin: 0;
+  }
+
+  .canopy-band :where(h1, h2, h3, h4, h5, h6) {
+    @include type.title;
+    color: inherit;
+  }
+
+  .canopy-band :where(p, li),
+  .canopy-band :is(.canopy-lead, .canopy-feature__body) {
+    color: var(--canopy-band-muted);
+  }
+
+  .canopy-band .canopy-feature__eyebrow {
+    color: var(--canopy-band-text);
+  }
+
+  .canopy-band a:not([class]) {
+    color: var(--canopy-band-text);
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .canopy-band a:focus-visible {
+    @include focus.focus-ring;
+  }
+
+  .canopy-band .canopy-button-group__actions {
+    justify-content: inherit;
+    padding: 0;
+  }
+
+  .canopy-band[data-align="center"] .canopy-button-group,
+  .canopy-band[data-align="center"] .canopy-button-group__actions {
+    align-items: center;
+    justify-content: center;
+  }
+
+  // The primary: white, its words black (21:1); a step darker under the pointer.
+  .canopy-band .canopy-button--primary {
+    border-color: var(--canopy-band-text);
+    background-color: var(--canopy-band-text);
+    color: var(--canopy-band-background);
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--canopy-band-muted);
+      background-color: var(--canopy-band-muted);
+    }
+  }
+
+  // The secondary: no fill, a white edge (the band's muted step, 9:1 on black), white
+  // words; under the pointer, the edge whole.
+  .canopy-band .canopy-button--secondary {
+    border-color: var(--canopy-band-muted);
+    background-color: transparent;
+    color: var(--canopy-band-text);
+
+    &:hover {
+      border-color: var(--canopy-band-text);
+      color: var(--canopy-band-text);
+    }
+  }
+
+  .canopy-band code {
+    background-color: rgb(255 255 255 / 0.12);
+    color: var(--canopy-band-text);
+  }
+}

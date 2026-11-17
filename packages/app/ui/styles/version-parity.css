@@ -1,0 +1,116 @@
+/*
+ * Version parity: Canopy 1.x's styling of Clover 3, carried over to Clover 4's markup.
+ *
+ * Canopy 1.x styled Clover 3 by its class names (`.clover-viewer-header`,
+ * `.clover-slider-header-label`, `.swiper-slide`…), which Clover 4 does not draw, so
+ * those rules would have gone dead. Each rule here is one of them, aimed at the Clover 4
+ * element that took its place, under its 1.x selector, so a 2.x site looks as its 1.x
+ * one did. Everything else Clover 4 draws as Clover draws it.
+ *
+ * The root a site's own stylesheet scoped Clover by, `.clover-viewer` (docs: Theme, "Clover
+ * Component overrides"), is on Canopy's container around the Viewer (`Viewer.jsx`), so
+ * `.clover-viewer { --clover-color-accent: … }` still reaches it.
+ *
+ * Its sizes and weights are Canopy's text styles' (`settings/_type.scss`, DESIGN.md §1), so
+ * Clover's parts read as the rest of the page does.
+ *
+ * In `@layer components`: above Clover's own layer, below a site's unlayered CSS, which
+ * overrides any of it. The whole file goes in a later major release; nothing else reads
+ * it. Imported after Clover's stylesheets (`ui/scripts/build-ui.mjs`).
+ */
+@layer components {
+  /* 1.x `.clover-viewer-header .label`: the title over the Viewer (`showTitle`). */
+  .clover-template-default-title {
+    font-size: var(--canopy-text-lg);
+    font-weight: var(--canopy-weight-bold);
+  }
+
+  /* 1.x `.clover-viewer-information-panel`, its `dt`, `dd` and links. */
+  .clover-template-default-panel {
+    font-size: var(--canopy-text-sm);
+    font-weight: var(--canopy-weight-regular);
+  }
+
+  .clover-template-default-panel dt {
+    font-weight: var(--canopy-weight-bold);
+  }
+
+  .clover-template-default-panel :is(a, dd) {
+    font-size: var(--canopy-text-sm);
+    font-weight: var(--canopy-weight-regular);
+  }
+
+  /* 1.x `.clover-viewer-media-navigation`: the thumbnail strip, in the sans face. */
+  .clover-template-default-rail {
+    font-family: var(--font-sans);
+  }
+
+  /* 1.x `.clover-slider-header-label`: a slider's title. */
+  .canopy-slider .clover-items-title {
+    font-size: var(--canopy-text-lg);
+    font-weight: var(--canopy-weight-bold);
+    letter-spacing: var(--canopy-tracking-snug);
+  }
+
+  /*
+   * 1.x `a.clover-slider-header-homepage`: "View all", in the accent. Its underline stays
+   * Clover 4's, where 1.x took it away: a link told from the words beside it by its
+   * color alone (WCAG 1.4.1).
+   */
+  .canopy-slider .clover-items-homepage {
+    color: var(--color-accent-default);
+  }
+
+  /* 1.x `.clover-slider-header-summary`. */
+  .canopy-slider .clover-items-description {
+    font-size: var(--canopy-text-sm);
+    font-weight: var(--canopy-weight-regular);
+    color: var(--color-gray-muted);
+  }
+
+  /* 1.x, under 800px: the slider's header centered over it. */
+  @media (max-width: 800px) {
+    .canopy-slider .clover-items-header {
+      justify-content: center;
+      text-align: center;
+    }
+  }
+
+  /*
+   * 1.x `.swiper-slide` and its link: each item a card, drawn as Canopy's `<Card>` is
+   * (`--canopy-card-shadow`, `--canopy-radius-lg`): raised and rounded in 2.x, and the
+   * 1.x hairline, square, where a site sets those tokens flat. Clover's focus ring is
+   * drawn on the item's pictures, inside, and stays.
+   */
+  .canopy-slider .clover-items-item {
+    padding-bottom: 1rem;
+  }
+
+  .canopy-slider .clover-items-link {
+    overflow: hidden;
+    border-radius: var(--canopy-radius-lg);
+    background-color: var(--canopy-surface-raised);
+    box-shadow: var(--canopy-card-shadow);
+    transition: color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /*
+   * 1.x `figcaption` and its `span`: the card's caption, padded, in the text's color, the
+   * accent while its card is pointed at or focused. Its three lines are Clover 4's own
+   * (`--clover-items-lines`), whose full title shows on hover and focus.
+   */
+  .canopy-slider .clover-items-caption {
+    padding: 1rem;
+    color: var(--color-gray-default);
+  }
+
+  .canopy-slider .clover-items-label-text {
+    font-size: var(--canopy-text-md);
+    font-weight: var(--canopy-weight-bold);
+    line-height: 1.5;
+  }
+
+  .canopy-slider .clover-items-link:is(:hover, :focus-visible) .clover-items-caption {
+    color: var(--color-accent-default);
+  }
+}

@@ -1,5 +1,5 @@
 const React = require("react");
-const {Container, DocsCodeBlock, Image} = require("@canopy-iiif/app/ui/server");
+const {Container, DocsCodeBlock, Image} = require("@nulib/canopy/ui/server");
 
 const CODE_SAMPLE = `### Corporate Empire and Cartographic Authority
 
@@ -54,9 +54,16 @@ const componentStyles = `
 }
 
 .markdown-authoring__heading {
-  color: var(--color-accent-default);
-  font-weight: 300;
+  font-size: var(--canopy-text-title, 2rem);
+  line-height: 1.1;
   margin: 0;
+}
+
+.markdown-authoring__description {
+  color: var(--color-gray-muted);
+  font-size: var(--canopy-text-lede, 1.125rem);
+  line-height: 1.5;
+  text-wrap: balance;
 }
 
 .markdown-authoring__grid {
@@ -79,13 +86,19 @@ const componentStyles = `
   position: relative;
 }
 
+/* The rendered page, as a site draws its prose: the reading serif. */
+.markdown-authoring__content-text {
+  font-family: var(--canopy-font-body, Georgia, serif);
+  font-size: var(--canopy-text-body, 1.0625rem);
+}
+
 .markdown-authoring__content::before,
 .markdown-authoring__content::after {
   position: absolute;
-  font-size: 3.618rem;
+  font-size: var(--canopy-text-display);
   line-height: 1;
   color: var(--color-accent-default);
-  font-weight: 300;
+  font-weight: var(--canopy-weight-regular);
   pointer-events: none;
 }
 
@@ -133,7 +146,7 @@ const componentStyles = `
 
 .markdown-authoring__code-block {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-size: 0.875rem;
+  font-size: var(--canopy-text-code);
   line-height: 1.6;
   mask-image: linear-gradient(to right, black calc(100% - 5rem), transparent calc(100% - 1rem));
 }

@@ -224,6 +224,52 @@ export default function SearchFiltersDialog(props = {}) {
     };
   }, [open]);
 
+  // A modal dialog by keyboard (2.4.3; ACCESSIBILITY.md C41), as the header's are: focus
+  // moves in as it opens, Tab and Shift+Tab stay inside, Escape closes it, and focus goes
+  // back to the control that opened it.
+  React.useEffect(() => {
+    if (!open || typeof document === "undefined") return undefined;
+    const opener = document.activeElement;
+    const modal = document.getElementById("canopy-modal-filters");
+    if (!modal) return undefined;
+    const focusables = () =>
+      Array.from(
+        modal.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.getClientRects().length > 0);
+    const first = focusables()[0];
+    if (first) first.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (onOpenChange) onOpenChange(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (!items.length) return;
+      const firstItem = items[0];
+      const lastItem = items[items.length - 1];
+      const inside = modal.contains(document.activeElement);
+      if (event.shiftKey && (!inside || document.activeElement === firstItem)) {
+        event.preventDefault();
+        lastItem.focus();
+      } else if (!event.shiftKey && (!inside || document.activeElement === lastItem)) {
+        event.preventDefault();
+        firstItem.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, true);
+      if (opener && typeof opener.focus === "function" && document.contains(opener)) {
+        opener.focus();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const context = React.useContext(PageContext);
   const contextSiteTitle =
     context && context.site && typeof context.site.title === "string"
@@ -268,6 +314,7 @@ export default function SearchFiltersDialog(props = {}) {
       id="canopy-modal-filters"
       variant="filters"
       open
+      ariaLabel={filtersLabel}
       labelledBy={brandId}
       label={resolvedBrandLabel}
       logo={SiteLogo}
@@ -307,12 +354,13 @@ export default function SearchFiltersDialog(props = {}) {
       <footer className="canopy-search-filters__footer">
         <div>{appliedCountLabel}</div>
         <div className="canopy-search-filters__footer-actions">
+          {/* Nothing to clear leaves it in place, `aria-disabled`, so focus stays (2.4.3). */}
           <button
             type="button"
             onClick={() => {
-              if (onClear) onClear();
+              if (activeCount && onClear) onClear();
             }}
-            disabled={!activeCount}
+            aria-disabled={activeCount ? undefined : "true"}
             className="canopy-search-filters__button canopy-search-filters__button--secondary"
           >
             {clearAllLabel}

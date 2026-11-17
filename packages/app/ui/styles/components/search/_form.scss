@@ -1,89 +1,62 @@
 @use "../buttons" as buttons;
+@use "../../settings/type";
 
+// The search field (`SearchPanelForm`, in the header and the search dialog): a pill on
+// the page's ground, its edge 3:1 against it (`--canopy-control-edge`, 1.4.11), the icon
+// and the query at its start, the shortcut's hint and the submit at its end. Focused, its
+// edge is the accent's text step, twice as thick: the input itself draws no outline.
 .canopy-search-form-shell {
   --search-form-label-padding-x: 0.75rem;
-  --search-form-label-padding-y: 0.625rem;
+  --search-form-label-padding-y: 0.382rem;
   position: relative;
-  backdrop-filter: blur(12px);
-  transition:
-    background-color var(--duration-fast) ease;
   background-color: var(--color-gray-50);
   cursor: text;
-  padding-right: 0.4rem;
-
-  &::after {
-    content: attr(data-placeholder);
-    position: absolute;
-    left: calc(var(--search-form-label-padding-x) + 1.25rem + 0.5rem);
-    right: 5.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: color-mix(in srgb, var(--color-gray-600) 75%, transparent);
-    opacity: 0.75;
-    pointer-events: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: opacity var(--duration-fast) ease;
-  }
 
   svg {
     width: 1.25rem;
     height: 1.25rem;
     flex-shrink: 0;
-    fill: var(--color-gray-400);
+    fill: currentColor;
     pointer-events: none;
-    transition: fill var(--duration-fast) var(--easing-standard);
   }
 
   input[data-canopy-search-form-input] {
     width: 100%;
     border: 0;
     outline: none;
-    caret-color: transparent;
-    transition: opacity var(--duration-fast) ease;
-  }
-
-  &:focus-within {
-    background-color: var(--color-accent-100);
-
-    input[data-canopy-search-form-input] {
-      opacity: 1;
-      caret-color: var(--color-gray-900);
-    }
-
-    svg {
-      fill: var(--color-accent-default);
-    }
-  }
-
-  &[data-has-value="1"] input[data-canopy-search-form-input] {
-    opacity: 1;
-    caret-color: var(--color-gray-900);
   }
 }
 
 .canopy-search-form {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border: 1px solid var(--color-gray-200);
+  gap: 0.25rem;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  padding: 0.236rem;
+  border: 1px solid var(--canopy-control-edge);
+  border-radius: var(--canopy-radius-pill);
   color: var(--color-gray-muted);
   transition:
-    border-color var(--duration-fast) var(--easing-standard),
-    background-color var(--duration-fast) var(--easing-standard);
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+
+  &:hover {
+    border-color: var(--color-gray-muted);
+  }
 
   &:focus-within {
-    border-color: var(--color-accent-500);
+    border-color: var(--color-accent-default);
+    box-shadow: inset 0 0 0 1px var(--color-accent-default);
 
     .canopy-search-form__icon {
-      color: var(--color-accent-500);
+      color: var(--color-accent-default);
     }
   }
 
   &[data-has-value="1"] {
     .canopy-search-form__icon {
-      color: var(--color-accent-500);
+      color: var(--color-accent-default);
     }
   }
 }
@@ -95,66 +68,106 @@
   align-items: center;
   gap: 0.5rem;
   cursor: text;
-  padding: var(--search-form-label-padding-y) var(--search-form-label-padding-x);
+  padding: var(--search-form-label-padding-y) 0.25rem var(--search-form-label-padding-y)
+    var(--search-form-label-padding-x);
 }
 
-  .canopy-search-form__clear {
-    @include buttons.canopy-button-base(0.25rem, 0.25rem);
-    border: none;
-    background: none;
-    color: var(--color-gray-700);
-    font-size: 1.25rem;
-    line-height: 1;
-    padding: 0 0.25rem;
-    margin-right: 0.25rem;
-    transition: color var(--duration-fast) var(--easing-standard);
+.canopy-search-form__clear {
+  @include buttons.canopy-button-base(0, 0);
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: var(--canopy-radius-pill);
+  background: none;
+  color: var(--color-gray-muted);
+  font-size: var(--canopy-text-xl);
+  line-height: 1;
 
-  &:hover,
-  &:focus-visible {
-    color: var(--color-accent-default);
+  &:hover {
+    background-color: var(--canopy-surface);
+    color: var(--color-gray-900);
   }
 
   &:focus-visible {
-    outline: none;
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: 0;
   }
 }
 
+// The query and its placeholder: the page's text, and the muted text, 4.5:1 on the field
+// (1.4.3; ACCESSIBILITY.md C31). Browsers draw a placeholder paler than its color
+// otherwise (Firefox at half opacity).
 .canopy-search-form__input {
   flex: 1;
   min-width: 0;
   padding: 0.125rem 0;
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-base);
+  @include type.ui;
   border: 0;
-  color: inherit;
+  background: transparent;
+  color: var(--color-gray-900);
   outline: none;
-  transition:
-    opacity var(--duration-fast) var(--easing-standard),
-    caret-color var(--duration-fast) var(--easing-standard);
 
   &::placeholder {
-    color: color-mix(in srgb, var(--color-gray-600) 75%, transparent);
+    color: var(--color-gray-muted);
+    opacity: 1;
   }
 }
 
+// The shortcut that focuses the field (⌘K, or Ctrl K), filled in and shown by the search
+// runtime, which knows the platform; spoken through the input's `aria-keyshortcuts`
+// instead. Out of the way while the field is in use, and on screens with no keyboard.
+.canopy-search-form__hotkey {
+  flex: none;
+  padding: 0.0625rem 0.382rem;
+  border: 1px solid var(--canopy-edge);
+  border-radius: var(--canopy-radius-sm);
+  background-color: var(--canopy-surface);
+  @include type.ui-sm;
+  color: var(--color-gray-muted);
+  white-space: nowrap;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.canopy-search-form:is(:focus-within, [data-has-value="1"]) .canopy-search-form__hotkey {
+  display: none;
+}
+
+@media (hover: none) {
+  .canopy-search-form__hotkey {
+    display: none;
+  }
+}
+
+// The submit: a filled pill inside the field, its label 4.5:1 on the fill and under the
+// pointer (`--color-accent-hover`). Its focus is drawn inside, as the field's edge sits
+// right against it.
 .canopy-search-form__submit {
-  @include buttons.canopy-button-base(0.382rem, 0.618rem);
-  margin-right: 1px;
+  @include buttons.canopy-button-base(0.236rem, 1rem);
+  flex: none;
+  min-height: 2.25rem;
   border-color: var(--color-accent-default);
+  border-radius: var(--canopy-radius-pill);
   background: var(--color-accent-default);
   color: var(--color-accent-50);
+  @include type.ui-sm;
   gap: 0.382rem;
   transition:
-    background-color var(--duration-fast) var(--easing-standard),
-    transform var(--duration-fast) var(--easing-standard);
+    background-color 120ms ease,
+    transform 120ms ease;
 
   &:hover,
   &:focus-visible {
-    background: var(--color-accent-800);
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent-hover);
   }
 
   &:focus-visible {
-    outline: none;
+    outline: 2px solid var(--color-accent-50);
+    outline-offset: -4px;
   }
 
   &:active {
@@ -162,8 +175,13 @@
   }
 }
 
-.canopy-search-form__shortcut {
-  align-items: center;
-  color: inherit;
-  opacity: 0.7;
+@media (prefers-reduced-motion: reduce) {
+  .canopy-search-form,
+  .canopy-search-form__submit {
+    transition: none;
+  }
+
+  .canopy-search-form__submit:active {
+    transform: none;
+  }
 }

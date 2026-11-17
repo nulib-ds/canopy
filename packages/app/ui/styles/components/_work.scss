@@ -1,3 +1,4 @@
+@use "../settings/type";
 @layer components {
   .canopy-work--layout {
     --canopy-work-gap: clamp(1.5rem, 3vw, 2.75rem);
@@ -17,6 +18,15 @@
     flex: 1 1 50%;
   }
 
+  // The Viewer lifted off the page, as a card is: a hairline edge and a soft shadow, its
+  // corners `--canopy-radius-xl`.
+  .canopy-work--primary > [data-canopy-viewer] {
+    overflow: hidden;
+    border-radius: var(--canopy-radius-xl);
+    background-color: var(--canopy-surface-raised);
+    box-shadow: var(--canopy-card-shadow);
+  }
+
   @media (max-width: 960px) {
     .canopy-work--layout {
       flex-direction: column;
@@ -32,9 +42,8 @@
   body.canopy-type-work {
     main {
       h1 {
-        font-size: 2rem;
-        line-height: 1.1;
-        margin: 1.618rem 0;
+        @include type.title;
+        margin: 1.618rem 0 1rem;
       }
 
       dl {
@@ -48,18 +57,14 @@
       }
 
       dt {
-        font-size: 0.7222rem;
-        text-transform: uppercase;
+        @include type.label;
         margin: 0;
-        font-weight: 400;
-        color: var(--color-gray-muted);
       }
 
       dd {
+        @include type.ui;
         margin: 0;
         color: var(--color-gray-900);
-        font-size: 1rem;
-        line-height: 1.45;
       }
     }
   }

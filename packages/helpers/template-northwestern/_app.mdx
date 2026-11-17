@@ -1,5 +1,5 @@
-import {Meta, Stylesheet} from "@canopy-iiif/app/head";
-import {CanopyHeader, CanopyFooter} from "@canopy-iiif/app/ui";
+import {Meta, Stylesheet} from "@nulib/canopy/head";
+import {CanopyHeader, CanopyFooter} from "@nulib/canopy/ui";
 
 export const NU_CDN = "https://common.northwestern.edu/v8/css";
 
@@ -47,8 +47,8 @@ export function App({children}) {
       <CanopyHeader />
       <main>{children}</main>
       <CanopyFooter>
-        <a href="https://www.northwestern.edu/" aria-label="Northwestern University">
-          <img className="nu-wordmark" src={`${NU_CDN}/images/northwestern.svg`} alt="" />
+        <a href="https://www.northwestern.edu/">
+          <img className="nu-wordmark" src={`${NU_CDN}/images/northwestern.svg`} alt="Northwestern University" />
         </a>
         <p>
           <a href="https://www.library.northwestern.edu/">Northwestern University Libraries</a>

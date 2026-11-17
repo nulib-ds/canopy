@@ -23,107 +23,118 @@ function escapeRegExp(str = "") {
   return String(str).replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
-function buildSnippet({text = "", query = "", maxLength = 360}) {
-  const clean = String(text || "")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!clean) return "";
-  const safeMax = Math.max(60, Number(maxLength) || 360);
-  const term = String(query || "").trim();
-  if (!term)
-    return clean.length > safeMax
-      ? clean.slice(0, safeMax).trimEnd() + "…"
-      : clean;
-  const lower = clean.toLowerCase();
-  const termLower = term.toLowerCase();
-  const idx = lower.indexOf(termLower);
-  if (idx === -1)
-    return clean.length > safeMax
-      ? clean.slice(0, safeMax).trimEnd() + "…"
-      : clean;
-  const padding = Math.max(0, Math.floor((safeMax - term.length) / 2));
-  let start = Math.max(0, idx - padding);
-  let end = start + safeMax;
-  if (end > clean.length) {
-    end = clean.length;
-    start = Math.max(0, end - safeMax);
-  }
-  let snippet = clean.slice(start, end).trim();
-  if (start > 0) snippet = "…" + snippet;
-  if (end < clean.length) snippet = snippet + "…";
-  return snippet;
+// A result's excerpt: its inline Markdown read into runs of text, each with its style,
+// then a window of them around the first word of the query. Cut by runs, not characters,
+// so a cut never falls inside a span and turns the words after it into code.
+const SNIPPET_LENGTH = 360;
+const WORD_CHAR = /[\p{L}\p{N}]/u;
+const ESCAPABLE = "\\*_`[";
+
+function queryTerms(query = "") {
+  const whole = String(query || "").trim();
+  if (!whole) return [];
+  return [whole, ...whole.split(/\s+/)].filter(
+    (term, index, all) => term && all.indexOf(term) === index
+  );
 }
 
 function highlightTextNode(text, query, keyPrefix = "") {
-  if (!query) return text;
-  const term = String(query).trim();
-  if (!term) return text;
-  const regex = new RegExp(`(${escapeRegExp(term)})`, "gi");
-  const parts = String(text).split(regex);
-  const termLower = term.toLowerCase();
-  return parts.map((part, idx) => {
-    if (!part) return null;
-    if (part.toLowerCase() === termLower) {
-      return <mark key={`${keyPrefix}-${idx}`}>{part}</mark>;
-    }
-    return <React.Fragment key={`${keyPrefix}-${idx}`}>{part}</React.Fragment>;
-  });
+  const terms = queryTerms(query).sort((a, b) => b.length - a.length);
+  if (!terms.length) return text;
+  const regex = new RegExp(`(${terms.map(escapeRegExp).join("|")})`, "gi");
+  const lowered = new Set(terms.map((term) => term.toLowerCase()));
+  return String(text)
+    .split(regex)
+    .map((part, idx) => {
+      if (!part) return null;
+      if (lowered.has(part.toLowerCase())) {
+        return <mark key={`${keyPrefix}-${idx}`}>{part}</mark>;
+      }
+      return <React.Fragment key={`${keyPrefix}-${idx}`}>{part}</React.Fragment>;
+    });
+}
+
+// The index of the `_` or `__` that closes one opened at 0: followed by no letter or
+// digit, as an underscore inside a word (`snake_case`) is a character, not emphasis.
+function closingUnderscore(text, marker) {
+  let from = marker.length;
+  while (from < text.length) {
+    const at = text.indexOf(marker, from);
+    if (at === -1) return -1;
+    const after = text.charAt(at + marker.length);
+    if (!(after && WORD_CHAR.test(after))) return at;
+    from = at + 1;
+  }
+  return -1;
 }
 
 function tokenizeInlineMarkdown(input = "") {
   const tokens = [];
   let text = input;
+  let prev = "";
+  const pushText = (value) => {
+    if (!value) return;
+    tokens.push({type: "text", value});
+    prev = value.charAt(value.length - 1);
+  };
   while (text.length) {
+    if (text.startsWith("\\") && text.length > 1 && ESCAPABLE.includes(text[1])) {
+      pushText(text[1]);
+      text = text.slice(2);
+      continue;
+    }
     if (text.startsWith("\n")) {
       tokens.push({type: "break"});
+      prev = " ";
       text = text.slice(1);
       continue;
     }
     if (text.startsWith("**")) {
       const closing = text.indexOf("**", 2);
       if (closing !== -1) {
-        const inner = text.slice(2, closing);
-        tokens.push({type: "strong", children: tokenizeInlineMarkdown(inner)});
+        tokens.push({type: "strong", children: tokenizeInlineMarkdown(text.slice(2, closing))});
+        prev = "*";
         text = text.slice(closing + 2);
         continue;
       }
+    }
+    if (text.startsWith("_") && WORD_CHAR.test(prev)) {
+      pushText("_");
+      text = text.slice(1);
+      continue;
     }
     if (text.startsWith("__")) {
-      const closing = text.indexOf("__", 2);
+      const closing = closingUnderscore(text, "__");
       if (closing !== -1) {
-        const inner = text.slice(2, closing);
-        tokens.push({type: "strong", children: tokenizeInlineMarkdown(inner)});
+        tokens.push({type: "strong", children: tokenizeInlineMarkdown(text.slice(2, closing))});
+        prev = "_";
         text = text.slice(closing + 2);
         continue;
       }
     }
-    if (text.startsWith("*")) {
-      if (!text.startsWith("**")) {
-        const closing = text.indexOf("*", 1);
-        if (closing !== -1) {
-          const inner = text.slice(1, closing);
-          tokens.push({type: "em", children: tokenizeInlineMarkdown(inner)});
-          text = text.slice(closing + 1);
-          continue;
-        }
+    if (text.startsWith("*") && !text.startsWith("**")) {
+      const closing = text.indexOf("*", 1);
+      if (closing !== -1) {
+        tokens.push({type: "em", children: tokenizeInlineMarkdown(text.slice(1, closing))});
+        prev = "*";
+        text = text.slice(closing + 1);
+        continue;
       }
     }
-    if (text.startsWith("_")) {
-      if (!text.startsWith("__")) {
-        const closing = text.indexOf("_", 1);
-        if (closing !== -1) {
-          const inner = text.slice(1, closing);
-          tokens.push({type: "em", children: tokenizeInlineMarkdown(inner)});
-          text = text.slice(closing + 1);
-          continue;
-        }
+    if (text.startsWith("_") && !text.startsWith("__")) {
+      const closing = closingUnderscore(text, "_");
+      if (closing !== -1) {
+        tokens.push({type: "em", children: tokenizeInlineMarkdown(text.slice(1, closing))});
+        prev = "_";
+        text = text.slice(closing + 1);
+        continue;
       }
     }
     if (text.startsWith("`")) {
       const closing = text.indexOf("`", 1);
       if (closing !== -1) {
-        const inner = text.slice(1, closing);
-        tokens.push({type: "code", value: inner});
+        tokens.push({type: "code", value: text.slice(1, closing)});
+        prev = "`";
         text = text.slice(closing + 1);
         continue;
       }
@@ -133,69 +144,119 @@ function tokenizeInlineMarkdown(input = "") {
       const startHref = endLabel !== -1 ? text.indexOf("(", endLabel) : -1;
       const endHref = startHref !== -1 ? text.indexOf(")", startHref) : -1;
       if (endLabel !== -1 && startHref === endLabel + 1 && endHref !== -1) {
-        const label = text.slice(1, endLabel);
-        const href = text.slice(startHref + 1, endHref);
         tokens.push({
           type: "link",
-          href,
-          children: tokenizeInlineMarkdown(label),
+          href: text.slice(startHref + 1, endHref),
+          children: tokenizeInlineMarkdown(text.slice(1, endLabel)),
         });
+        prev = ")";
         text = text.slice(endHref + 1);
         continue;
       }
     }
-    const specials = ["**", "__", "*", "_", "`", "[", "\n"];
-    const nextIndex = specials
-      .map((needle) =>
-        needle === "\n" ? text.indexOf("\n") : text.indexOf(needle)
-      )
+    // Text, up to the next character that might open something.
+    const nextIndex = ["**", "__", "*", "_", "`", "[", "\n", "\\"]
+      .map((needle) => text.indexOf(needle, 1))
       .filter((idx) => idx > 0)
       .reduce((min, idx) => (min === -1 || idx < min ? idx : min), -1);
     if (nextIndex === -1) {
-      tokens.push({type: "text", value: text});
+      pushText(text);
       break;
     }
-    tokens.push({type: "text", value: text.slice(0, nextIndex)});
+    pushText(text.slice(0, nextIndex));
     text = text.slice(nextIndex);
   }
   return tokens;
 }
 
-function renderMarkdownTokens(tokens, query, keyPrefix = "token") {
-  return tokens.map((token, idx) => {
-    const key = `${keyPrefix}-${idx}`;
-    switch (token.type) {
-      case "strong":
-        return (
-          <strong key={key}>
-            {renderMarkdownTokens(token.children || [], query, key)}
-          </strong>
-        );
-      case "em":
-        return (
-          <em key={key}>
-            {renderMarkdownTokens(token.children || [], query, key)}
-          </em>
-        );
-      case "code":
-        return <code key={key}>{token.value}</code>;
-      case "link":
-        return (
-          <a key={key} href={token.href} target="_blank" rel="noreferrer">
-            {renderMarkdownTokens(token.children || [], query, key)}
-            <span className="sr-only"> (opens in new tab)</span>
-          </a>
-        );
-      case "break":
-        return <br key={key} />;
-      case "text":
-      default:
-        return (
-          <React.Fragment key={key}>
-            {highlightTextNode(token.value || "", query, key)}
-          </React.Fragment>
-        );
+// Tokens as runs of { text, style }; a link keeps its words alone, as the card is itself a
+// link and a link in its excerpt would be a link inside a link (ACCESSIBILITY.md C33).
+function toRuns(tokens, style = "", runs = []) {
+  tokens.forEach((token) => {
+    if (token.type === "text") runs.push({text: token.value || "", style});
+    else if (token.type === "code") runs.push({text: token.value || "", style: "code"});
+    else if (token.type === "strong" || token.type === "em") {
+      const next = token.type === "strong" || style === "strong" ? "strong" : "em";
+      toRuns(token.children || [], next, runs);
+    } else if (token.type === "link") toRuns(token.children || [], style, runs);
+    else if (token.type === "break") runs.push({text: " ", style});
+  });
+  return runs;
+}
+
+function tidyRuns(runs) {
+  const out = [];
+  runs.forEach((run) => {
+    let text = String(run.text || "").replace(/\s+/g, " ");
+    const last = out[out.length - 1];
+    if ((!last || last.text.endsWith(" ")) && text.startsWith(" ")) text = text.slice(1);
+    if (text) out.push({...run, text});
+  });
+  if (out.length) {
+    const last = out[out.length - 1];
+    last.text = last.text.replace(/\s+$/, "");
+    if (!last.text) out.pop();
+  }
+  return out;
+}
+
+function chooseWindow(plain, query, maxLength) {
+  const safeMax = Math.max(60, Number(maxLength) || SNIPPET_LENGTH);
+  if (plain.length <= safeMax) return [0, plain.length];
+  const lower = plain.toLowerCase();
+  let idx = -1;
+  let termLength = 0;
+  for (const term of queryTerms(query)) {
+    const at = lower.indexOf(term.toLowerCase());
+    if (at !== -1) {
+      idx = at;
+      termLength = term.length;
+      break;
     }
+  }
+  let start = idx === -1 ? 0 : Math.max(0, idx - Math.floor((safeMax - termLength) / 2));
+  let end = Math.min(plain.length, start + safeMax);
+  start = Math.max(0, end - safeMax);
+  // At the edges of words.
+  if (start > 0) {
+    const space = plain.indexOf(" ", start);
+    if (space !== -1 && (idx === -1 || space < idx)) start = space + 1;
+  }
+  if (end < plain.length) {
+    const space = plain.lastIndexOf(" ", end);
+    if (space > start && (idx === -1 || space >= idx + termLength)) end = space;
+  }
+  return [start, end];
+}
+
+function buildSnippetRuns({text = "", query = "", maxLength = SNIPPET_LENGTH}) {
+  const runs = tidyRuns(toRuns(tokenizeInlineMarkdown(String(text || ""))));
+  const plain = runs.map((run) => run.text).join("");
+  if (!plain) return [];
+  const [start, end] = chooseWindow(plain, query, maxLength);
+  const clipped = [];
+  let offset = 0;
+  runs.forEach((run) => {
+    const runStart = offset;
+    const runEnd = offset + run.text.length;
+    offset = runEnd;
+    if (runEnd <= start || runStart >= end) return;
+    const piece = run.text.slice(Math.max(0, start - runStart), Math.min(run.text.length, end - runStart));
+    if (piece) clipped.push({...run, text: piece});
+  });
+  if (start > 0) clipped.unshift({text: "…", style: ""});
+  if (end < plain.length) clipped.push({text: "…", style: ""});
+  return clipped;
+}
+
+function renderRuns(runs, query) {
+  return runs.map((run, idx) => {
+    const key = `run-${idx}`;
+    const content = highlightTextNode(run.text, query, key);
+    if (run.style === "code") return <code key={key}>{content}</code>;
+    if (run.style === "strong") return <strong key={key}>{content}</strong>;
+    if (run.style === "em") return <em key={key}>{content}</em>;
+    return <React.Fragment key={key}>{content}</React.Fragment>;
   });
 }
 
@@ -222,15 +283,17 @@ export default function ArticleCard({
   metadata = [],
   query = "",
   recordType = "",
+  thumbnail = "",
+  headingLevel = 3,
 }) {
+  // One level below the heading the result sits under (the search page's `h1`, so 2
+  // there); 3 where nothing says, as in 1.x.
+  const level = Math.min(6, Math.max(2, Math.round(Number(headingLevel)) || 3));
+  const Heading = `h${level}`;
   const snippetSource = summaryMarkdown || annotation || summary;
-  const snippet = useMemo(
-    () => buildSnippet({text: snippetSource, query}),
+  const snippetRuns = useMemo(
+    () => buildSnippetRuns({text: snippetSource, query}),
     [snippetSource, query]
-  );
-  const snippetTokens = useMemo(
-    () => tokenizeInlineMarkdown(snippet),
-    [snippet]
   );
   const metaList = Array.isArray(metadata)
     ? metadata.map((m) => String(m || "")).filter(Boolean)
@@ -244,15 +307,28 @@ export default function ArticleCard({
   }, [href, recordType, query]);
 
   return (
-    <a href={resolvedHref} className="canopy-article-card">
+    <a
+      href={resolvedHref}
+      className={`canopy-article-card${thumbnail ? " canopy-article-card--media" : ""}`}
+    >
       <article>
-        <h3>{title}</h3>
+        {thumbnail ? (
+          // The title names the result; its image is a decoration.
+          <img
+            className="canopy-article-card__thumb"
+            src={thumbnail}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        ) : null}
+        <Heading className="canopy-article-card__title">{title}</Heading>
         {displayUrl ? (
           <span className="canopy-article-card__url">{displayUrl}</span>
         ) : null}
-        {snippet ? (
+        {snippetRuns.length ? (
           <p className="canopy-article-card__snippet">
-            {renderMarkdownTokens(snippetTokens, query)}
+            {renderRuns(snippetRuns, query)}
           </p>
         ) : null}
         {metaList.length ? (

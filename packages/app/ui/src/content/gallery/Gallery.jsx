@@ -171,8 +171,10 @@ const INLINE_SCRIPT = `(() => {
       } else if (activeModal !== modal) {
         emitModalState(activeModal, 'close');
         activeModal.removeAttribute('data-canopy-gallery-active');
+        setInert(activeModal, true);
       }
       activeModal = modal;
+      setInert(modal, false);
       modal.setAttribute('data-canopy-gallery-active', '1');
       resetModalScroll(modal);
       if (!focusActiveNav(modal)) {
@@ -185,6 +187,7 @@ const INLINE_SCRIPT = `(() => {
     const previous = activeModal;
     activeModal = null;
     previous.removeAttribute('data-canopy-gallery-active');
+    setInert(previous, true);
     unlockScroll();
     document.removeEventListener('keydown', handleKeydown, true);
     const closeTarget = previous.getAttribute('data-canopy-gallery-close');
@@ -246,11 +249,21 @@ const INLINE_SCRIPT = `(() => {
     return false;
   }
 
+  // A closed popup is inert: out of the tab order and the accessibility tree, whatever
+  // its contents' own styles say, as a viewer mounted in it may make its parts visible
+  // again (2.4.3; ACCESSIBILITY.md C38). Open, it is not.
+  function setInert(modal, inert) {
+    if (!modal) return;
+    if (inert) modal.setAttribute('inert', '');
+    else modal.removeAttribute('inert');
+  }
+
   function bindModalDismissal(modal) {
     if (!modal || modal.getAttribute('data-canopy-gallery-dismiss-bound') === '1') {
       return;
     }
     modal.setAttribute('data-canopy-gallery-dismiss-bound', '1');
+    if (modal !== activeModal) setInert(modal, true);
     modal.addEventListener('click', function (event) {
       if (!shouldCloseFromBackground(event, modal)) return;
       event.preventDefault();

@@ -1,3 +1,5 @@
+@use "../settings/type";
+
 @use "./buttons" as buttons;
 
 .canopy-index {
@@ -12,8 +14,7 @@
 }
 
 .canopy-index__group dt {
-  font-weight: 500;
-  font-size: 1rem;
+  @include type.ui(bold);
   margin: 0 0 0.8rem 0;
 }
 
@@ -38,8 +39,7 @@
   break-inside: avoid;
   margin: 0;
   padding: 0.15rem 0;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  @include type.ui-sm;
   word-break: break-word;
 }
 

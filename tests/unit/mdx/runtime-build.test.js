@@ -54,7 +54,7 @@ test('builds Clover hydration and custom TSX with native BigInt', async () => {
   await fs.writeFile(
     path.join(directory, 'app/components/viewer.client.tsx'),
     `import React from 'react';
-     import Viewer from '@samvera/clover-iiif/viewer';
+     import Viewer from '@nulib/clover/viewer';
      export default function CustomViewer({ tileId = '9007199254740993' }) {
        const nextId = BigInt(tileId) + 1n;
        return <div data-tile-id={String(nextId)}><Viewer iiifContent="https://example.org/manifest" /></div>;

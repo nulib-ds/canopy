@@ -1,21 +1,11 @@
-import {Meta, Stylesheet} from "@canopy-iiif/app/head";
-import {CanopyHeader, CanopyFooter} from "@canopy-iiif/app/ui";
+import {Meta, Stylesheet} from "@nulib/canopy/head";
+import {CanopyHeader, CanopyFooter} from "@nulib/canopy/ui";
 
 export function Head() {
   return (
     <>
       <Meta />
       <Stylesheet />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossOrigin="true"
-      />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,50,0..1;1,9..144,300..600,50,0..1&display=swap"
-        rel="stylesheet"
-      />
     </>
   );
 }
@@ -25,7 +15,10 @@ export function App({children}) {
     <>
       <CanopyHeader logo={Logo} />
       <main>{children}</main>
-      <CanopyFooter>
+      <CanopyFooter
+        logo={Logo}
+        description="A digital collection of IIIF works, with context and narrative."
+      >
         <p>Copyright 2026 Site Title, MIT License. A Canopy IIIF Project.</p>
       </CanopyFooter>
     </>

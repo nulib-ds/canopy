@@ -45,6 +45,24 @@ const NextArrowIcon = (props) => (
   </NavIconBase>
 );
 
+const PauseIcon = (props) => (
+  <NavIconBase {...props}>
+    <path d="M5.5 3.5V12.5M10.5 3.5V12.5" stroke="currentColor" strokeWidth="1.618" strokeLinecap="round" />
+  </NavIconBase>
+);
+
+const PlayIcon = (props) => (
+  <NavIconBase {...props}>
+    <path
+      d="M5.5 3.5L12 8L5.5 12.5Z"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinejoin="round"
+    />
+  </NavIconBase>
+);
+
 const HERO_DEFAULT_SIZES_ATTR = "(min-width: 1024px) 1280px, 100vw";
 
 const basePath = (() => {
@@ -148,6 +166,9 @@ function normalizeVariant(value) {
     const raw = value == null ? "" : String(value);
     const normalized = raw.trim().toLowerCase();
     if (normalized === "breadcrumb" || normalized === "text") return "breadcrumb";
+    // The featured hero laid out down the page, after Clover's homepage: the headline,
+    // its words and links centered, the carousel under them in a raised card.
+    if (normalized === "centered" || normalized === "center") return "centered";
     return "featured";
   } catch (_) {
     return "featured";
@@ -169,7 +190,9 @@ export default function Hero({
   homeLabel,
   ...rest
 }) {
-  const {getString} = useLocale();
+  const {getString, formatString} = useLocale();
+  const reactId = typeof React.useId === "function" ? React.useId() : "";
+  const carouselId = `canopy-hero-${String(reactId).replace(/[^a-zA-Z0-9_-]/g, "") || "carousel"}`;
   const normalizedVariant = normalizeVariant(variant);
   const isBreadcrumbVariant = normalizedVariant === "breadcrumb";
   const PageContext =
@@ -246,7 +269,7 @@ export default function Hero({
     : [
         {
           href: defaultLinkHref,
-          title: "View work",
+          title: getString("common.actions.view_work", "View work"),
           type: "primary",
         },
       ].filter(Boolean);
@@ -322,8 +345,11 @@ export default function Hero({
       ? "canopy-interstitial--bg-transparent"
       : "";
 
+  const isCenteredVariant = normalizedVariant === "centered";
   const variantClassName = isBreadcrumbVariant
     ? "canopy-interstitial--hero-breadcrumb"
+    : isCenteredVariant
+    ? "canopy-interstitial--hero-featured canopy-interstitial--hero-centered"
     : "canopy-interstitial--hero-featured";
   const containerClassName = [
     "canopy-interstitial",
@@ -334,6 +360,26 @@ export default function Hero({
   ]
     .filter(Boolean)
     .join(" ");
+
+  // More than one slide is a carousel (WAI-ARIA APG, "Auto-Rotating Image Carousel"):
+  // each slide a named group, the first shown and the rest hidden until the runtime
+  // (lib/components/hero-slider-runtime.js) shows them, so without a script the page
+  // has one featured work and no controls that do nothing.
+  const total = orderedSlides.length;
+  const isCarousel = total > 1;
+  const slidesId = `${carouselId}-slides`;
+  const slideGroupProps = (idx) =>
+    isCarousel
+      ? {
+          role: "group",
+          "aria-roledescription": getString("common.carousel.slide_role", "slide"),
+          "aria-label": formatString("common.carousel.slide", "{index} of {total}", {
+            index: idx + 1,
+            total,
+          }),
+          hidden: idx > 0 ? true : undefined,
+        }
+      : {};
 
   const renderSlide = (
     slide,
@@ -382,15 +428,14 @@ export default function Hero({
         <div
           className="canopy-interstitial__slide"
           key={safeHref || idx}
-          role="group"
-          aria-roledescription="slide"
-          aria-label={`${idx + 1} of ${orderedSlides.length}`}
+          {...slideGroupProps(idx)}
         >
           {wrapWithLink(
             <article className={paneClassName}>
               {slide.thumbnail ? (
                 <div className="canopy-interstitial__media-frame">
                   <img
+                    alt=""
                     {...buildImageProps(
                       "canopy-interstitial__media canopy-interstitial__media--static"
                     )}
@@ -414,14 +459,12 @@ export default function Hero({
       <div
         className="canopy-interstitial__slide"
         key={safeHref || idx}
-        role="group"
-        aria-roledescription="slide"
-        aria-label={`${idx + 1} of ${orderedSlides.length}`}
+        {...slideGroupProps(idx)}
       >
         {wrapWithLink(
           <article className={paneClassName}>
             {slide.thumbnail ? (
-              <img {...buildImageProps("canopy-interstitial__media")} />
+              <img alt="" {...buildImageProps("canopy-interstitial__media")} />
             ) : null}
             {showVeil ? (
               <div className="canopy-interstitial__veil" aria-hidden="true" />
@@ -439,33 +482,81 @@ export default function Hero({
     );
   };
 
-  const renderSlider = (options = {}) => (
-    <div
-      className="canopy-interstitial__slider"
-      role="region"
-      aria-roledescription="carousel"
-      aria-label={overlayTitle || "Featured content"}
-    >
-      <div className="canopy-interstitial__slide-wrapper">
-        {orderedSlides.map((slide, idx) => renderSlide(slide, idx, options))}
-      </div>
-      <div className="canopy-interstitial__nav">
+  // The carousel's controls, in reading order: the rotation control first (WCAG 2.2.2),
+  // the slides (silent while they rotate, `aria-live="off"`; the runtime makes them
+  // polite once rotation stops, so a visitor's own move is announced), then previous
+  // and next over the slide, and one button per slide below it. All hidden until the
+  // runtime shows them.
+  const stopLabel = getString("common.carousel.stop", "Pause the slideshow");
+  const startLabel = getString("common.carousel.start", "Play the slideshow");
+  const renderCarousel = (options = {}) => (
+    <>
+      {isCarousel ? (
         <button
           type="button"
-          aria-label="Previous slide"
-          className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--prev"
+          className="canopy-interstitial__rotation"
+          aria-label={stopLabel}
+          aria-controls={slidesId}
+          data-label-stop={stopLabel}
+          data-label-start={startLabel}
+          data-rotation="on"
+          hidden
         >
-          <PrevArrowIcon />
+          <PauseIcon className="canopy-interstitial__rotation-icon canopy-interstitial__rotation-icon--pause" />
+          <PlayIcon className="canopy-interstitial__rotation-icon canopy-interstitial__rotation-icon--play" />
         </button>
-        <button
-          type="button"
-          aria-label="Next slide"
-          className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--next"
+      ) : null}
+      <div className="canopy-interstitial__slider">
+        <div
+          className="canopy-interstitial__slide-wrapper"
+          id={slidesId}
+          aria-live={isCarousel ? "off" : undefined}
         >
-          <NextArrowIcon />
-        </button>
+          {orderedSlides.map((slide, idx) => renderSlide(slide, idx, options))}
+        </div>
+        {isCarousel ? (
+          <div className="canopy-interstitial__nav" hidden>
+            <button
+              type="button"
+              aria-label={getString("common.carousel.previous", "Previous slide")}
+              aria-controls={slidesId}
+              className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--prev"
+            >
+              <PrevArrowIcon />
+            </button>
+            <button
+              type="button"
+              aria-label={getString("common.carousel.next", "Next slide")}
+              aria-controls={slidesId}
+              className="canopy-interstitial__nav-btn canopy-interstitial__nav-btn--next"
+            >
+              <NextArrowIcon />
+            </button>
+          </div>
+        ) : null}
       </div>
-    </div>
+      <div className="canopy-interstitial__pagination" hidden={isCarousel ? true : undefined}>
+        {isCarousel
+          ? orderedSlides.map((slide, idx) => (
+              <button
+                key={`dot-${idx}`}
+                type="button"
+                className={
+                  idx === 0
+                    ? "canopy-interstitial__dot canopy-interstitial__dot--active"
+                    : "canopy-interstitial__dot"
+                }
+                aria-label={formatString("common.carousel.go_to", "Go to slide {index}", {
+                  index: idx + 1,
+                })}
+                aria-controls={slidesId}
+                aria-current={idx === 0 ? "true" : "false"}
+                data-slide={idx}
+              />
+            ))
+          : null}
+      </div>
+    </>
   );
 
   const overlayContent = (
@@ -500,6 +591,7 @@ export default function Hero({
   };
   if (!isBreadcrumbVariant) {
     sectionProps["data-canopy-hero-slider"] = "1";
+    if (isCenteredVariant) sectionProps["data-canopy-hero-variant"] = "centered";
   } else {
     sectionProps["data-canopy-hero-variant"] = "breadcrumb";
   }
@@ -520,9 +612,18 @@ export default function Hero({
           <div className="canopy-interstitial__panel">
             <div className="canopy-interstitial__body">{overlayContent}</div>
           </div>
-          <div className="canopy-interstitial__media-group">
-            {renderSlider({showVeil: false, captionVariant: "static"})}
-            <div className="canopy-interstitial__pagination" />
+          <div
+            className="canopy-interstitial__media-group"
+            {...(isCarousel
+              ? {
+                  role: "region",
+                  "aria-roledescription": getString("common.carousel.role", "carousel"),
+                  "aria-label": getString("common.carousel.label", "Featured content"),
+                  "data-canopy-hero-carousel": "",
+                }
+              : {})}
+          >
+            {renderCarousel({showVeil: false, captionVariant: "static"})}
           </div>
         </div>
       )}

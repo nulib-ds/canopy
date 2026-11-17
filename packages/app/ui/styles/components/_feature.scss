@@ -1,0 +1,66 @@
+@use "../settings/type";
+// `<Feature>`: a section's introduction, after Clover's homepage. The eyebrow small,
+// uppercase and bold in the accent's text step (4.5:1); the title at a section title's
+// size by the window's width (`--canopy-text-title`), bold; the words under it a lede,
+// muted, kept to a readable measure.
+@layer components {
+  .canopy-feature {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: clamp(2.618rem, 7vw, 4.236rem) 0 clamp(1.618rem, 4vw, 2.618rem);
+  }
+
+  .canopy-feature[data-align="center"] {
+    align-items: center;
+    text-align: center;
+  }
+
+  .canopy-feature__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.382rem;
+    margin: 0;
+  }
+
+  .canopy-feature[data-align="center"] .canopy-feature__heading {
+    align-items: center;
+  }
+
+  .canopy-feature__eyebrow {
+    @include type.label;
+    margin: 0;
+    padding: 0;
+    color: var(--color-accent-default);
+  }
+
+  .canopy-feature__title {
+    @include type.title;
+    margin: 0;
+  }
+
+  // Its words in the reading serif, at a lede's size, whatever they are.
+  .canopy-feature__body {
+    display: flex;
+    flex-direction: column;
+    align-items: inherit;
+    gap: 1rem;
+    max-width: 44rem;
+    @include type.lede;
+  }
+
+  .canopy-feature__body > * {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .canopy-feature__body .canopy-button-group__actions {
+    padding: 0;
+  }
+
+  .canopy-feature[data-align="center"] .canopy-button-group__actions {
+    justify-content: center;
+  }
+}

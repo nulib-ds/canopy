@@ -8,12 +8,12 @@ import MarkdownAuthoringInterstitial from "@canopy-iiif/helpers/docs/components/
 import CollectionExampleInterstitial from "@canopy-iiif/helpers/docs/components/CollectionExampleInterstitial.jsx";
 
 <Interstitials.Hero
-  headline="Create fast & light digital projects with natural markdown"
+  headline={<>Create fast & light digital projects with <Swoosh>natural markdown</Swoosh></>}
   description="Canopy provides a content-first approach to generating static websites and adding context to IIIF material from libraries, archives, and museums. There is no need to manage derivatives or complex backends. Just create markdown projects that are easy to build, maintain, and publish."
   background="theme"
   random={false}
   transition="fade"
-  variant="featured"
+  variant="centered"
   links={[
     {
       href: "/search",
@@ -56,14 +56,18 @@ Canopy helps researchers, libraries, archives, and museums create polished digit
 - Runs entirely without an integrated database or backend.
 - Produces fast, lightweight, low-maintenance sites that are easy to host.
 
-<ButtonWrapper variant="interstitial" text="Have an idea for a project?">
-  <Button href="/about/get-started" label="Get started" />
-  <Button
-    href="https://nulib-ds.github.io/canopy/docs/"
-    label="Documentation"
-    variant="secondary"
-  />
-</ButtonWrapper>
+<Band>
+  <h2>Have an idea for a project?</h2>
+  <p>Start from a template, point it at your IIIF collection, and publish.</p>
+  <ButtonWrapper>
+    <Button href="/about/get-started" label="Get started" />
+    <Button
+      href="https://nulib-ds.github.io/canopy/docs/"
+      label="Documentation"
+      variant="secondary"
+    />
+  </ButtonWrapper>
+</Band>
 
 ## Highlighted items
 

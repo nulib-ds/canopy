@@ -1,0 +1,64 @@
+{
+  "name": "@canopy-iiif/app",
+  "version": "2.0.1",
+  "private": false,
+  "description": "Canopy's 1.x name, kept so that sites made before 2.0 upgrade without edits: each entry passes through to @nulib/canopy, the package Canopy is published as.",
+  "license": "MIT",
+  "author": "Mat Jordan <mat@northwestern.edu>",
+  "homepage": "https://nulib-ds.github.io/canopy/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nulib-ds/canopy.git",
+    "directory": "packages/app-alias"
+  },
+  "type": "commonjs",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./ui": "./ui/dist/index.mjs",
+    "./ui/server": "./ui/dist/server.mjs",
+    "./ui/styles/index.css": "./ui/styles/index.css",
+    "./ui/canopy-iiif-plugin": "./ui/tailwind-canopy-iiif-plugin.js",
+    "./ui/canopy-iiif-preset": "./ui/tailwind-canopy-iiif-preset.js",
+    "./ui/tailwind-config": {
+      "types": "./ui/tailwind-config.d.ts",
+      "default": "./ui/tailwind-config.js",
+      "require": "./ui/tailwind-config.js"
+    },
+    "./ui/tailwind-default-config": {
+      "default": "./ui/tailwind-default.config.mjs",
+      "import": "./ui/tailwind-default.config.mjs",
+      "require": "./ui/tailwind-default.config.mjs"
+    },
+    "./ui/theme": "./ui/theme.js",
+    "./lib/components/*": "./lib/components/*",
+    "./head": "./lib/head.js",
+    "./base-path": {
+      "types": "./types/base-path.d.ts",
+      "default": "./lib/base-path.js",
+      "require": "./lib/base-path.js"
+    },
+    "./orchestrator": {
+      "types": "./types/orchestrator.d.ts",
+      "import": "./lib/orchestrator.js",
+      "require": "./lib/orchestrator.js",
+      "default": "./lib/orchestrator.js"
+    }
+  },
+  "files": [
+    "lib/**",
+    "ui/**",
+    "types/**"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@nulib/canopy": "2.0.1"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  }
+}

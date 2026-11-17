@@ -5,7 +5,7 @@ description: Horizontal carousel for IIIF collections and Canopy facet feeds.
 
 # Slider
 
-`<Slider>` wraps Clover’s carousel so you can stream manifests from a collection or facet feed. It hydrates client-side, stays SSR-safe, and links each slide back to its work page.
+`<Slider>` draws Clover’s `Items` as a slider so you can stream manifests from a collection or facet feed. It hydrates client-side, stays SSR-safe, and links each slide back to its work page.
 
 <Slider iiifContent="https://api.dc.library.northwestern.edu/api/v2/collections/7ac5769f-a1d9-4227-a350-bf8bd8b1cddc?as=iiif" />
 
@@ -19,7 +19,7 @@ description: Horizontal carousel for IIIF collections and Canopy facet feeds.
 | --- | --- | --- | --- |
 | `iiifContent` | string | ✅ | IIIF Collection URL or Canopy facet JSON (`/api/facet/...`). |
 | `height` | string | | CSS height for the viewport area. |
-| `options` | object | | Passed to Clover and merged with global defaults from `sliderOptions.js`. |
+| `options` | object | | Merged with the defaults from `sliderOptions.js`. Each width's `slidesPerView` and `spaceBetween` in `breakpoints` (and their values outside it) set how many slides fill the row and the space between them. Clover 3's other slider options have no effect. |
 | `className` | string | | Adds classes to the slider container. |
 
 ## Examples
@@ -34,10 +34,10 @@ Point the slider at a generated facet feed to surface related manifests inline.
 
 ### Custom breakpoints
 
-Override the defaults with your own `options.breakpoints` map. Use the exported `rem()` helper in `sliderOptions.js` so the client runtime can convert to pixels.
+Override the defaults with your own `options.breakpoints` map. Give each `spaceBetween` with `rem()`, which Canopy exports, and the slider converts it to pixels at the reader's text size.
 
 ```mdx
-import {rem} from '@canopy-iiif/app/ui/iiif/sliderOptions';
+import {rem} from '@nulib/canopy/ui/server';
 
 const customOptions = {
   breakpoints: {

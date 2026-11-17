@@ -5,9 +5,13 @@ export {default as Grid, GridItem} from "./src/layout/Grid.jsx";
 export {default as Container} from "./src/layout/Container.jsx";
 export {default as Button} from "./src/layout/Button.jsx";
 export {default as ButtonWrapper} from "./src/layout/ButtonWrapper.jsx";
+export {default as Swoosh} from "./src/layout/Swoosh.jsx";
+export {default as Band} from "./src/layout/Band.jsx";
+export {default as Feature} from "./src/layout/Feature.jsx";
 export {default as CanopyHeader} from "./src/layout/CanopyHeader.jsx";
 export {default as CanopyFooter} from "./src/layout/CanopyFooter.jsx";
 export {default as LanguageToggle} from "./src/layout/LanguageToggle.jsx";
+export {default as AppearanceToggle} from "./src/layout/AppearanceToggle.jsx";
 export {default as CanopyBrand} from "./src/layout/CanopyBrand.jsx";
 export {default as CanopyModal} from "./src/layout/CanopyModal.jsx";
 export {default as TeaserCard} from "./src/layout/TeaserCard.jsx";
@@ -21,6 +25,7 @@ export {Id} from "./src/iiif/Properties/Id.jsx";
 export {
   mergeSliderOptions,
   normalizeSliderOptions,
+  rem,
   sliderOptions,
 } from "./src/iiif/sliderOptions.js";
 export {mountImageStory} from "./src/iiif/imageStoryRuntime.js";
@@ -53,3 +58,15 @@ export {
   GalleryItem,
   GalleryContent,
 } from "./src/content/gallery/Gallery.jsx";
+// Clover 4, from the runtimes: Canopy's 1.x props translated, and each part drawn from
+// the module a runtime loads on demand.
+export {
+  cloverImage,
+  cloverScroll,
+  cloverSlider,
+  cloverViewer,
+  toCanvasProps,
+  toItemsProps,
+  toViewerProps,
+  unsupportedOptions,
+} from "./src/iiif/clover-compat.js";

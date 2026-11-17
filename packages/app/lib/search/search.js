@@ -20,6 +20,9 @@ const {
 } = require('../common');
 const {buildLocaleRuntimeScript} = require('../locales');
 const { resolveCanopyConfigPath } = require('../config-path');
+const { flexSearchPlugin } = require('./bundle');
+const { esbuildPackageNames } = require('../build/package-names');
+const { printSearchHeadingNotice } = require('../build/upgrade-notices');
 
 const SEARCH_TEMPLATES_ALIAS = '__CANOPY_SEARCH_RESULT_TEMPLATES__';
 const SEARCH_TEMPLATES_CACHE_DIR = path.resolve('.cache/search');
@@ -152,21 +155,10 @@ async function ensureSearchRuntime() {
       minify: true,
       define: { 'process.env.NODE_ENV': '"production"' },
     });
-    // Build FlexSearch globals shim
-    const flexFile = path.join(scriptsDir, 'flexsearch-globals.js');
-    const flexEntry = `import Flex from 'flexsearch';(function(){try{window.FlexSearch=Flex;}catch(e){}})();`;
-    await esbuild.build({
-      stdin: { contents: flexEntry, resolveDir: process.cwd(), loader: 'js', sourcefile: 'flexsearch-globals-entry.js' },
-      outfile: flexFile,
-      platform: 'browser',
-      format: 'iife',
-      bundle: true,
-      sourcemap: false,
-      target: ['es2020'],
-      logLevel: 'silent',
-      minify: true,
-      external: [],
-    });
+  } catch (_) {}
+  // 1.x loaded FlexSearch from here as a global; the runtime bundles it now.
+  try {
+    await fsp.rm(path.join(OUT_DIR, 'scripts', 'flexsearch-globals.js'), { force: true });
   } catch (_) {}
   const shimReactPlugin = {
     name: 'shim-react-globals',
@@ -238,11 +230,6 @@ async function ensureSearchRuntime() {
         contents: "export default (typeof window!=='undefined' && window.ReactDOM) || {};\n",
         loader: 'js',
       }));
-      build.onResolve({ filter: /^flexsearch$/ }, () => ({ path: 'flexsearch', namespace: 'flex-shim' }));
-      build.onLoad({ filter: /.*/, namespace: 'flex-shim' }, () => ({
-        contents: "export default (typeof window!=='undefined' && window.FlexSearch) || {};\n",
-        loader: 'js',
-      }));
     }
   };
   try {
@@ -253,10 +240,12 @@ async function ensureSearchRuntime() {
       format: 'iife',
       bundle: true,
       sourcemap: true,
+      minify: true,
       target: ['es2020'],
       logLevel: 'silent',
-      plugins: [shimReactPlugin, templatesPlugin, mdxPlugin],
-      external: ['@samvera/clover-iiif/*'],
+      // The site's result templates may import this package by its 1.x name.
+      plugins: [esbuildPackageNames(), shimReactPlugin, flexSearchPlugin(), templatesPlugin, mdxPlugin],
+      external: ['@nulib/clover', '@nulib/clover/*'],
     };
     if (!entryExists) throw new Error('Search runtime entry missing: ' + entry);
     await esbuild.build({ entryPoints: [entry], ...commonBuild });
@@ -301,10 +290,21 @@ async function buildSearchPageForEntry(routeEntry) {
         ? rootRelativeHref(`${normalizedRoute}/`)
         : fileHref;
     const searchPageMeta = readSearchPageMetadata() || {};
-    const pageTitle =
+    let pageTitle =
       typeof searchPageMeta.title === 'string' && searchPageMeta.title.trim()
         ? searchPageMeta.title.trim()
         : 'Search';
+    // `search.page.title` is written in the site's default language; a search page in
+    // another is titled in its own words, its locale's `common.nouns.search` (3.1.2;
+    // ACCESSIBILITY.md C42), as its title is its `h1` too.
+    if (routeEntry && routeEntry.locale && !routeEntry.isDefault) {
+      try {
+        const { readLocaleMessages } = require('../locales');
+        const messages = readLocaleMessages(routeEntry.locale) || {};
+        const word = messages.common && messages.common.nouns && messages.common.nouns.search;
+        if (typeof word === 'string' && word.trim()) pageTitle = word.trim();
+      } catch (_) {}
+    }
     const pageDescription =
       typeof searchPageMeta.description === 'string'
         ? searchPageMeta.description
@@ -338,6 +338,8 @@ async function buildSearchPageForEntry(routeEntry) {
     const body = rendered && rendered.body ? rendered.body : '';
     const head = rendered && rendered.head ? rendered.head : '';
     if (!body) throw new Error('Search: content/search/_layout.mdx produced empty output');
+    // A site's own 1.x layout may give the page no `h1`; said once (`upgrade-notices.js`).
+    printSearchHeadingNotice(body);
     const importMap = '';
     const jsAbs = path.join(OUT_DIR, 'scripts', 'search.js');
     let jsRel = path.relative(path.dirname(outPath), jsAbs).split(path.sep).join('/');
@@ -345,14 +347,13 @@ async function buildSearchPageForEntry(routeEntry) {
     try { const st = require('fs').statSync(jsAbs); v = `?v=${Math.floor(st.mtimeMs || Date.now())}`; } catch (_) {}
     jsRel = jsRel + v;
     const vendorReactAbs = path.join(OUT_DIR, 'scripts', 'react-globals.js');
-    const vendorFlexAbs = path.join(OUT_DIR, 'scripts', 'flexsearch-globals.js');
     const vendorSearchFormAbs = path.join(OUT_DIR, 'scripts', 'canopy-search-form.js');
     function verRel(abs) {
       let rel = path.relative(path.dirname(outPath), abs).split(path.sep).join('/');
       try { const st = require('fs').statSync(abs); rel += `?v=${Math.floor(st.mtimeMs || Date.now())}`; } catch (_) {}
       return rel;
     }
-    const vendorTags = `<script src="${verRel(vendorReactAbs)}"></script><script src="${verRel(vendorFlexAbs)}"></script><script src="${verRel(vendorSearchFormAbs)}"></script>`;
+    const vendorTags = `<script src="${verRel(vendorReactAbs)}"></script><script src="${verRel(vendorSearchFormAbs)}"></script>`;
     let customRuntimeTag = '';
     if (body && body.indexOf('data-canopy-client-component') !== -1) {
       try {
@@ -531,7 +532,7 @@ async function writeSearchIndex(records) {
   }
   await fsp.writeFile(idxPath, indexJson, 'utf8');
   try {
-    const { logLine } = require('./log');
+    const { logLine } = require('../build/log');
     const approxKb = Math.round(approxBytes / 1024);
     logLine(
       `• search-index.json written (${indexRecords.length} records, ${approxKb} KB)`,
@@ -545,7 +546,7 @@ async function writeSearchIndex(records) {
   const displayBytes = Buffer.byteLength(displayJson, 'utf8');
   await fsp.writeFile(displayPath, displayJson, 'utf8');
   try {
-    const { logLine } = require('./log');
+    const { logLine } = require('../build/log');
     const approxKb = Math.round(displayBytes / 1024);
     logLine(
       `• search-records.json written (${displayRecords.length} entries, ${approxKb} KB)`,
@@ -559,7 +560,7 @@ async function writeSearchIndex(records) {
     annotationsBytes = Buffer.byteLength(annotationsJson, 'utf8');
     await fsp.writeFile(annotationsPath, annotationsJson, 'utf8');
     try {
-      const { logLine } = require('./log');
+      const { logLine } = require('../build/log');
       const approxKb = Math.round(annotationsBytes / 1024);
       logLine(
         `• search-index-annotations.json written (${annotationRecords.length} entries, ${approxKb} KB)`,
@@ -574,7 +575,13 @@ async function writeSearchIndex(records) {
   }
   // Also write a small metadata file with a stable version hash for cache-busting and IDB keying
   try {
-    const version = crypto.createHash('sha256').update(indexJson).digest('hex');
+    // The browser keeps a built index by this version (`index-cache.js`), so it covers all
+    // the text that index holds: the records' and their annotations'.
+    const version = crypto
+      .createHash('sha256')
+      .update(indexJson)
+      .update(annotationRecords.length ? JSON.stringify(annotationRecords) : '')
+      .digest('hex');
     // Read optional search configuration from canopy.yml
     let tabsOrder = [];
     let resultsConfigEntries = [];
@@ -645,19 +652,8 @@ async function writeSearchIndex(records) {
     const metaPath = path.join(apiDir, 'index.json');
     await fsp.writeFile(metaPath, JSON.stringify(meta, null, 2), 'utf8');
     try {
-      const { logLine } = require('./log');
+      const { logLine } = require('../build/log');
       logLine(`✓ Search index version ${version.slice(0, 8)} (${indexRecords.length} records)`, 'cyan');
-    } catch (_) {}
-    // Propagate version into IIIF cache index for a single, shared build identifier
-    try {
-      const { loadManifestIndex, saveManifestIndex } = require('./iiif');
-      const iiifIdx = await loadManifestIndex();
-      iiifIdx.version = version;
-      await saveManifestIndex(iiifIdx);
-      try {
-        const { logLine } = require('./log');
-        logLine(`• IIIF cache updated with version ${version.slice(0, 8)}`, 'blue');
-      } catch (_) {}
     } catch (_) {}
   } catch (_) {}
 }

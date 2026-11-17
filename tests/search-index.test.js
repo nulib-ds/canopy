@@ -32,12 +32,23 @@ describe('buildSearchIndex()', () => {
         searchType: 'page',
         searchSummary: 'should be ignored',
       },
+      {
+        title: 'With an image',
+        href: 'pictured.html',
+        searchInclude: true,
+        searchType: 'page',
+        thumbnail: '/images/pictured.jpg',
+      },
     ];
 
     const combined = await buildSearchIndex(iiifRecords, pageRecords);
 
     expect(Array.isArray(combined)).toBe(true);
-    expect(combined).toHaveLength(2);
+    expect(combined).toHaveLength(3);
+    expect(combined.find((r) => r && r.title === 'With an image')).toMatchObject({
+      href: '/pictured.html',
+      thumbnail: '/images/pictured.jpg',
+    });
 
     const workRecord = combined.find((r) => r && r.type === 'work');
     expect(workRecord).toMatchObject({

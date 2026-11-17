@@ -6,7 +6,7 @@
  * their Tailwind config.
  *
  * @deprecated Removed in the next major release. Under Tailwind v4 this plugin
- * adds no styles; component CSS comes from `@canopy-iiif/app/ui/styles/index.css`.
+ * adds no styles; component CSS comes from `@nulib/canopy/ui/styles/index.css`.
  */
 const plugin = require("tailwindcss/plugin");
 const path = require("path");

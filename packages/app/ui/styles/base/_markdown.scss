@@ -1,20 +1,39 @@
+@use "../settings/type";
+
+// Code in running text: a chip on the surface, in the page's text.
 code {
-  font-family: var(--font-mono);
-  font-size: 0.9222em;
-  font-weight: 400;
-  color: var(--color-accent-default);
+  @include type.code;
+  padding: 0.1em 0.35em;
+  border-radius: var(--canopy-radius-sm);
+  background-color: var(--canopy-surface);
+  color: var(--color-gray-900);
+}
+
+pre code {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
 }
 
 hr {
   display: block;
-  border-top: 3px solid var(--color-gray-200);
+  border-top: 1px solid var(--canopy-edge);
   margin: 2.618rem 0;
 }
 
+// A quotation, as a magazine pulls one out: the reading serif at a lede's size, in the
+// page's text, a rule in the accent's solid step beside it.
 blockquote {
-  font-size: 1.222em;
-  padding: 1.618rem 2.618rem;
-  color: var(--color-gray-muted);
+  @include type.lede;
+  margin: 1.618rem 0;
+  padding: 0.382rem 0 0.382rem 1.618rem;
+  border-left: 3px solid var(--color-accent-600);
+  color: var(--color-gray-default);
+}
+
+blockquote > p {
+  font-size: inherit;
 }
 
 .markdown-table__frame {
@@ -35,10 +54,13 @@ blockquote {
     vertical-align: top;
   }
 
+  th,
+  td {
+    @include type.ui;
+  }
+
   th {
-    font-size: 0.8333rem;
-    font-weight: 300;
-    letter-spacing: -0.0125em;
+    @include type.label;
     border-top: none;
     border-left: none;
     border-right: none;
@@ -57,7 +79,7 @@ section[data-footnotes],
 .footnotes {
   margin-top: 2.618rem;
   padding-top: 2.168rem;
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--canopy-edge);
 
   ol,
   ul {
@@ -69,4 +91,98 @@ section[data-footnotes],
       margin-bottom: 0.618rem;
     }
   }
+}
+
+// A code block (`DocsCodeBlock`, every fenced block in MDX), as Clover's editor shows
+// code: on black in both appearances, its text near-white (19:1), its file name and copy
+// button faint yet 4.5:1, a marked line tinted with the accent. On a dark page, black on
+// near-black, a hairline sets it off.
+.canopy-code-block {
+  @include type.code(true);
+  --canopy-code-background: #000;
+  --canopy-code-text: #eeffff;
+  --canopy-code-faint: color-mix(in srgb, var(--canopy-code-text) 62%, var(--canopy-code-background));
+  --canopy-code-rule: color-mix(in srgb, var(--canopy-code-text) 14%, transparent);
+  position: relative;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border-radius: var(--canopy-radius-lg);
+  background-color: var(--canopy-code-background);
+  box-shadow: inset 0 0 0 1px var(--canopy-band-edge);
+  color: var(--canopy-code-text);
+}
+
+.canopy-code-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.618rem 0.75rem 0.618rem 1.25rem;
+  border-bottom: 1px solid var(--canopy-code-rule);
+  color: var(--canopy-code-faint);
+}
+
+.canopy-code-block__filename {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.canopy-code-block__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 24px;
+  padding: 0.25rem 0.618rem;
+  border: 1px solid var(--canopy-code-rule);
+  border-radius: var(--canopy-radius-sm);
+  background: transparent;
+  color: var(--canopy-code-faint);
+  @include type.ui-sm;
+  cursor: pointer;
+  transition: color 120ms ease;
+
+  &:hover {
+    color: var(--canopy-code-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--canopy-code-text);
+    outline-offset: 2px;
+  }
+}
+
+.canopy-code-block__pre {
+  margin: 0;
+  padding: 1rem 0;
+  overflow-x: auto;
+  background: none;
+  color: inherit;
+}
+
+.canopy-code-block__code {
+  display: block;
+  padding: 0;
+}
+
+.canopy-code-block__line {
+  display: block;
+  box-sizing: border-box;
+  padding: 0.125rem 1.25rem;
+}
+
+.canopy-code-block__line[data-highlighted] {
+  background-color: color-mix(in srgb, var(--color-accent-600) 24%, transparent);
+}
+
+.canopy-code-block__text {
+  display: inline;
+  white-space: pre;
+}
+
+// Code blocks scroll sideways, so they take focus to be scrolled by keyboard. Their
+// frame clips anything drawn outside them, so the focus ring is drawn inside, in the
+// code's own text on black (WCAG 2.1.1, 2.4.7; ACCESSIBILITY.md C12).
+[data-docs-code-block] pre:focus-visible {
+  outline: 2px solid var(--canopy-code-text, var(--color-accent-default));
+  outline-offset: -2px;
 }

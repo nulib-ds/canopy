@@ -5,7 +5,7 @@ import {
   Metadata as CloverMetadata,
   RequiredStatement as CloverRequiredStatement,
   Summary as CloverSummary,
-} from "@samvera/clover-iiif/primitives";
+} from "@nulib/clover/primitives";
 
 function hasInternationalValue(value) {
   if (!value || typeof value !== "object") return false;
@@ -217,6 +217,34 @@ function mergeCustomValueContent(userContent, autoContent) {
   return merged.length ? merged : undefined;
 }
 
+// A IIIF value's strings in its first language that has any, and that language.
+function valueStrings(value) {
+  if (!value || typeof value !== "object") return {strings: []};
+  for (const key of Object.keys(value)) {
+    const entries = Array.isArray(value[key]) ? value[key] : [];
+    const strings = entries.map((entry) => String(entry == null ? "" : entry)).filter(Boolean);
+    if (strings.length) return {language: key, strings};
+  }
+  return {strings: []};
+}
+
+// A metadata value drawn by the author's or Canopy's own content (`customValueContent`,
+// the facet links), each of its values in turn, in place of Clover's. Its language is
+// marked, as Clover marks the values it draws (WCAG 3.1.2).
+function renderCustomValue(item, customContent) {
+  const label = normalizeMatchingLabel(item && item.label);
+  const entry = customContent.find((candidate) => normalizeMatchingLabel(candidate.matchingLabel) === label);
+  if (!entry || !React.isValidElement(entry.Content)) return undefined;
+  const {language, strings} = valueStrings(item.value);
+  const values = strings.map((value, index) => (
+    <React.Fragment key={index}>
+      {index > 0 ? ", " : null}
+      {React.cloneElement(entry.Content, {value})}
+    </React.Fragment>
+  ));
+  return language && language !== "none" ? <span lang={language}>{values}</span> : values;
+}
+
 export function Label({ manifest, label, ...rest }) {
   const intl = label || (manifest && manifest.label);
   if (!hasInternationalValue(intl)) return null;
@@ -226,7 +254,8 @@ export function Label({ manifest, label, ...rest }) {
 export function Summary({ manifest, summary, ...rest }) {
   const intl = summary || (manifest && manifest.summary);
   if (!hasInternationalValue(intl)) return null;
-  return <CloverSummary summary={intl} {...rest} />;
+  const {style, ...others} = rest;
+  return <CloverSummary value={intl} style={{"--clover-summary-lines": "none", ...(style || {})}} {...others} />;
 }
 
 export function Metadata({ manifest, metadata, customValueContent, ...rest }) {
@@ -239,8 +268,8 @@ export function Metadata({ manifest, metadata, customValueContent, ...rest }) {
   );
   return (
     <CloverMetadata
-      metadata={items}
-      customValueContent={mergedCustomContent}
+      value={items}
+      renderValue={mergedCustomContent ? (item) => renderCustomValue(item, mergedCustomContent) : undefined}
       {...rest}
     />
   );
@@ -255,7 +284,7 @@ export function RequiredStatement({ manifest, requiredStatement, ...rest }) {
   ) {
     return null;
   }
-  return <CloverRequiredStatement requiredStatement={stmt} {...rest} />;
+  return <CloverRequiredStatement value={stmt} {...rest} />;
 }
 
 export const Primitives = {

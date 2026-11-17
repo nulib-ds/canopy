@@ -19,6 +19,8 @@ function parseArgs(argv = []) {
       i += 1;
     } else if (key === 'published') {
       args.published = true;
+    } else if (key === 'build') {
+      args.build = true;
     } else if (key === 'help' || key === 'h') {
       args.help = true;
     }
@@ -27,8 +29,9 @@ function parseArgs(argv = []) {
 }
 
 function usage() {
-  console.log('Usage: node packages/helpers/template/preview-template.js --source <dir> [--out <dir>] [--name <label>] [--published]');
-  console.log('  --published  preview against the released @canopy-iiif/app instead of this checkout');
+  console.log('Usage: node packages/helpers/template/preview-template.js --source <dir> [--out <dir>] [--name <label>] [--published] [--build]');
+  console.log('  --published  preview against the released @nulib/canopy instead of this checkout');
+  console.log('  --build      build the site once (npm run build) instead of starting the dev server');
 }
 
 function run(command, args, options = {}) {
@@ -46,25 +49,24 @@ function npmCommand() {
   return process.platform === 'win32' ? 'npm.cmd' : 'npm';
 }
 
-// Swap in this checkout's @canopy-iiif/app, packed the way `npm publish` packs
-// it, so previews show unreleased lib/ui changes. A tarball rather than a
-// symlink keeps its React resolving from the preview's node_modules.
-function installLocalApp(cwd, outDir) {
-  run(npmCommand(), ['-w', '@canopy-iiif/app', 'run', 'ui:build'], {cwd});
+// This checkout's @nulib/canopy, packed the way `npm publish` packs it, so previews
+// show unreleased lib/ui changes; the template names the tarball as its source
+// (`APP_SOURCE`). A tarball rather than a symlink keeps its React resolving from the
+// preview's node_modules. Kept in .cache/template-preview/, which the preview's
+// package.json and lockfile point at.
+function packLocalApp(cwd) {
+  run(npmCommand(), ['-w', '@nulib/canopy', 'run', 'ui:build'], {cwd});
+  const destination = path.join(cwd, '.cache', 'template-preview');
+  fs.mkdirSync(destination, {recursive: true});
   const packed = spawnSync(
     npmCommand(),
-    ['-w', '@canopy-iiif/app', 'pack', '--json', '--pack-destination', outDir],
+    ['-w', '@nulib/canopy', 'pack', '--json', '--pack-destination', destination],
     {cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit']},
   );
   if (packed.status !== 0) {
-    throw new Error('Command failed: npm pack -w @canopy-iiif/app');
+    throw new Error('Command failed: npm pack -w @nulib/canopy');
   }
-  const tarball = path.join(outDir, JSON.parse(packed.stdout)[0].filename);
-  try {
-    run(npmCommand(), ['install', '--no-save', tarball], {cwd: outDir});
-  } finally {
-    fs.rmSync(tarball, {force: true});
-  }
+  return path.join(destination, JSON.parse(packed.stdout)[0].filename);
 }
 
 function main() {
@@ -90,18 +92,24 @@ function main() {
     TEMPLATE_SOURCE_DIR: resolvedSource,
     TEMPLATE_OUT_DIR: resolvedOut,
   };
+  if (args.published) {
+    console.log('[template preview] Using the published @nulib/canopy');
+  } else {
+    const tarball = packLocalApp(cwd);
+    console.log(`[template preview] Installing @nulib/canopy from this checkout (${path.relative(cwd, tarball)})`);
+    env.APP_SOURCE = `file:${tarball}`;
+  }
 
   run('node', ['packages/helpers/template/prepare-template.js'], {env});
   run(npmCommand(), ['install'], {cwd: resolvedOut});
-  if (args.published) {
-    console.log('[template preview] Using the published @canopy-iiif/app');
-  } else {
-    console.log('[template preview] Installing @canopy-iiif/app from this checkout');
-    installLocalApp(cwd, resolvedOut);
-  }
 
-  console.log('[template preview] Starting dev server (Ctrl+C to stop)...');
-  const child = spawn(npmCommand(), ['run', 'dev'], {
+  const script = args.build ? 'build' : 'dev';
+  console.log(
+    args.build
+      ? '[template preview] Building the site...'
+      : '[template preview] Starting dev server (Ctrl+C to stop)...',
+  );
+  const child = spawn(npmCommand(), ['run', script], {
     cwd: resolvedOut,
     stdio: 'inherit',
   });

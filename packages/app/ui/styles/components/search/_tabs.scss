@@ -1,10 +1,11 @@
 @use "../buttons" as buttons;
+@use "../../settings/focus";
 
 .canopy-search-tabs {
   position: relative;
   display: inline-flex;
   gap: 0.5rem;
-  border-bottom: 3px solid var(--color-gray-200); /* subtle bottom border */
+  border-bottom: 3px solid var(--canopy-edge);
   padding-bottom: 0.25rem;
 }
 
@@ -13,13 +14,19 @@
   position: relative;
   border: none;
   padding-bottom: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--canopy-text-sm);
   color: var(--color-gray-muted);
 }
 
+// The tab in use: the page's text, bold, and the accent's bar under it.
 .canopy-search-tab.is-active {
   color: var(--color-gray-900);
+  font-weight: var(--canopy-weight-bold);
+}
+
+.canopy-search-tab:focus-visible {
+  outline: 2px solid var(--color-accent-default);
+  outline-offset: 2px;
 }
 
 .canopy-search-tabs__highlight {
@@ -42,6 +49,12 @@
 }
 
 .canopy-search-tabs__filters-count {
-  font-weight: 500;
+  font-weight: var(--canopy-weight-bold);
   opacity: 0.8;
+}
+
+// The results as the selected tab's panel (`SearchResults`): with no matches it takes
+// focus itself, and shows it (2.4.7).
+.canopy-search-results__panel:focus-visible {
+  @include focus.focus-ring;
 }

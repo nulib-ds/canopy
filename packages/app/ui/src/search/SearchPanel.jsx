@@ -34,7 +34,7 @@ export default function SearchPanel(props = {}) {
   return (
     <div data-canopy-search-form className="flex-1 min-w-0">
       <div className="relative w-full">
-        <SearchPanelForm placeholder={placeholder} buttonLabel={resolvedButtonLabel} label={label} searchPath={resolvedSearchPath} />
+        <SearchPanelForm placeholder={placeholder} buttonLabel={resolvedButtonLabel} label={label} searchPath={resolvedSearchPath} hotkey={hotkey} />
         <SearchPanelTeaserResults />
       </div>
       <script type="application/json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />

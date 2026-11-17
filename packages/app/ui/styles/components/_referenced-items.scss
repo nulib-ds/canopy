@@ -1,13 +1,12 @@
+@use "../settings/type";
+
 .referenced-items {
   margin: clamp(2rem, 6vw, 4rem) 0;
   width: 100%;
 }
 
 .referenced-items__heading {
-  font-family: var(--font-serif);
-  font-size: clamp(1.5rem, 2vw, 1.9rem);
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  @include type.h2;
   margin-bottom: 1.5rem;
 }
 
@@ -45,18 +44,14 @@
 }
 
 .references dt {
-  font-size: 0.7222rem;
-  text-transform: uppercase;
+  @include type.label;
   margin: 0;
-  font-weight: 400;
-  color: var(--color-gray-muted);
 }
 
 .references__item {
+  @include type.ui;
   margin: 0;
   color: var(--color-gray-900);
-  font-size: 1rem;
-  line-height: 1.45;
 }
 
 .references__item a {

@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from "react";
+import {cloverImage, noticeUnsupported} from "./clover-compat.js";
 
-// SSR-safe wrapper around Clover's image component. The module relies on the DOM
-// during import, so we lazy-load it in the browser and render a placeholder on the
-// server for the hydration runtime.
+// Clover 4's Canvas, in a figure with Canopy's caption. The server draws a placeholder,
+// which the viewer runtime mounts; in a page's own React tree, the Canvas loads on
+// demand, from its own entry.
 export const Image = (props = {}) => {
   const [CloverImage, setCloverImage] = useState(null);
   const baseClass = "canopy-iiif-image";
@@ -19,10 +20,10 @@ export const Image = (props = {}) => {
     const canUseDom =
       typeof window !== "undefined" && typeof document !== "undefined";
     if (canUseDom) {
-      import("@samvera/clover-iiif/image")
-        .then((mod) => {
+      import("@nulib/clover/canvas")
+        .then((canvas) => {
           if (!mounted) return;
-          const Comp = mod && (mod.default || mod.Image || mod);
+          const Comp = cloverImage(canvas);
           setCloverImage(() => Comp);
         })
         .catch(() => {
@@ -35,6 +36,7 @@ export const Image = (props = {}) => {
   }, []);
 
   if (!CloverImage) {
+    noticeUnsupported("Image", props);
     let json = "{}";
     try {
       json = JSON.stringify(props || {});

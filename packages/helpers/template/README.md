@@ -14,7 +14,7 @@ Working inside `nulib-ds/canopy`? Run `npm run preview:template` to stage this s
 
 ## Updates
 
-Keep your project current by running `npm install @canopy-iiif/app@latest @samvera/clover-iiif@latest` whenever a new release ships, or trigger the _Update Canopy App_ GitHub action (Actions tab → _Update Canopy App_ → _Run workflow_) and let it open a pull request that bumps both dependencies for you. Read the [Developer documentation](https://nulib-ds.github.io/canopy/docs/developers) for more information.
+Keep your project current by running `npm install @nulib/canopy@latest` whenever a new release ships, or trigger the _Update Canopy App_ GitHub action (Actions tab → _Update Canopy App_ → _Run workflow_) and let it open a pull request that bumps it for you. Read the [Developer documentation](https://nulib-ds.github.io/canopy/docs/developers) for more information.
 
 ## Contributing
 

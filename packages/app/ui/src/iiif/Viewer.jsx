@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import {cloverViewer, noticeUnsupported} from "./clover-compat.js";
 
-// SSR-safe wrapper around Clover's viewer. Clover touches the DOM at import time,
-// so we dynamically import it only in the browser.
+// Clover 4's Viewer, in its Default template. The server draws a placeholder, which
+// the viewer runtime mounts; in a page's own React tree, Clover loads on demand, from
+// its own entries, so a page without a Viewer never carries it.
 
 // Default Clover viewer options; can be overridden per-usage via props.options
 const DEFAULT_VIEWER_OPTIONS = {
@@ -52,11 +54,14 @@ export const Viewer = (props) => {
     const canUseDom =
       typeof window !== "undefined" && typeof document !== "undefined";
     if (canUseDom) {
-      import("@samvera/clover-iiif/viewer")
-        .then((mod) => {
+      Promise.all([
+        import("@nulib/clover/viewer"),
+        import("@nulib/clover/templates"),
+        import("@nulib/clover/helpers"),
+      ])
+        .then(([viewer, templates, helpers]) => {
           if (!mounted) return;
-          // Loaded Clover viewer dynamically in the browser
-          const Comp = mod && (mod.default || mod.Viewer || mod);
+          const Comp = cloverViewer(viewer, templates, helpers);
           setCloverViewer(() => Comp);
         })
         .catch(() => {
@@ -69,6 +74,7 @@ export const Viewer = (props) => {
   }, []);
 
   if (!CloverViewer) {
+    noticeUnsupported("Viewer", {...(props || {}), options: mergedOptions});
     // SSR placeholder for client hydration; props provided as JSON
     let json = "{}";
     try {
@@ -79,7 +85,8 @@ export const Viewer = (props) => {
       json = "{}";
     }
     return (
-      <div data-canopy-viewer="1" className="not-prose">
+      // `clover-viewer`, Clover 3's root, for a site's 1.x styles (`version-parity.css`).
+      <div data-canopy-viewer="1" className="not-prose clover-viewer">
         <script
           type="application/json"
           dangerouslySetInnerHTML={{ __html: json }}

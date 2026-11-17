@@ -8,8 +8,8 @@ const INLINE_STYLE = `
   width: 0;
   height: 1rem;
   border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: var(--canopy-text-label);
+  font-weight: var(--canopy-weight-bold);
   background: var(--color-accent-default);
   color: var(--color-accent-50);
   opacity: 0;

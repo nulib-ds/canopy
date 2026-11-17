@@ -1,16 +1,14 @@
 @import "tailwindcss";
-@import "@canopy-iiif/app/ui/styles/index.css";
+@import "@nulib/canopy/ui/styles/index.css";
 @import "./custom.css";
 
-@layer properties {
-  :root,
-  :host {
-    --font-sans: system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
-    --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
-    --font-mono: "IBM Plex Mono", "ui-monospace", Menlo, Consolas, monospace;
-    --default-font-family: var(--font-serif);
-  }
-}
+/*
+ * The site's own styles. Canopy's tokens set its look: Google Sans Flex, served from the
+ * site itself, in two weights; rounded corners and soft shadows; the colors canopy.yml
+ * picks. Set any token in `@layer properties`, here or in `custom.css`, to restyle every
+ * component at once, with no `!important`.
+ * @see https://nulib-ds.github.io/canopy/docs/theme/
+ */
 
 @utility max-w-content {
   max-width: 1080px;
@@ -18,26 +16,4 @@
 
 @utility max-w-wide {
   max-width: 1300px;
-}
-
-@layer base {
-  html {
-    font-size: 110%;
-    font-weight: 300;
-  }
-
-  body {
-    background: var(--color-gray-50);
-    color: var(--color-gray-900);
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  .canopy-logo {
-    font-family: var(--font-serif);
-    font-weight: 500;
-    letter-spacing: -0.025em;
-  }
 }

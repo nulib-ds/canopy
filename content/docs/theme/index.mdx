@@ -3,10 +3,12 @@ title: Theme
 description: Configure Radix-backed colors plus extend styling with CSS and Tailwind.
 ---
 
-import {ThemeShowcase} from "@canopy-iiif/app/ui/server";
+import {ThemeShowcase} from "@nulib/canopy/ui/server";
 import ThemeShowcaseScript from "@canopy-iiif/helpers/docs/ThemeShowcaseScript.js";
 
 # Theme
+
+The [Style guide](/docs/theme/style-guide) shows every text style, color, shape and step of space Canopy draws with, in your site's theme.
 
 ## Colors
 
@@ -19,9 +21,34 @@ theme:
   grayColor: sand
 ```
 
-- **`appearance`** flips the design token ramp (`light` or `dark`).
-- **`accentColor`** drives buttons, links, checkboxes, and focus rings.
+- **`appearance`** sets the design token ramp: `light` (the default), `dark`, or `auto`.
+- **`accentColor`** drives buttons, links, checkboxes, and focus rings. Name one of the palettes below, or give any color as hex.
 - **`grayColor`** sets the base neutral ramp used for page backgrounds, card borders, and typography.
+
+### Any accent color
+
+`accentColor` also takes a hex color, quoted so YAML reads it as text. Canopy derives the other steps from it, from the page's tint to the darkest text.
+
+```yaml filename="canopy.yml"
+theme:
+  accentColor: "#0f62fe"
+  grayColor: slate
+```
+
+### Light, dark, or the visitor's choice
+
+With `appearance: auto`, each page follows the visitor's system setting, light or dark, from the moment it loads. `CanopyFooter` adds an **Appearance** select (System, Light or Dark), and the browser remembers the choice for your site. Its labels come from `common.appearance` in `locale.yml`. A site with a footer of its own can place `<AppearanceToggle />` wherever it likes, once on a page.
+
+```yaml filename="canopy.yml"
+theme:
+  appearance: auto
+```
+
+Without JavaScript, the page still follows the system setting, and the select is not shown.
+
+### Contrast
+
+Every palette and any hex color keeps Canopy's text at a contrast ratio of at least 4.5:1, in light and dark, so links, muted text and button labels stay readable (WCAG 2.2, 1.4.3). A step that would fall short is darkened (or, in dark mode, lightened) only as far as that needs. Most palettes keep Radix's own steps. If you set `--color-accent-*` or `--color-gray-*` yourself, keeping those ratios is up to you.
 
 Click any accent or gray swatch below to temporarily override those palettes,
 or flip between light/dark using the appearance buttons. The overrides inject a
@@ -43,55 +70,72 @@ variables with `!important` so you can preview combinations without editing
 
 ## Typography
 
-In many cases, you may want to adjust the base typography styles to suit your branding. To do so, modify the standard CSS entry point (`app/styles/index.css`) to customize the theme. Here is an example of setting custom font families and max-width utilities. In this case we set the default sans-serif font to `Inter`, set the `--font-sans` variable as default, and modify the base font size and weight.
+Canopy sets its type as a magazine does. Headlines and the interface (navigation, buttons, cards, labels, metadata, search) are in [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex). Reading text, the paragraphs, lists and quotes you write in Markdown, along with ledes and the hero's description, is in [Source Serif 4](https://fonts.google.com/specimen/Source+Serif+4), a step larger and held to a comfortable line length. Each comes in two weights, regular and bold, and the serif in italic too.
 
-```css filename="app/styles/index.css" {4,7,21-22}
+Both fonts ship with Canopy and are served from your own site, next to its stylesheet, so a visitor's browser asks no one else for them. They are licensed under the [SIL Open Font License](https://openfontlicense.org), which travels with them.
+
+To use other fonts, set them in `@layer properties` in `app/styles/index.css`. Headings take `--canopy-font-display` and reading text `--canopy-font-body`; set `--canopy-font-body: var(--font-sans)` for one family throughout.
+
+```css filename="app/styles/index.css" {4-7}
 @layer properties {
   :root,
   :host {
     --font-sans: "Inter", system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
     --font-serif: Georgia, "Times New Roman", serif;
-    --font-mono: "ui-monospace", Menlo, Consolas, monospace;
     --default-font-family: var(--font-sans);
-  }
-}
-
-@utility max-w-content {
-  max-width: 1080px;
-}
-
-@utility max-w-wide {
-  max-width: 1300px;
-}
-
-@layer base {
-  html {
-    font-size: 100%;
-    font-weight: 400;
-  }
-
-  body {
-    background: var(--color-gray-50);
-    color: var(--color-gray-900);
+    --canopy-font-body: var(--font-serif);
   }
 }
 ```
 
-In addition to modifying the base styles, you will also want to ensure your font files are included in the project. You can easily do this with web fonts like Google Fonts by adding the appropriate `<link>` tags to your `content/_app.mdx` head block.
+A font Canopy doesn't ship needs its files on the page. Self-host them under `assets/` with an `@font-face` rule, or link a service such as Google Fonts in `content/_app.mdx`'s head:
 
-```jsx filename="content/_app.mdx" {6-8}
+```jsx filename="content/_app.mdx" {6-7}
 export function Head() {
   return (
     <>
       <Meta siteTitle="Manu's Great Flood" />
       <Stylesheet />
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
     </>
   );
 }
 ```
+
+A site made with Canopy 1.x keeps its own fonts: its `app/styles/index.css` sets them, after Canopy's.
+
+## Shape
+
+Canopy's corners are rounded (4, 8, 12 and 16px), its cards and panels lifted with soft shadows, and its focus ring a two-tone outline in your accent. Each is a token, so one line restyles every component:
+
+```css filename="app/styles/custom.css"
+@layer properties {
+  :root,
+  :host {
+    /* Square corners */
+    --canopy-radius-sm: 0;
+    --canopy-radius-md: 0;
+    --canopy-radius-lg: 0;
+    --canopy-radius-xl: 0;
+    --canopy-radius-pill: 0;
+    /* No shadows: a zero shadow, which Canopy can combine with an edge */
+    --canopy-shadow-sm: 0 0 #0000;
+    --canopy-shadow-md: 0 0 #0000;
+    --canopy-shadow-lg: 0 0 #0000;
+  }
+}
+```
+
+| Token | What it styles |
+| --- | --- |
+| `--canopy-radius-sm` … `--canopy-radius-xl`, `--canopy-radius-pill` | Corners, from small controls to the hero's card; pills are search fields and round controls |
+| `--canopy-surface`, `--canopy-surface-raised` | A panel's fill, and a card's |
+| `--canopy-card-shadow`, `--canopy-shadow-sm` … `lg` | A card's hairline and lift, and other shadows |
+| `--canopy-control-edge` | A field's and an outline button's edge, 3:1 against the page |
+| `--canopy-focus-color`, `--canopy-focus-width`, `--canopy-focus-offset` | The focus ring |
+
+Keep a color you set at its ratio: 4.5:1 for text, 3:1 for a control's edge and the focus ring.
 
 ## Styling
 
@@ -101,7 +145,7 @@ First, ensure your custom CSS files are imported in the main stylesheet (`app/st
 
 ```css filename="app/styles/index.css" {3}
 @import "tailwindcss";
-@import "@canopy-iiif/app/ui/styles/index.css";
+@import "@nulib/canopy/ui/styles/index.css";
 @import "./custom.css";
 ```
 
@@ -168,6 +212,10 @@ Canopy generates the `--color-*` and `--clover-*` tokens from `canopy.yml` and p
 
 > **Upgrading from 1.13.1 or earlier:** Older releases appended the generated tokens after your stylesheet, so overrides inside `@layer properties` needed `!important` to take effect in production builds. Existing `!important` declarations keep working, and you can remove them once you upgrade.
 
+A primary button under the pointer takes `--color-accent-hover`, which Canopy mixes from `--color-accent-default` (20% toward black, or toward white in dark mode). It follows your own `--color-accent-default`, so the examples above get a hover in their own color. Set `--color-accent-hover` too for a hover color of your choosing, and keep the button's label at 4.5:1 on it.
+
+> **Upgrading from 1.x:** a primary button's hover used to be `--color-accent-600`. That step's label fell under 4.5:1 for most palettes, so Canopy 2 darkens the button on hover instead.
+
 ### Tailwind
 
 Canopy compiles `app/styles/index.css` with Tailwind CSS v4, which you configure in CSS rather than in a JavaScript config file:
@@ -178,7 +226,7 @@ Canopy compiles `app/styles/index.css` with Tailwind CSS v4, which you configure
 
 ```css filename="app/styles/index.css"
 @import "tailwindcss";
-@import "@canopy-iiif/app/ui/styles/index.css";
+@import "@nulib/canopy/ui/styles/index.css";
 @import "./custom.css";
 
 @theme {
@@ -196,24 +244,24 @@ Canopy compiles `app/styles/index.css` with Tailwind CSS v4, which you configure
 
 Tailwind's theme layer sits below Canopy's tokens, so `@theme` can't change a token Canopy already sets, such as `--color-gray-500` or a font you set in `@layer properties`. Override those in `@layer properties` instead, as shown in [Override order](#override-order).
 
-If you need a JavaScript config, for example for a plugin that only ships in that form, load your own with `@config "./tailwind.config.js";` in `app/styles/index.css`. Earlier templates included a generated `app/styles/tailwind.config.cjs`; Tailwind v4 never loads it, so you can delete it. The `@canopy-iiif/app/ui/tailwind-config` helper it used is deprecated and will be removed in the next major release.
+If you need a JavaScript config, for example for a plugin that only ships in that form, load your own with `@config "./tailwind.config.js";` in `app/styles/index.css`. Earlier templates included a generated `app/styles/tailwind.config.cjs`; Tailwind v4 never loads it, so you can delete it. The `@nulib/canopy/ui/tailwind-config` helper it used is deprecated and will be removed in the next major release.
 
 ### Clover Component overrides
 
-The Image, Viewer, Slider, and Scroll components (derived from the Clover IIIF package) read their own `--clover-*` CSS variables. Canopy sets these for you from the theme tokens above, so Clover components follow your `canopy.yml` palette and any overrides you make to `--color-accent-*` or `--color-gray-*`.
+The Image, Viewer, Slider, and Scroll components (drawn by [Clover](https://clover.iiif.library.northwestern.edu/)) read their own `--clover-*` CSS variables. Canopy sets these for you from the theme tokens above, so Clover components follow your `canopy.yml` palette and any overrides you make to `--color-accent-*` or `--color-gray-*`.
 
 | Clover variable                  | Canopy token             | Used for                                  |
 | -------------------------------- | ------------------------ | ----------------------------------------- |
 | `--clover-color-accent`          | `--color-accent-default` | Buttons and active states                 |
-| `--clover-color-accent-alt`      | `--color-accent-900`     | Button hover states                       |
+| `--clover-color-accent-alt`      | `--color-accent-900`     | Clover 3 only: button hover states        |
 | `--clover-color-primary`         | `--color-gray-default`   | Text                                      |
-| `--clover-color-primary-alt`     | `--color-gray-900`       | Media player background, headings         |
+| `--clover-color-primary-alt`     | `--color-gray-900`       | Clover 3 only: media player, headings     |
 | `--clover-color-primary-muted`   | `--color-gray-muted`     | Placeholders and muted text               |
 | `--clover-color-secondary`       | `--color-gray-50`        | Panel backgrounds, text on accent buttons |
 | `--clover-color-secondary-alt`   | `--color-gray-400`       | Resize handles, popover arrows            |
 | `--clover-color-secondary-muted` | `--color-gray-300`       | Subtle borders                            |
-| `--clover-radius`                | `--canopy-radius-sm`     | Corner radius (`0`)                       |
-| `--clover-radius-pill`           | `--canopy-radius-pill`   | Pill buttons (`0`)                        |
+| `--clover-radius`                | `--canopy-radius-sm`     | Corner radius (`4px`)                     |
+| `--clover-radius-pill`           | `--canopy-radius-pill`   | Pill buttons                              |
 
 To give Clover components different colors from the rest of your site, set the `--clover-*` variables directly. Target `:root` to change every Clover component, or a component class such as `.clover-viewer` or `.canopy-slider` to scope the change. These overrides don't need `!important`.
 
@@ -270,16 +318,16 @@ Implementers can easily add their own custom CSS classes like `custom-button` to
 
 ### Complex selectors
 
-You can also extend existing button classes by explicitly defining new selectors like this example with the added `data-color="crimson"` attribute.
+You can also extend existing button classes by explicitly defining new selectors like this example with the added `data-color="crimson"` attribute. Keep the button's label at a contrast ratio of 4.5:1 on each fill: white on `#cb1d63` is 5.3:1, and on the hover's `#ab1251`, 7:1.
 
 ```css filename="app/styles/custom.css"
 /* adds custom crimson shaded button */
 .canopy-button[data-color="crimson"] {
-  background-color: #df3478;
+  background-color: #cb1d63;
 
   &:hover,
   &:focus {
-    background-color: #cb1d63;
+    background-color: #ab1251;
   }
 }
 ```
@@ -307,11 +355,11 @@ export const CustomClass = () => (
         box-shadow: 2px 2px 5px var(--color-accent-200);
       }
       .canopy-button[data-color="crimson"] {
-        background-color: #df3478;
+        background-color: #cb1d63;
 
         &:hover,
         &:focus {
-          background-color: #cb1d63;
+          background-color: #ab1251;
         }
       }
     `}</style>

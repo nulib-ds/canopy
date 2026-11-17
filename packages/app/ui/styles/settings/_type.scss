@@ -1,0 +1,126 @@
+// Canopy's text styles (DESIGN.md §1, "Type"; the docs' Style guide page shows each): a
+// closed set, so every piece of text on a page is one of them, and the page reads as one.
+// Components take a style with `@include type.<style>` and never write a size, weight,
+// line height or tracking of their own (`tests/unit/ui/type-scale.test.js` holds them to
+// it). Each style is also a class (`.canopy-type-<style>`, `base/_type.scss`) for authors.
+//
+// Two families: the interface's sans (`--default-font-family`, Google Sans Flex) and the
+// reading serif (`--canopy-font-body`, Source Serif 4). Two weights. Sizes from the scale
+// in `settings/_tokens.scss`; colors are the context's, but a lede's and a label's.
+
+@mixin -family($family) {
+  @if $family == "display" {
+    font-family: var(--canopy-font-display);
+  } @else if $family == "body" {
+    font-family: var(--canopy-font-body);
+  } @else {
+    font-family: var(--default-font-family);
+  }
+}
+
+// A hero's headline: the largest words on a site, once a page.
+@mixin display {
+  @include -family("display");
+  font-size: var(--canopy-text-display);
+  font-weight: var(--canopy-weight-bold);
+  line-height: 1.06;
+  letter-spacing: var(--canopy-tracking-display);
+}
+
+// A page's title (its `h1`) and a section's (`<Feature>`, `<Band>`), by the window's width.
+@mixin title {
+  @include -family("display");
+  font-size: var(--canopy-text-title);
+  font-weight: var(--canopy-weight-bold);
+  line-height: 1.1;
+  letter-spacing: var(--canopy-tracking-tight);
+}
+
+// Headings within a page: `h2`, `h3`, and `h4` to `h6`, which share a size and are told
+// apart by their place.
+@mixin h2 {
+  @include -family("display");
+  font-size: var(--canopy-text-2xl);
+  font-weight: var(--canopy-weight-bold);
+  line-height: 1.2;
+  letter-spacing: var(--canopy-tracking-tight);
+}
+
+@mixin h3 {
+  @include -family("display");
+  font-size: var(--canopy-text-xl);
+  font-weight: var(--canopy-weight-bold);
+  line-height: 1.25;
+  letter-spacing: var(--canopy-tracking-tight);
+}
+
+@mixin h4 {
+  @include -family("display");
+  font-size: var(--canopy-text-lg);
+  font-weight: var(--canopy-weight-bold);
+  line-height: 1.35;
+  letter-spacing: var(--canopy-tracking-snug);
+}
+
+// Words under a title, a standfirst: the reading serif, a step up, muted.
+@mixin lede {
+  @include -family("body");
+  font-size: var(--canopy-text-lede);
+  font-weight: var(--canopy-weight-regular);
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: var(--color-gray-muted);
+}
+
+// Reading text: what an author writes, in the serif.
+@mixin body {
+  @include -family("body");
+  font-size: var(--canopy-text-body);
+  font-weight: var(--canopy-weight-regular);
+  line-height: 1.618;
+  letter-spacing: normal;
+}
+
+// The interface: navigation, fields, menus, a card's title (bold), a metadata value.
+@mixin ui($weight: regular) {
+  @include -family("ui");
+  font-size: var(--canopy-text-md);
+  font-weight: var(--canopy-weight-#{$weight});
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+// The interface, smaller: buttons, captions, a card's second line, the footer, tabs,
+// filters, counts.
+@mixin ui-sm($weight: regular) {
+  @include -family("ui");
+  font-size: var(--canopy-text-sm);
+  font-weight: var(--canopy-weight-#{$weight});
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+// A label over a value or a section: uppercase, bold, open, muted. An eyebrow takes it in
+// the accent's text step.
+@mixin label {
+  @include -family("ui");
+  font-size: var(--canopy-text-label);
+  font-weight: var(--canopy-weight-bold);
+  line-height: 1.4;
+  letter-spacing: var(--canopy-tracking-label);
+  text-transform: uppercase;
+  color: var(--color-gray-muted);
+}
+
+// Code, in running text (its size follows the words around it) or a block.
+@mixin code($block: false) {
+  font-family: var(--font-mono);
+  font-weight: var(--canopy-weight-regular);
+  letter-spacing: normal;
+  @if $block {
+    font-size: var(--canopy-text-code);
+    line-height: 1.55;
+  } @else {
+    font-size: 0.92em;
+  }
+}

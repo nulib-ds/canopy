@@ -1,5 +1,5 @@
-import {Meta, Stylesheet} from "@canopy-iiif/app/head";
-import {CanopyHeader, CanopyFooter, GoogleAnalytics} from "@canopy-iiif/app/ui";
+import {Meta, Stylesheet} from "@nulib/canopy/head";
+import {CanopyHeader, CanopyFooter, GoogleAnalytics} from "@nulib/canopy/ui";
 import ThemeStorageHydrator from "@canopy-iiif/helpers/docs/ThemeStorageHydrator.js";
 import CopyCodeButtonsRuntime from "@canopy-iiif/helpers/docs/CopyCodeButtonsRuntime.js";
 import GithubCorner from "@canopy-iiif/helpers/docs/GithubCorner.js";
@@ -14,16 +14,6 @@ export function Head() {
       />
       <Stylesheet />
       <link rel="icon" href="/favicon.ico" />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossOrigin="true"
-      />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,50,0..1;1,9..144,300..600,50,0..1&display=swap&family=IBM+Plex+Mono:wght@400;700&display=swap"
-        rel="stylesheet"
-      />
       <GoogleAnalytics id="G-YPJRYY7848" />
       <ThemeStorageHydrator />
       <CopyCodeButtonsRuntime />
@@ -46,7 +36,16 @@ export function App({children}) {
         />
       </GithubCorner>
       <main>{children}</main>
-      <CanopyFooter>
+      <CanopyFooter
+        logo={Logo}
+        title="Canopy IIIF"
+        description="Fast, light digital projects from IIIF collections, written in Markdown."
+        links={[
+          {href: "/docs", label: "Docs"},
+          {href: "https://github.com/nulib-ds/canopy", label: "Code"},
+          {href: "https://github.com/nulib-ds/canopy/blob/main/LICENSE", label: "License"},
+        ]}
+      >
         <p>
           Copyright 2026 Canopy IIIF, an open-source project of{" "}
           <a href="https://www.library.northwestern.edu/">

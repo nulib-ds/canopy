@@ -10,7 +10,7 @@ function renderPreviewData() {
   const script = `
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
-    const { ThemeShowcase } = await import('@canopy-iiif/app/ui/server');
+    const { ThemeShowcase } = await import('@nulib/canopy/ui/server');
     const html = renderToStaticMarkup(React.createElement(ThemeShowcase));
     const match = html.match(/data-theme-showcase-values="true">([^<]*)<\\/script>/);
     process.stdout.write(match ? match[1] : '');
@@ -24,7 +24,7 @@ function renderPreviewData() {
 }
 
 function buildVars(type, name, appearance) {
-  const scale = toTailwindScale(name, { appearance });
+  const scale = toTailwindScale(name, { appearance, role: type });
   const vars =
     type === 'accent'
       ? buildVariablesMap(scale, null, { appearance })

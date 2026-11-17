@@ -3,6 +3,8 @@ const yaml = require("js-yaml");
 const {resolveCanopyConfigPath} = require("../lib/config-path");
 const {
   AVAILABLE_PALETTES,
+  appearanceVariablesToCss,
+  normalizeAccentName,
   normalizePaletteName,
   normalizeAppearance,
   toTailwindScale,
@@ -54,35 +56,51 @@ function loadCanopyTheme(options = {}) {
   const grayRequested = theme && theme.grayColor;
   const appearanceRequested = theme && theme.appearance;
   const appearance = normalizeAppearance(appearanceRequested);
+  // `auto` draws light first; its dark tokens follow under `prefers-color-scheme`.
+  const scaleMode = appearance === "dark" ? "dark" : "light";
 
-  let accentName = normalizePaletteName(accentRequested);
+  // A palette's name or a hex color (`#0f62fe`).
+  let accentName = normalizeAccentName(accentRequested);
   let accentScale = accentName
-    ? toTailwindScale(accentName, {appearance})
+    ? toTailwindScale(accentName, {appearance: scaleMode, role: "accent"})
     : null;
   let accentFallback = false;
   if (!accentScale) {
     accentFallback = true;
     accentName = DEFAULT_ACCENT;
-    accentScale = toTailwindScale(DEFAULT_ACCENT, {appearance});
+    accentScale = toTailwindScale(DEFAULT_ACCENT, {
+      appearance: scaleMode,
+      role: "accent",
+    });
   }
 
   let grayName = normalizePaletteName(grayRequested);
   let grayScale = grayName
-    ? toTailwindScale(grayName, {
-        appearance,
-      })
+    ? toTailwindScale(grayName, {appearance: scaleMode, role: "gray"})
     : null;
   let grayFallback = false;
   if (!grayScale) {
     grayFallback = true;
     grayName = DEFAULT_GRAY;
     grayScale = toTailwindScale(DEFAULT_GRAY, {
-      appearance,
+      appearance: scaleMode,
+      role: "gray",
     });
   }
 
-  const variables = buildVariablesMap(accentScale, grayScale, {appearance});
-  const css = variablesToCss(variables);
+  const variables = buildVariablesMap(accentScale, grayScale, {
+    appearance: scaleMode,
+  });
+  let variablesDark = null;
+  let css = variablesToCss(variables);
+  if (appearance === "auto") {
+    variablesDark = buildVariablesMap(
+      toTailwindScale(accentName, {appearance: "dark", role: "accent"}),
+      toTailwindScale(grayName, {appearance: "dark", role: "gray"}),
+      {appearance: "dark"},
+    );
+    css = appearanceVariablesToCss(variables, variablesDark);
+  }
 
   debugLog("resolved theme", {
     configPath: cfgPath,
@@ -115,6 +133,8 @@ function loadCanopyTheme(options = {}) {
     accent: {name: accentName, scale: accentScale},
     gray: {name: grayName, scale: grayScale},
     variables,
+    // `appearance: auto` only: the dark tokens beside the light `variables`.
+    variablesDark,
     css,
   };
 }
@@ -122,6 +142,7 @@ function loadCanopyTheme(options = {}) {
 module.exports = {
   loadCanopyTheme,
   toTailwindScale,
+  normalizeAccentName,
   normalizePaletteName,
   normalizeAppearance,
   AVAILABLE_PALETTES,

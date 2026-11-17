@@ -1,6 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { cloverImage, cloverScroll, cloverViewer } from '../../ui/dist/index.mjs';
+
 function ready(fn) {
   if (typeof document === 'undefined') return;
   if (document.readyState === 'loading') {
@@ -21,10 +23,28 @@ function parseProps(el) {
   }
 }
 
+/*
+ * Clover 4 (`@nulib/clover`), a part at a time: each loads from its own entry, so esbuild
+ * reaches only that part's modules rather than every part the Default template shares
+ * through the package's main entry. Canopy's MDX props, as 1.x authors write them, are
+ * translated into Clover's (`ui/src/iiif/clover-compat.js`).
+ */
 const componentLoaders = {
-  viewer: () => import('@samvera/clover-iiif/viewer'),
-  scroll: () => import('@samvera/clover-iiif/scroll'),
-  image: () => import('@samvera/clover-iiif/image'),
+  // The Viewer in Clover's Default template, handed in so it loads with the Viewer.
+  viewer: () =>
+    Promise.all([
+      import('@nulib/clover/viewer'),
+      import('@nulib/clover/templates'),
+      import('@nulib/clover/helpers'),
+    ]).then(([viewer, templates, helpers]) => cloverViewer(viewer, templates, helpers)),
+  // Scroll, for now Clover's Document template, until its text reader is built.
+  scroll: () =>
+    Promise.all([
+      import('@nulib/clover/viewer'),
+      import('@nulib/clover/templates'),
+    ]).then(([viewer, templates]) => cloverScroll(viewer, templates)),
+  // Image: one Canvas, deep zoom where its image has a service.
+  image: () => import('@nulib/clover/canvas').then(cloverImage),
 };
 
 const componentCache = new Map();
@@ -32,16 +52,10 @@ const componentCache = new Map();
 function resolveComponent(key) {
   if (!componentLoaders[key]) return Promise.resolve(null);
   if (!componentCache.has(key)) {
-    const loader = componentLoaders[key];
-    componentCache.set(
-      key,
-      loader()
-        .then((mod) => {
-          if (!mod) return null;
-          return mod.default || mod.Viewer || mod.Scroll || mod.Image || mod;
-        })
-        .catch(() => null)
-    );
+    componentCache.set(key, componentLoaders[key]().catch((error) => {
+      console.error('[canopy] Clover failed to load', error);
+      return null;
+    }));
   }
   return componentCache.get(key);
 }

@@ -5,7 +5,7 @@
 // of abbreviations like "thumb".
 
 // Helper for resolving a representative thumbnail for an IIIF resource.
-// Uses @iiif/helpers#createThumbnailHelper to choose an appropriate size.
+// Uses Clover's thumbnail helpers (`@nulib/clover/helpers`) to choose an appropriate size.
 
 function arrayify(value) {
   if (!value) return [];
@@ -314,26 +314,23 @@ async function getRepresentativeImage(resource, preferredSize = 1200, unsafe = f
   // Avoid potentially long-running network calls in safe mode
   if (!unsafe) return null;
 
-  // Unsafe mode: attempt helper with a timeout so builds never hang
+  // Unsafe mode: Clover's own thumbnail helpers (`@nulib/clover/helpers`, which need no
+  // React), asking the image service for a size it offers, with a timeout so builds never
+  // hang.
   try {
-    const mod = await import('@iiif/helpers');
-    const createThumbnailHelper = mod.createThumbnailHelper || (mod.default && mod.default.createThumbnailHelper);
-    if (!createThumbnailHelper) return null;
-    const helper = createThumbnailHelper();
-    const task = helper.getBestThumbnailAtSize(
-      resource,
-      { width: preferredSize, height: preferredSize, minWidth: preferredSize, minHeight: preferredSize },
-      true,
-      [],
-      { width: preferredSize, height: preferredSize }
-    );
+    const clover = await import('@nulib/clover/helpers');
+    const task = (async () => {
+      const source = clover.thumbnailSource(await clover.toPresentation4(resource));
+      const url = source ? await clover.resolveThumbnail(source, preferredSize) : undefined;
+      return url ? { id: url } : null;
+    })();
     const timeoutMs = Number(process.env.CANOPY_THUMB_TIMEOUT || 2000);
     const timeout = new Promise((resolve) => setTimeout(() => resolve(null), timeoutMs));
     const result = await Promise.race([task, timeout]);
     if (!result) return null;
-    const id = String(result.id || result['@id'] || '');
-    const width = typeof result.width === 'number' ? result.width : undefined;
-    const height = typeof result.height === 'number' ? result.height : undefined;
+    const id = String(result.id || '');
+    const width = undefined;
+    const height = undefined;
     const canvasImage = findPrimaryCanvasImage(resource);
     const service =
       extractImageService(result) ||

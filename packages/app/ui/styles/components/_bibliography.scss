@@ -1,3 +1,5 @@
+@use "../settings/type";
+
 .bibliography {
   margin: clamp(2rem, 6vw, 4rem) 0;
   display: flex;
@@ -29,13 +31,12 @@
 }
 
 .bibliography__page-title {
-  font-size: 1rem;
+  @include type.ui(bold);
   margin: 0;
-  line-height: 1.35;
 }
 
 .bibliography__page-link {
-  font-size: 0.9222rem;
+  @include type.ui-sm;
   color: var(--color-accent-default);
   text-decoration: none;
   word-break: break-word;
@@ -68,14 +69,14 @@
 }
 
 .bibliography__note-label {
+  @include type.ui(bold);
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
   color: var(--color-gray-muted);
 }
 
+// A note is reading text.
 .bibliography__note-body {
-  font-size: 0.95rem;
-  line-height: 1.5;
+  @include type.body;
 }
 
 .bibliography__note-body p {

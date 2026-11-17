@@ -80,7 +80,7 @@ Because we have determined that StoryMap requires browser resources, we create `
 Here's what the finished wrapper looks like, but keep in mind it could have been a component of any variety:
 
 ```tsx filename="app/components/StoryMapJS.client.tsx" copy
-import {withBasePath} from "@canopy-iiif/app/base-path";
+import {withBasePath} from "@nulib/canopy/base-path";
 import React, {useEffect, useId, useMemo, useRef} from "react";
 
 type StoryMapData = string | Record<string, unknown>;
@@ -235,7 +235,7 @@ Now the component is globally available. Add it it your `content/` pages. In thi
 />
 
 > Need to support deployments at `/some/base`? Import `withBasePath` from
-> `@canopy-iiif/app/base-path` and wrap any site-relative URL so it automatically
+> `@nulib/canopy/base-path` and wrap any site-relative URL so it automatically
 > respects `CANOPY_BASE_PATH` without reimplementing the logic yourself.
 
 ### 5. Prepare optional JSON data

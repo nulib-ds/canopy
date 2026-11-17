@@ -1,4 +1,6 @@
 @use "./buttons" as buttons;
+@use "../settings/focus" as focus;
+@use "../settings/type";
 
 .canopy-sub-navigation {
   color: inherit;
@@ -38,13 +40,24 @@
 .canopy-sub-navigation__tree .canopy-nav-tree__link:hover,
 .canopy-modal__section-nav .canopy-nav-tree__link:hover {
   color: var(--color-accent-default);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
+.canopy-sub-navigation__link:focus-visible,
+.canopy-sub-navigation__tree .canopy-nav-tree__link:focus-visible,
+.canopy-modal__section-nav .canopy-nav-tree__link:focus-visible {
+  @include focus.focus-ring;
+  border-radius: var(--canopy-radius-sm);
+}
+
+// A group's name, not a page: bold, so it reads as the heading of the pages under it.
 .canopy-sub-navigation__link.is-label,
 .canopy-sub-navigation__tree .canopy-nav-tree__link.is-label,
 .canopy-modal__section-nav .canopy-nav-tree__link.is-label {
   cursor: default;
-  color: var(--color-gray-muted);
+  color: var(--color-gray-900);
+  font-weight: var(--canopy-weight-bold);
 }
 
 .canopy-sub-navigation__link.is-disabled,
@@ -60,32 +73,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6111rem;
-  font-weight: 500;
+  @include type.label;
   line-height: 1;
   white-space: nowrap;
   z-index: 0;
   position: relative;
   color: var(--color-accent-default);
-  font-family: var(--font-sans);
   padding: 0.175rem 0.175rem;
   top: -1px;
   margin-left: 0.25rem;
-  letter-spacing: -0.0125em;
 }
 
+// The current page: the accent's text step, bold, so it is told apart by more than its
+// color (1.4.1).
 .canopy-sub-navigation__link.is-active,
 .canopy-sub-navigation__tree .canopy-nav-tree__link.is-active,
 .canopy-modal__section-nav .canopy-nav-tree__link.is-active {
-  color: var(--color-gray-900);
-  font-weight: 500;
+  color: var(--color-accent-default);
+  font-weight: var(--canopy-weight-bold);
 }
 
 .canopy-sub-navigation__list--nested,
 .canopy-sub-navigation__tree .canopy-nav-tree__list--nested,
 .canopy-modal__section-nav .canopy-nav-tree__list--nested {
   padding-left: 1rem;
-  border-left: 1px solid var(--color-gray-200);
+  border-left: 1px solid var(--canopy-edge);
 }
 
 .canopy-sub-navigation__link.depth-1,
@@ -94,12 +106,12 @@
 .canopy-sub-navigation__tree .canopy-nav-tree__link.depth-2,
 .canopy-modal__section-nav .canopy-nav-tree__link.depth-1,
 .canopy-modal__section-nav .canopy-nav-tree__link.depth-2 {
-  font-size: 0.9222rem;
+  @include type.ui-sm;
 }
 
 .canopy-content-navigation {
   position: sticky;
-  top: 1.5rem;
+  top: calc(var(--canopy-sticky-top, 0px) + 1.5rem);
   display: flex;
   flex-direction: column;
   gap: 0.618rem;
@@ -118,12 +130,12 @@
 
 .canopy-content-navigation--floating {
   position: fixed;
-  top: 1.618rem;
+  top: calc(var(--canopy-sticky-top, 0px) + 1.618rem);
   left: var(--canopy-content-nav-fixed-left);
   right: auto;
   width: var(--canopy-content-nav-fixed-width);
   z-index: 10;
-  max-height: calc(100vh - 1.5rem);
+  max-height: calc(100vh - var(--canopy-sticky-top, 0px) - 3.236rem);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -161,7 +173,7 @@
 
 .canopy-layout__content-nav.is-collapsed .canopy-content-navigation__toggle {
   position: sticky;
-  top: 1.618rem;
+  top: calc(var(--canopy-sticky-top, 0px) + 1.618rem);
 }
 
 .canopy-content-navigation--collapsed .canopy-content-navigation__toggle {
@@ -177,9 +189,9 @@
 
 .canopy-layout__content-nav.is-collapsed
   .canopy-content-navigation__toggle-label {
+  @include type.label;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  letter-spacing: 0.12em;
 }
 .canopy-content-navigation--collapsed .canopy-nav-tree {
   display: none;

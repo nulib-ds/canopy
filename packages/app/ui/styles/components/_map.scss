@@ -1,3 +1,5 @@
+@use "../settings/type";
+
 // Map styles reuse the global gray/brand scales so project themes can override tokens easily.
 .canopy-map {
   position: relative;
@@ -53,8 +55,7 @@
     padding: 0.5rem 0.75rem;
     background-color: color-mix(in srgb, var(--color-gray-900) 85%, transparent);
     color: var(--color-gray-50);
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+    @include type.ui-sm;
     pointer-events: auto;
   }
 
@@ -78,9 +79,7 @@
       display: flex;
       align-items: center;
       gap: 0.382rem;
-      font-size: 0.8333rem;
-      line-height: 1.4;
-      font-weight: 400;
+      @include type.ui-sm;
     }
 
     &-dot {
@@ -116,16 +115,14 @@
       display: block;
       text-decoration: none;
       color: inherit;
-      font-size: 1rem;
-      font-weight: 500;
+      @include type.ui(bold);
       margin: 0.38rem 0;
     }
 
     &-summary {
       margin: 0 !important;
       padding: 0;
-      font-size: 0.9222rem;
-      line-height: 1.4;
+      @include type.ui-sm;
       color: var(--color-gray-muted);
     }
 
@@ -133,8 +130,8 @@
       display: inline-flex;
       gap: 0.25rem;
       align-items: center;
-      color: var(--color-accent-600);
-      font-weight: 500;
+      color: var(--color-accent-default);
+      font-weight: var(--canopy-weight-bold);
       text-decoration: none;
     }
 
@@ -142,12 +139,8 @@
       margin-top: 0.618rem;
 
       &-title {
+        @include type.label;
         margin: 0 0 0.25rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: var(--color-gray-muted);
       }
 
       &-list {
@@ -166,7 +159,7 @@
 
       &-link,
       &-text {
-        font-weight: 500;
+        font-weight: var(--canopy-weight-bold);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -174,7 +167,7 @@
       }
 
       &-link {
-        color: var(--color-accent-600);
+        color: var(--color-accent-default);
       }
 
       &-text {
@@ -183,7 +176,7 @@
 
       &-summary {
         margin: 0.125rem 0 0;
-        font-size: 0.8125rem;
+        @include type.ui-sm;
         color: var(--color-gray-muted);
       }
     }
@@ -252,8 +245,7 @@
   &__marker-label {
     display: inline-flex;
     align-items: center;
-    font-size: 0.8333rem;
-    font-weight: 400;
+    @include type.ui-sm;
     color: var(--color-gray-900);
     background: color-mix(in srgb, var(--color-gray-50) 87%, transparent);
     white-space: nowrap;
@@ -283,9 +275,7 @@
   }
 
   &__cluster {
-    font-size: 0.8333rem;
-    font-family: var(--font-sans);
-    font-weight: 500;
+    @include type.ui-sm(bold);
     width: 40px;
     height: 40px;
     background: var(--color-gray-default);
@@ -295,4 +285,12 @@
     justify-content: center;
     box-sizing: content-box;
   }
+}
+
+// The map's panes paint over a ring drawn on or inside its canvas, and `.canopy-map`
+// clips one drawn outside it, so the map's frame shows where focus is (WCAG 2.4.7;
+// ACCESSIBILITY.md C29, as C19 did for the Northwestern template).
+[data-canopy-map]:has(.leaflet-container:focus-visible) {
+  outline: 2px solid var(--color-accent-default);
+  outline-offset: 2px;
 }

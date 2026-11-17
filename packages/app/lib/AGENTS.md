@@ -1,6 +1,11 @@
 Lib Agent Notes
 ===============
 
+Prime directive: WCAG 2.2 AA
+----------------------------
+- The HTML the builder writes and every runtime it bundles conform to WCAG 2.2 at Level AA, and that outranks every note below. The rules are in `packages/app/DESIGN.md` §0; known failures are in `ACCESSIBILITY.md`.
+- The HTML shell owns the page's `lang`, its landmarks and its skip link. A runtime never moves focus, reorders content or drops a name when it mounts.
+
 Mission
 -------
 - Provides the Node-side builder, SSR utilities, and client runtime bundles consumed by the static site.
@@ -11,14 +16,16 @@ Core Areas
 - `build/`: Orchestrates the site build pipeline (MDX, assets, search, IIIF).
 - `components/`: Shared SSR-ready React components (MDX placeholders, layout helpers).
 - `iiif/`: Fetching, caching, and normalizing Presentation 3 manifests.
-- `search/`: Search runtime bundler + index writer.
+- `search/`: the index writer (`search.js`), the search engine both runtimes share (`engine.js`, FlexSearch 0.8 behind it), their data loader and IndexedDB cache (`data.js`, `index-cache.js`), and the runtimes: the search page's (`search-app.jsx`), the header field's (`search-form-runtime.js`) and the engine it loads when used (`search-engine-runtime.js`).
 - `discovery/`: IIIF catalog exports, resource retrieval, and the WebMCP browser runtime.
 - `common.js` / `index.js`: Entry points that wire CLI commands `build()` and `dev()`.
 
 Invariants
 ----------
-- Server code must import UI through `@canopy-iiif/app/ui/server`; never pull browser-only modules into SSR paths.
-- Bundled runtimes rely on browser React globals from `site/scripts/react-globals.js`; maintain esbuild shims for `react`, `react-dom`, `react-dom/client`, `flexsearch`, and any new browser deps the UI marks external.
+- Server code must import UI through `@nulib/canopy/ui/server`; never pull browser-only modules into SSR paths.
+- The package refers to itself by path, or by `PACKAGE_NAME` (`build/package-names.js`), never by a written name. Wherever a site's code is compiled or bundled, an import of either name (`@nulib/canopy`, or `@canopy-iiif/app` from 1.x) is read through `package-names.js`: `recmaPackageImports` for MDX, `esbuildPackageNames()` for browser bundles, `esbuildServerPackageNames()` for server bundles.
+- Bundled runtimes rely on browser React globals from `site/scripts/react-globals.js`; maintain esbuild shims for `react`, `react-dom`, `react-dom/client`, and any new browser deps the UI marks external. FlexSearch is bundled, not shimmed: the search runtimes take its compact build through `search/bundle.js`'s `flexSearchPlugin()`.
+- Only `search/engine.js` knows FlexSearch. A change to how words match changes `ENGINE_ID` and `tests/unit/search/engine.test.js` together.
 - Keep IIIF cache writes confined to `.cache/iiif/`; document any format changes here before implementation.
 
 Active Cleanup Goals
@@ -38,7 +45,7 @@ Current Focus
 ### Interstitial hero support
 - Featured manifests come from `canopy.yml → featured`; `lib/components/featured.js` normalizes IDs, resolves slugs from `.cache/iiif/index.json`, and surfaces thumbnails (`heroThumbnail*` when the IIIF build computed representative images).
 - `build/iiif.js` now writes `heroThumbnail`, `heroThumbnailWidth`, and `heroThumbnailHeight` alongside standard thumbnails so the UI hero can display consistent crops.
-- `build/mdx.js` → `ensureHeroRuntime()` bundles `packages/app/lib/components/hero-slider-runtime.js` to `site/scripts/canopy-hero-slider.js`; keep Swiper external and mirror any esbuild option changes in the UI workspace docs.
+- `build/mdx.js` → `ensureHeroRuntime()` bundles `packages/app/lib/components/hero-slider-runtime.js` to `site/scripts/canopy-hero-slider.js`. The runtime has no dependencies since 2.x Phase 4 (Embla gone); mirror any esbuild option changes in the UI workspace docs.
 
 Risks & Watchpoints
 -------------------
@@ -61,6 +68,16 @@ Logbook Template
 
 Logbook
 -------
+- 2026-11-16 / claude (2.x Phase 7): `build/search.js`'s `pageSearchRecord` reads the search front matter the docs promise (`searchType`, `searchSummary`, `searchSummaryMarkdown`, `description`, `image`) into a page's record; `build/search-index.js` passes its `thumbnail` on. `build/pages.js` takes a page's derived meta description from `extractSearchText`'s `excerpt`.
+- 2026-11-16 / claude (2.x Phase 7): an MDX page's search text and excerpt come from `build/search-text.js` (the MDX parser with GFM, required as ESM, which Node 24 does and Jest 29 cannot, so its tests run in a child process), through `mdx.js`'s new `extractSearchText`; `extractPlainText` and `extractMarkdownSummary` remain its fallback, the former's link pattern fixed (it wrote "$1"). `build/search.js`'s `collectMdxPageRecords` uses it.
+- 2026-11-16 / claude (2.x Phase 7): search, rebuilt on FlexSearch 0.8 behind `search/engine.js` (`packages/app/AGENTS.md`, "Search"). `search.js` bundles FlexSearch's compact build into `site/scripts/search.js`, minified, and writes no `flexsearch-globals.js`; `build/runtimes.js` builds `site/scripts/canopy-search-engine.js` for the header's field, which loads it when first used. `writeSearchIndex` logs through `../build/log` (its `./log` had not resolved since 2025) and no longer writes the index's version into `.cache/iiif/index.json` (its `./iiif` never resolved; nothing read it); the version covers the annotations too. `build/build.js` holds the IIIF records and ids it reuses between builds on `globalThis`: `dev.js` reloads the app's modules after a change under `lib/`, and a reloaded `build.js` without them indexed the pages alone and wrote them alone to the sitemap. Its discovery data stays the module's own, as a fresh module keeps the catalog already published (`tests/unit/discovery/build.test.js`). Verified: `npm test`, `npm run lint:a11y`, `npm run test:a11y`.
+- 2026-11-13 / claude: `build/mdx.js` adds `build/rehype-task-list-labels.js` to every compile through `buildCompileOptions()`, which names Markdown task lists' checkboxes (ACCESSIBILITY.md C15); an override's `rehypePlugins` run after it. Tested in `tests/unit/mdx/task-list-labels.test.js`.
+- 2026-11-15 / claude (2.x Phase 6): `build/fonts.js` copies Google Sans Flex (`ui/fonts/`, with `OFL.txt`) to `site/styles/fonts/` and declares its faces in the injected block, after Tailwind runs, so their relative `url()`s hold under any base path (`injectThemeTokens`, build and dev). `build/ui-styles.js` holds the Clover imports both `ui/scripts/build-ui.mjs` and dev's `rebuildUiStyles()` write atop `ui/styles/index.css`; dev's copy had none since Phase 2, so `npm run dev` drew Clover unstyled. The search form runtime fills in the ⌘K (Ctrl K) hint and the input's `aria-keyshortcuts`.
+- 2026-11-13 / claude: 2.x Phase 0 (WCAG 2.2 AA prime directive; see the root `AGENTS.md` and `ACCESSIBILITY.md`).
+  - `build/iiif.js` exposes `upgradeIiifResource` and `ensurePresentation3Manifest` on `__TESTING__`. `tests/unit/iiif/upgrade.test.js` covers the Presentation 2 → 3 upgrade, and fails if `@iiif/parser/upgrader` stops resolving.
+  - Today `@iiif/parser` arrives only through `@samvera/clover-iiif` and `@iiif/helpers`. The build's fallback, `normalizeToV3`, calls `toPresentation3`, `normalize` and `upgradeToV3`, none of which `@iiif/helpers` exports, so a missing upgrader passes P2 through unconverted.
+  - `tests/a11y/build-fixture.mjs` builds each template offline with `build/build.js`, serving the fixture's own IIIF at `CANOPY_BASE_URL` while it builds (featured Manifests are read by URL).
+  - Verified: `npm test` (243 tests in 23 suites), `npm run test:a11y`, `npm run lint:a11y`.
 - 2026-10-02 / claude: `build/pages.js` no longer links `scripts/canopy-hero-slider.css`. The file stopped existing when the hero moved from Swiper to Embla (`02be285`, 2026-05-06): its CSS came from the runtime's `swiper/css` imports, and Embla ships none. Every page with a hero had 404'd on it since then. The hero's layout styles live in `ui/styles/components/_interstitial-hero.scss`.
 - 2026-10-02 / claude: Tailwind v4 cleanup in `build/styles.js` and `build/dev.js`:
   - Dropped the `tailwind.config.*` lookup and the `-c` flag. Tailwind v4's CLI has no such flag and loads a JS config only through `@config`, so neither the lookup nor the built-in default config was ever applied.

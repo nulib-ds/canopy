@@ -1,0 +1,136 @@
+---
+title: Upgrading to 2.0
+description: What changes for a site made with Canopy 1.x, what it can drop, and how to move it to the package's new name, @nulib/canopy.
+---
+
+# Upgrading to 2.0
+
+Canopy 2 builds a 1.x site as it is. Every component and prop works as before, and so do the pages, layouts and components you wrote. The changes are underneath: Clover 4 draws IIIF, the look is new, search is rebuilt, and Canopy has a new package name, `@nulib/canopy`.
+
+## Upgrade
+
+Update as you always have. Run the **Update Canopy App** workflow from your repository's Actions tab ([Updating Canopy](/docs/developers/updating)), or run:
+
+```sh
+npm i @canopy-iiif/app@2
+```
+
+`@canopy-iiif/app` is Canopy's 1.x name, and it is published with every 2.x release. It installs `@nulib/canopy` at the same version and passes each of its entries through to it, so every place your site names `@canopy-iiif/app` keeps working: `package.json`, `app/styles/index.css`, `app/scripts/canopy-build.mts`, your MDX and your components.
+
+When the site builds, Canopy notes once what it carries from 1.x and no longer needs:
+
+- the package's new name;
+- `@samvera/clover-iiif` (Clover 3) and `embla-carousel` in `package.json`, when nothing of yours imports them;
+- scripts that run Canopy through `tsx`;
+- a search layout that gives the search page no `h1` (below, [Search](#search)).
+
+Each note is a suggestion; the site builds either way.
+
+## Move to the new name
+
+Whenever you like, or never.
+
+1. In `package.json`, name `@nulib/canopy` in place of `@canopy-iiif/app`, at the same version, and run Canopy with its own command:
+
+   ```json
+   {
+     "scripts": {
+       "build": "canopy build",
+       "dev": "canopy dev"
+     },
+     "dependencies": {
+       "@nulib/canopy": "^2.0.0",
+       "react": "^19.0.0",
+       "react-dom": "^19.0.0"
+     }
+   }
+   ```
+
+   A site needs nothing else for Canopy ([What a site can drop](#what-a-site-can-drop)); keep whatever else your own code uses.
+
+2. In `app/styles/index.css`, import the new name's stylesheet:
+
+   ```css
+   @import "@nulib/canopy/ui/styles/index.css";
+   ```
+
+3. Delete `app/scripts/canopy-build.mts`: `canopy build` and `canopy dev` do what it did.
+4. In `.github/workflows/update-canopy-app.yml`, install `@nulib/canopy` in place of `@canopy-iiif/app`. The [template's copy](https://github.com/nulib-ds/canopy-template/blob/main/.github/workflows/update-canopy-app.yml) also stops installing Clover 3.
+5. Run `npm install`.
+
+Your MDX and your components can go on importing `@canopy-iiif/app`: the build reads that name as `@nulib/canopy`. These docs use the new name.
+
+## What a site can drop
+
+Canopy 2 installs what it needs itself, and has no use for these. Remove each from `package.json` unless code of your own imports it.
+
+| Package | Why |
+| --- | --- |
+| `@samvera/clover-iiif` | Canopy draws IIIF with Clover 4 (`@nulib/clover`), which it installs. |
+| `embla-carousel` | The hero's carousel is Canopy's own. |
+| `tsx` | Once the scripts run `canopy build` and `canopy dev`, which load what tsx loaded: MDX can still import a `.jsx`, `.tsx` or `.ts` file of your own. |
+| `esbuild`, `@tailwindcss/cli`, `tailwindcss` | Canopy installs its own. A Tailwind CLI your site keeps is the one the build uses. |
+
+## Node
+
+Canopy 2 runs where 1.x did: on Node 24, or on Node 20.19 or 22.12 and later, which load the ES modules Canopy's Markdown parsers are. The templates' workflows read the version from `.nvmrc` (24). A 1.x site's workflows name Node 20, and GitHub runs them on its latest Node 20, which builds Canopy 2. Node 20 reached the end of its support in April 2026, so when you can, give each workflow's `actions/setup-node` step `node-version-file: ".nvmrc"` in place of `node-version: 20`, with `24` in `.nvmrc`.
+
+## What changes on the site
+
+### IIIF, drawn with Clover 4
+
+`Viewer`, `Slider`, `Image`, `ImageStory`, `Scroll` and `RelatedItems` keep their props, and draw with Clover 4. A work page loads about half the JavaScript it did.
+
+A few Clover 3 options have nothing to do in Clover 4. Canopy still takes them, and the build names each one it finds:
+
+- in a `Viewer`'s `options`: `showIIIFBadge`, `showResourceIcons`, `showMediaSearch` (set to `false`), `ignoreCaptionLabels`, `annotations.motivations`, `annotationOverlays`, `contentSearch`, `localeText.contentSearch`, and in `informationPanel`, `defaultTab`, `renderCanvasSummary`, `renderAnnotationCollection` (set to `false`), `annotationCollectionTabLabel` and `vtt`;
+- in its `options.map`: `fitToData` (set to `false`), `navPlaceLevel`, `showImageOverlay`, `imageOverlayOpacity`, `showControlPoints` (set to `false`) and `overlayScope`;
+- OpenSeadragon's own settings, in a `Viewer`'s `options.openSeadragon` or an `Image`'s `openSeadragonConfig`, beyond those Clover 4's canvas reads;
+- a `Scroll`'s `options`: Scroll draws Clover's Document template for now.
+
+### A stylesheet that styles Clover
+
+Clover 4 draws different markup, with different classes. Canopy carries its own 1.x styling over to them, so Clover's parts look as they did. A rule of yours aimed at a Clover 3 class needs the class that took its place:
+
+| Clover 3 | Clover 4 |
+| --- | --- |
+| `.clover-viewer-header .label` | `.clover-template-default-title` |
+| `.clover-viewer-information-panel` | `.clover-template-default-panel` |
+| `.clover-viewer-media-navigation` | `.clover-template-default-rail` |
+| `.clover-slider-header-label` | `.canopy-slider .clover-items-title` |
+| `a.clover-slider-header-homepage` | `.canopy-slider .clover-items-homepage` |
+| `.clover-slider-header-summary` | `.canopy-slider .clover-items-description` |
+| `.swiper-slide` | `.canopy-slider .clover-items-item` |
+| A slide's `figcaption` | `.canopy-slider .clover-items-caption` |
+
+`.clover-viewer` is still on the element around each Viewer, so a rule such as `.clover-viewer { --clover-color-accent: … }` reaches it as before.
+
+Two things went with Clover 3:
+
+- the `--colors-*` custom properties (`--colors-accent`, `--colors-primary`, `--colors-secondary`, and their `Alt` and `Muted` forms). Use the theme's `--color-accent-*` and `--color-gray-*`, or Clover 4's `--clover-color-*` ([Theme](/docs/theme/));
+- the rule that took corners and shadows off every element. Clover 4's focus rings and outlines show again; Canopy's own corners and shadows are tokens, `--canopy-radius-*` and `--canopy-shadow-*`.
+
+### The look
+
+- **Type.** Google Sans Flex for headings and the interface, Source Serif 4 for reading, both served from your site. Rules in your own `app/styles` come after Canopy's, so a face your site sets, such as the 1.x templates' Fraunces, stays.
+- **Components.** The header, footer, buttons, cards, the search field and its results, dialogs, code blocks and the work page are restyled; the [Style guide](/docs/theme/style-guide) shows each text style, color, corner and step of space.
+- **Color.** Text in the accent and muted text are held at 4.5:1 contrast on every surface, so some move a shade. A site that names no `accentColor` keeps indigo. `accentColor` takes a hex color now, and `appearance: auto` follows the reader's system.
+- **New, all optional:** `<Swoosh>`, `<Band>` and `<Feature>`; the hero's `variant="centered"`; the footer's `logo`, `title`, `description`, `links` and `brandHref`; a class for each text style (`.canopy-type-*`) and tokens for spacing (`--canopy-space-*`).
+
+### The hero
+
+`<Interstitials.Hero>` keeps every prop. Its carousel is Canopy's own now. It shows one slide at a time and turns every 6 seconds. It holds while the pointer is over it, and stops for good on keyboard focus or any of its controls. It never turns for a reader who asks for reduced motion. Its first control stops and starts it. It is named "Featured content", and its headline stays the page's `h1`.
+
+### Search
+
+- A word is found by its beginning, and accents are folded: "haridwar" finds "Haridwār".
+- The header's suggestions are ranked by relevance and grouped by type. They load when the field is first used; 1.x loaded the index on every page.
+- `window.FlexSearch` is gone, and `scripts/flexsearch-globals.js` is no longer written.
+- The default search layout, the 2.x templates', opens with the page's `h1`. Page results are titled one level below the last heading before them, `h2` under that `h1`, with the class `canopy-article-card__title`; a rule of yours on `.canopy-article-card h3` no longer reaches them.
+- A search layout of your own, such as the one a 1.x template gave your site (`content/search/_layout.mdx`), keeps its headings. Open it with an `h1` ([Search](/docs/content/search)).
+- The search front matter works as documented: `searchType`, `searchSummary`, `searchSummaryMarkdown`, `description` and `image` ([Customize the search index](/docs/user-guides/customize-the-search-index)).
+- The header's dialogs and the filters are named "Search", "Primary navigation" and "Filters", and a search page in another language is titled in it.
+
+### Accessibility
+
+Canopy 2 is held to WCAG 2.2 AA. The repository's [ACCESSIBILITY.md](https://github.com/nulib-ds/canopy/blob/main/ACCESSIBILITY.md) lists what the 1.x audit found and each fix since, and the two failures still open, each with its plan.

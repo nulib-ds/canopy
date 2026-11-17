@@ -76,7 +76,7 @@ function warnDeprecated() {
   if (warnedDeprecated) return;
   warnedDeprecated = true;
   process.emitWarning(
-    "@canopy-iiif/app/ui/tailwind-config is deprecated and will be removed in the next major release. " +
+    "@nulib/canopy/ui/tailwind-config is deprecated and does nothing. " +
       "Tailwind v4 reads a JS config only through @config, and Canopy's preset and plugin no longer add styles. " +
       "Customize Tailwind in app/styles/index.css: https://nulib-ds.github.io/canopy/docs/theme/#tailwind",
     {type: "DeprecationWarning", code: "CANOPY_TAILWIND_CONFIG"},

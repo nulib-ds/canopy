@@ -1,3 +1,12 @@
+// The header's search field (`SearchPanel`): suggestions under it as a visitor types, and
+// on the search page, the page's own query. The suggestions come from the same engine as
+// the search page's results (`search-engine-runtime.js`), loaded the first time the field
+// is used, so a page that is not searched loads neither it nor the index.
+//
+// A visitor reaches the suggestions with the down arrow or Tab, and goes back with the up
+// arrow or Escape. Each group (Works, Pages) is a named group. How many there are is said
+// in a status message, once typing pauses (4.1.3); the words come from `locale.yml`.
+
 function ready(fn) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', fn, { once: true });
@@ -14,17 +23,9 @@ function parseProps(el) {
   return {};
 }
 
-function toLower(val) {
-  try {
-    return String(val || '').toLowerCase();
-  } catch (_) {
-    return '';
-  }
-}
-
 function getBasePath() {
   try {
-    const raw = (window && window.CANOPY_BASE_PATH) ? String(window.CANOPY_BASE_PATH) : '';
+    const raw = window && window.CANOPY_BASE_PATH ? String(window.CANOPY_BASE_PATH) : '';
     if (!raw) return '';
     return raw.endsWith('/') ? raw.slice(0, -1) : raw;
   } catch (_) {
@@ -32,77 +33,82 @@ function getBasePath() {
   }
 }
 
-function withBase(href) {
+// The engine sits beside this script; its `?v=` changes with every build, as this one's.
+const ENGINE_SRC = (() => {
   try {
-    let raw = href == null ? '' : String(href);
-    raw = raw.trim();
-    if (!raw) return raw;
-    const basePath = getBasePath();
-    if (!basePath) {
-      if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith('//') || raw.startsWith('#') || raw.startsWith('?')) {
-        return raw;
-      }
-      let cleaned = raw.replace(/^\/+/, '');
-      while (cleaned.startsWith('./')) cleaned = cleaned.slice(2);
-      while (cleaned.startsWith('../')) cleaned = cleaned.slice(3);
-      if (!cleaned) return '/';
-      return '/' + cleaned;
-    }
-    if (/^https?:/i.test(raw)) return raw;
-    if (raw === basePath || raw.startsWith(`${basePath}/`)) return raw;
-    const cleaned = raw.replace(/^\/+/, '');
-    return `${basePath}/${cleaned}`;
+    const own = document.currentScript && document.currentScript.src;
+    if (!own) return '';
+    const url = new URL('canopy-search-engine.js', own);
+    const version = new URL(own).searchParams.get('v');
+    if (version) url.searchParams.set('v', version);
+    return url.href;
   } catch (_) {
-    return href;
+    return '';
   }
+})();
+
+let enginePromise = null;
+function loadEngine() {
+  if (window.CanopySearchEngine) return Promise.resolve(window.CanopySearchEngine);
+  if (!enginePromise) {
+    enginePromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = ENGINE_SRC || `${getBasePath()}/scripts/canopy-search-engine.js`;
+      script.async = true;
+      script.onload = () =>
+        window.CanopySearchEngine
+          ? resolve(window.CanopySearchEngine)
+          : reject(new Error('the search engine did not start'));
+      script.onerror = () => reject(new Error('the search engine did not load'));
+      document.head.appendChild(script);
+    });
+    enginePromise.catch(() => {
+      enginePromise = null;
+    });
+  }
+  return enginePromise;
 }
 
-function rootBase() {
-  return getBasePath();
+function openEngine() {
+  return loadEngine().then((api) => api.open());
 }
 
-function documentLocale() {
+function message(path, fallback, replacements) {
+  let value;
   try {
-    if (document && document.documentElement && document.documentElement.lang) {
-      const lang = String(document.documentElement.lang).trim();
-      if (lang) return lang;
-    }
-  } catch (_) {}
-  return '';
+    value = path.split('.').reduce((node, key) => (node == null ? node : node[key]), window.CANOPY_LOCALE_MESSAGES);
+  } catch (_) {
+    value = undefined;
+  }
+  const template = typeof value === 'string' ? value : fallback;
+  return template.replace(/\{([^}]+)\}/g, (match, key) =>
+    replacements && replacements[key] != null ? String(replacements[key]) : match,
+  );
 }
 
-function resolveLocaleHref(record, fallbackHref) {
-  const routes =
-    record && record.routes && typeof record.routes === 'object'
-      ? record.routes
-      : null;
-  if (!routes) return fallbackHref;
-  const current = documentLocale();
-  const candidates = [];
-  if (current) {
-    candidates.push(current);
-    if (current.includes('-')) {
-      const base = current.split('-')[0];
-      if (base && base !== current) candidates.push(base);
-    }
-  }
-  if (record && typeof record.locale === 'string') {
-    const recLocale = record.locale.trim();
-    if (recLocale && !candidates.includes(recLocale)) candidates.push(recLocale);
-  }
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    if (routes[candidate]) return routes[candidate];
-    const lower = candidate.toLowerCase();
-    if (lower !== candidate && routes[lower]) return routes[lower];
-  }
-  const first = Object.values(routes).find((value) => value);
-  return first || fallbackHref;
+function groupLabel(type) {
+  const key = String(type || '').toLowerCase();
+  if (key === 'work') return message('common.types.work', 'Works');
+  if (key === 'page') return message('common.types.page', 'Pages');
+  if (key === 'docs') return message('common.types.docs', 'Docs');
+  return key ? key.charAt(0).toUpperCase() + key.slice(1) : '';
 }
 
+function countMessage(count) {
+  const noun =
+    count === 1
+      ? message('common.nouns.suggestion', 'suggestion')
+      : message('common.nouns.suggestions', 'suggestions');
+  if (!count) return message('common.statuses.empty_short', 'No {content}', { content: noun });
+  return message('common.phrases.count_content', '{count} {content}', { count, content: noun });
+}
+
+// The search page's runtime marks its page (`search-app.jsx`), whatever its route: there
+// the field drives the page's results rather than suggestions.
 function isOnSearchPage() {
   try {
-    const base = rootBase();
+    if (window.CanopySearchPage) return true;
+    const base = getBasePath();
     let path = String(location.pathname || '');
     if (base && path.startsWith(base)) path = path.slice(base.length);
     if (path.endsWith('/')) path = path.slice(0, -1);
@@ -110,126 +116,6 @@ function isOnSearchPage() {
   } catch (_) {
     return false;
   }
-}
-
-let recordsPromise = null;
-async function loadRecords() {
-  if (!recordsPromise) {
-    recordsPromise = (async () => {
-      try {
-        const base = rootBase();
-        let version = '';
-        let annotationsAssetPath = '';
-        try {
-          const meta = await fetch(`${base}/api/index.json`).then((r) => (r && r.ok ? r.json() : null)).catch(() => null);
-          if (meta && typeof meta.version === 'string') version = meta.version;
-          const annotationsAsset =
-            meta &&
-            meta.search &&
-            meta.search.assets &&
-            meta.search.assets.annotations;
-          if (annotationsAsset && annotationsAsset.path) {
-            annotationsAssetPath = String(annotationsAsset.path);
-          }
-        } catch (_) {}
-        const suffix = version ? `?v=${encodeURIComponent(version)}` : '';
-        const indexUrl = `${base}/api/search-index.json${suffix}`;
-        const recordsUrl = `${base}/api/search-records.json${suffix}`;
-        const [indexRes, displayRes] = await Promise.all([
-          fetch(indexUrl).catch(() => null),
-          fetch(recordsUrl).catch(() => null),
-        ]);
-        let indexRecords = [];
-        if (indexRes && indexRes.ok) {
-          try {
-            const raw = await indexRes.json();
-            indexRecords = Array.isArray(raw)
-              ? raw
-              : raw && Array.isArray(raw.records)
-              ? raw.records
-              : [];
-          } catch (_) {
-            indexRecords = [];
-          }
-        }
-        let displayRecords = [];
-        if (displayRes && displayRes.ok) {
-          try {
-            const raw = await displayRes.json();
-            displayRecords = Array.isArray(raw)
-              ? raw
-              : raw && Array.isArray(raw.records)
-              ? raw.records
-              : [];
-          } catch (_) {
-            displayRecords = [];
-          }
-        }
-        let annotationsRecords = [];
-        if (annotationsAssetPath) {
-          try {
-            const annotationsUrl = `${base}/api/${annotationsAssetPath.replace(/^\/+/, '')}${suffix}`;
-            const annotationsRes = await fetch(annotationsUrl).catch(() => null);
-            if (annotationsRes && annotationsRes.ok) {
-              const raw = await annotationsRes.json().catch(() => []);
-              annotationsRecords = Array.isArray(raw)
-                ? raw
-                : raw && Array.isArray(raw.records)
-                ? raw.records
-                : [];
-            }
-          } catch (_) {}
-        }
-        if (!indexRecords.length && displayRecords.length) {
-          return displayRecords;
-        }
-        const displayMap = new Map();
-        displayRecords.forEach((rec) => {
-          if (!rec || typeof rec !== 'object') return;
-          const key = rec.id ? String(rec.id) : rec.href ? String(rec.href) : '';
-          if (!key) return;
-          displayMap.set(key, rec);
-        });
-        const annotationsMap = new Map();
-        annotationsRecords.forEach((rec, idx) => {
-          if (!rec || typeof rec !== 'object') return;
-          const key = rec.id ? String(rec.id) : String(idx);
-          const text = rec.annotation ? String(rec.annotation) : rec.text ? String(rec.text) : '';
-          if (!key || !text) return;
-          annotationsMap.set(key, text);
-        });
-        return indexRecords.map((rec, idx) => {
-          const key = rec && rec.id ? String(rec.id) : String(idx);
-          const display = key ? displayMap.get(key) : null;
-          const merged = { ...(display || {}), ...(rec || {}) };
-          if (!merged.id && key) merged.id = key;
-          const fallbackHref = merged.href || (display && display.href) || '';
-          const localeHref = resolveLocaleHref(display || merged, fallbackHref);
-          if (localeHref) {
-            merged.href = withBase(localeHref);
-          } else if (fallbackHref) {
-            merged.href = withBase(fallbackHref);
-          }
-          if (!Array.isArray(merged.metadata)) {
-            const meta = Array.isArray(rec && rec.metadata) ? rec.metadata : [];
-            merged.metadata = meta;
-          }
-          if (annotationsMap.has(key) && !merged.annotation)
-            merged.annotation = annotationsMap.get(key);
-          return merged;
-        });
-      } catch (_) {
-        return [];
-      }
-    })();
-  }
-  return recordsPromise;
-}
-
-function groupLabel(type) {
-  if (type === 'work') return 'Works';
-  if (type === 'page') return 'Pages';
-  return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
 function hidePanel(panel) {
@@ -252,7 +138,7 @@ function getItems(list) {
   }
 }
 
-function renderList(list, records, groupOrder) {
+function renderList(list, records, groupOrder, idPrefix) {
   list.innerHTML = '';
   const panel = list.closest('[data-canopy-search-form-panel]');
   if (!records.length) {
@@ -262,28 +148,32 @@ function renderList(list, records, groupOrder) {
   showPanel(panel);
   const groups = new Map();
   records.forEach((record) => {
-    const type = String(record && record.type || 'page');
+    const type = String((record && record.type) || 'page');
     if (!groups.has(type)) groups.set(type, []);
     groups.get(type).push(record);
   });
   const desiredOrder = Array.isArray(groupOrder) ? groupOrder : [];
-  const orderedKeys = [...desiredOrder.filter((key) => groups.has(key)), ...Array.from(groups.keys()).filter((key) => !desiredOrder.includes(key))];
-  orderedKeys.forEach((key) => {
+  const orderedKeys = [
+    ...desiredOrder.filter((key) => groups.has(key)),
+    ...Array.from(groups.keys()).filter((key) => !desiredOrder.includes(key)),
+  ];
+  orderedKeys.forEach((key, groupIndex) => {
+    const group = document.createElement('div');
+    group.className = 'canopy-search-teaser__group';
+    group.setAttribute('role', 'group');
     const header = document.createElement('div');
     header.className = 'canopy-search-teaser__label';
+    header.id = `${idPrefix}-group-${groupIndex}`;
     header.textContent = groupLabel(key);
-    list.appendChild(header);
-    const entries = groups.get(key) || [];
-    entries.forEach((record) => {
-      const href = withBase(String(record && record.href || ''));
+    group.setAttribute('aria-labelledby', header.id);
+    group.appendChild(header);
+    (groups.get(key) || []).forEach((record) => {
       const item = document.createElement('a');
       item.setAttribute('data-canopy-item', '');
-      item.href = href;
-      item.tabIndex = 0;
+      item.href = String((record && record.href) || '');
       item.className = 'canopy-card canopy-card--teaser canopy-search-teaser__item canopy-teaser-card';
 
-      const showThumb = String(record && record.type || '') === 'work' && record && record.thumbnail;
-      if (showThumb) {
+      if (record && record.thumbnail) {
         const media = document.createElement('div');
         media.className = 'canopy-search-teaser__thumb';
         const img = document.createElement('img');
@@ -311,17 +201,19 @@ function renderList(list, records, groupOrder) {
       item.appendChild(textWrap);
 
       item.onfocus = () => {
-        try { item.scrollIntoView({ block: 'nearest' }); } catch (_) {}
+        try {
+          item.scrollIntoView({ block: 'nearest' });
+        } catch (_) {}
       };
-      list.appendChild(item);
+      group.appendChild(item);
     });
+    list.appendChild(group);
   });
 }
 
 function focusFirst(list) {
   const items = getItems(list);
-  if (!items.length) return;
-  items[0].focus();
+  if (items.length) items[0].focus();
 }
 
 function focusLast(list, resetTarget) {
@@ -334,9 +226,14 @@ function focusLast(list, resetTarget) {
 }
 
 function bindKeyboardNavigation({ input, list, panel, ensureResults }) {
+  // The arrows reopen suggestions Escape closed, for the same query, before moving in.
   const ensure = () => {
+    if (getItems(list).length && String(input.value || '').trim()) {
+      showPanel(panel);
+      return true;
+    }
     if (typeof ensureResults === 'function') ensureResults();
-    return getItems(list).length > 0;
+    return false;
   };
   input.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowDown') {
@@ -364,20 +261,37 @@ function bindKeyboardNavigation({ input, list, panel, ensureResults }) {
       const items = getItems(list);
       const idx = items.indexOf(current);
       if (idx <= 0) {
-        input && input.focus && input.focus();
+        if (input && input.focus) input.focus();
       } else {
-        const prev = items[idx - 1];
-        ;(prev || current).focus();
+        (items[idx - 1] || current).focus();
       }
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
-      try { current.click(); } catch (_) {}
     } else if (event.key === 'Escape') {
       hidePanel(panel);
-      try { input && input.focus && input.focus(); } catch (_) {}
+      try {
+        if (input && input.focus) input.focus();
+      } catch (_) {}
     }
   });
 }
+
+// A visually hidden status message beside the field, there from the start so that a
+// screen reader hears it change.
+function ensureStatus(host) {
+  let status = host.querySelector('[data-canopy-search-form-status]');
+  if (!status) {
+    status = document.createElement('div');
+    status.setAttribute('data-canopy-search-form-status', '');
+    status.setAttribute('role', 'status');
+    status.className = 'sr-only';
+    host.appendChild(status);
+  }
+  return status;
+}
+
+// Long enough that a screen reader hears the count once typing pauses, not every key.
+const ANNOUNCE_DELAY = 800;
+
+let hostCount = 0;
 
 async function attachSearchForm(host) {
   const config = parseProps(host) || {};
@@ -385,75 +299,70 @@ async function attachSearchForm(host) {
   const groupOrder = Array.isArray(config.groupOrder) ? config.groupOrder : ['work', 'page'];
   const hotkey = typeof config.hotkey === 'string' ? config.hotkey : '';
   const onSearchPage = isOnSearchPage();
+  hostCount += 1;
+  const idPrefix = `canopy-search-suggestions-${hostCount}`;
 
-  const panel = (() => {
-    try { return host.querySelector('[data-canopy-search-form-panel]'); } catch (_) { return null; }
-  })();
+  const panel = host.querySelector('[data-canopy-search-form-panel]');
   if (!panel) return;
 
   if (!onSearchPage) {
-    try {
-      const wrapper = host.querySelector('.relative');
-      if (wrapper) wrapper.setAttribute('data-canopy-search-form-auto', '1');
-    } catch (_) {}
+    const wrapper = host.querySelector('.relative');
+    if (wrapper) wrapper.setAttribute('data-canopy-search-form-auto', '1');
   }
 
   if (onSearchPage) hidePanel(panel);
 
-  const list = (() => {
-    try { return panel.querySelector('#cplist'); } catch (_) { return null; }
-  })();
+  const list = panel.querySelector('#cplist') || panel.querySelector('.canopy-search-teaser__list');
   if (!list) return;
 
-  const input = (() => {
-    try { return host.querySelector('[data-canopy-search-form-input]'); } catch (_) { return null; }
-  })();
+  const input = host.querySelector('[data-canopy-search-form-input]');
   if (!input) return;
 
   try {
-    const params = new URLSearchParams(location.search || '');
-    const qp = params.get('q');
+    const qp = new URLSearchParams(location.search || '').get('q');
     if (qp) input.value = qp;
   } catch (_) {}
 
-  const records = await loadRecords();
-
-  function render(items) {
-    renderList(list, items, groupOrder);
+  const status = onSearchPage ? null : ensureStatus(host);
+  let statusTimer = null;
+  function announce(text) {
+    if (!status) return;
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => {
+      if (status.textContent !== text) status.textContent = text;
+    }, ANNOUNCE_DELAY);
   }
 
-  function filterAndShow(query) {
+  let sequence = 0;
+  async function filterAndShow(query) {
+    const mine = (sequence += 1);
+    const q = String(query || '').trim();
+    if (!q) {
+      list.innerHTML = '';
+      hidePanel(panel);
+      announce('');
+      return;
+    }
+    let engine;
     try {
-      const q = toLower(query);
-      if (!q) {
-        list.innerHTML = '';
-        hidePanel(panel);
-        return;
-      }
-      const out = [];
-      for (let i = 0; i < records.length; i += 1) {
-        const record = records[i];
-        const title = String(record && record.title || '');
-        const parts = [toLower(title)];
-        const metadata = Array.isArray(record && record.metadata) ? record.metadata : [];
-        for (const value of metadata) {
-          parts.push(toLower(value));
-        }
-        if (record && record.summary) parts.push(toLower(record.summary));
-        if (record && record.annotation) parts.push(toLower(record.annotation));
-        const haystack = parts.join(' ');
-        if (haystack.includes(q)) out.push(record);
-        if (out.length >= maxResults) break;
-      }
-      render(out);
-    } catch (_) {}
+      engine = await openEngine();
+    } catch (error) {
+      try {
+        console.warn('[canopy][search-form] no suggestions:', error && (error.message || error));
+      } catch (_) {}
+      return;
+    }
+    // A later keystroke has its own search.
+    if (mine !== sequence) return;
+    const found = engine.search(q, maxResults);
+    renderList(list, found, groupOrder, idPrefix);
+    announce(countMessage(found.length));
   }
 
   input.addEventListener('input', () => {
     if (onSearchPage) {
       try {
-        const ev = new CustomEvent('canopy:search:setQuery', { detail: { query: input.value || '' } });
-        window.dispatchEvent(ev);
+        window.dispatchEvent(new CustomEvent('canopy:search:setQuery', { detail: { query: input.value || '' } }));
       } catch (_) {}
       return;
     }
@@ -465,41 +374,50 @@ async function attachSearchForm(host) {
     list,
     panel,
     ensureResults: () => {
-      if (!getItems(list).length) {
-        filterAndShow(input.value || '');
-      }
+      filterAndShow(input.value || '');
     },
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      hidePanel(panel);
-    }
+    if (event.key === 'Escape') hidePanel(panel);
   });
 
   document.addEventListener('mousedown', (event) => {
     try {
-      if (!panel.contains(event.target) && !host.contains(event.target)) {
-        hidePanel(panel);
-      }
+      if (!panel.contains(event.target) && !host.contains(event.target)) hidePanel(panel);
     } catch (_) {}
   });
 
   if (hotkey) {
+    // The shortcut's hint in the field, in the platform's words, and the same for a reader.
+    try {
+      const mac = /Mac|iPhone|iPad|iPod/i.test(
+        (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || '',
+      );
+      const hint = host.querySelector('[data-canopy-search-hotkey]');
+      if (hint) {
+        hint.textContent = mac ? '⌘K' : 'Ctrl K';
+        hint.hidden = false;
+      }
+      input.setAttribute('aria-keyshortcuts', mac ? 'Meta+K' : 'Control+K');
+    } catch (_) {}
     document.addEventListener('keydown', (event) => {
       try {
         const want = hotkey.toLowerCase();
         if (!want) return;
         const isMod = event.metaKey || event.ctrlKey;
-        const isCmd = (want === 'mod+k' || want === 'cmd+k' || want === 'ctrl+k') && (event.key === 'k' || event.key === 'K');
+        const isCmd =
+          (want === 'mod+k' || want === 'cmd+k' || want === 'ctrl+k') && (event.key === 'k' || event.key === 'K');
         if (isCmd && isMod) {
           event.preventDefault();
           if (onSearchPage) {
-            try { window.dispatchEvent(new CustomEvent('canopy:search:setQuery', { detail: { hotkey: true } })); } catch (_) {}
+            try {
+              window.dispatchEvent(new CustomEvent('canopy:search:setQuery', { detail: { hotkey: true } }));
+            } catch (_) {}
             return;
           }
-          if (input && input.focus) input.focus();
-          filterAndShow(input && input.value || '');
+          if (input.focus) input.focus();
+          filterAndShow(input.value || '');
         }
       } catch (_) {}
     });
@@ -507,11 +425,14 @@ async function attachSearchForm(host) {
 
   function openPanel() {
     if (onSearchPage) {
-      try { window.dispatchEvent(new CustomEvent('canopy:search:setQuery', { detail: {} })); } catch (_) {}
+      try {
+        window.dispatchEvent(new CustomEvent('canopy:search:setQuery', { detail: {} }));
+      } catch (_) {}
       return;
     }
-    if (input && input.focus) input.focus();
-    filterAndShow(input && input.value || '');
+    // Start loading the engine and the index as the field takes focus, ahead of typing.
+    openEngine().catch(() => {});
+    filterAndShow(input.value || '');
   }
 
   host.addEventListener('click', (event) => {
@@ -520,17 +441,17 @@ async function attachSearchForm(host) {
     const mode = (trigger.dataset && trigger.dataset.canopySearchFormTrigger) || '';
     if (mode === 'submit' || mode === 'form') return;
     event.preventDefault();
+    if (input.focus) input.focus();
     openPanel();
   });
 
-  try {
-    input.addEventListener('focus', () => { openPanel(); });
-  } catch (_) {}
+  input.addEventListener('focus', () => {
+    openPanel();
+  });
 }
 
 ready(() => {
   const hosts = Array.from(document.querySelectorAll('[data-canopy-search-form]'));
-  if (!hosts.length) return;
   hosts.forEach((host) => {
     attachSearchForm(host).catch((err) => {
       try {

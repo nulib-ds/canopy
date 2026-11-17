@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@canopy-iiif/app/ui/styles/index.css";
+@import "@nulib/canopy/ui/styles/index.css";
 @import "./northwestern.css";
 @import "./custom.css";
 

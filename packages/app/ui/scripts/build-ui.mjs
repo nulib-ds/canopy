@@ -3,6 +3,9 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import * as sass from 'sass';
+import { createRequire } from 'module';
+
+const { withUiStylesImports } = createRequire(import.meta.url)('../../lib/build/ui-styles.js');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +14,7 @@ const stylesDir = path.join(root, 'styles');
 const indexScss = path.join(stylesDir, 'index.scss');
 const indexCss = path.join(stylesDir, 'index.css');
 const packageRoot = path.resolve(root, '..');
-const packageName = '@canopy-iiif/app';
+const packageName = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')).name;
 
 const externalizeWorkspaceLibComponents = {
   name: 'externalize-workspace-lib-components',
@@ -37,10 +40,9 @@ async function compileStylesOnce() {
     const loadPaths = [stylesDir];
     const out = sass.compileString("@use 'index';", { style: 'expanded', loadPaths });
     fs.mkdirSync(path.dirname(indexCss), { recursive: true });
-    // The theme is added to each site's stylesheet at build time
-    // (lib/build/styles.js); never bake it into this published file.
-    const css = out.css || '';
-    fs.writeFileSync(indexCss, css, 'utf8');
+    // Clover's stylesheets and version parity ahead of Canopy's rules, as the dev
+    // server's Sass watcher writes them too (lib/build/ui-styles.js).
+    fs.writeFileSync(indexCss, withUiStylesImports(out.css), 'utf8');
     console.log('[ui] wrote', path.relative(root, indexCss));
   } catch (e) {
     console.warn('[ui] styles compile failed:', e && e.message ? e.message : e);
@@ -52,7 +54,7 @@ async function run() {
   try {
     esbuild = await import('esbuild');
   } catch (e) {
-    console.error('[ui] esbuild is not installed. Run `npm i -w @canopy-iiif/app`');
+    console.error(`[ui] esbuild is not installed. Run \`npm i -w ${packageName}\``);
     process.exit(1);
   }
 
@@ -69,7 +71,7 @@ async function run() {
     sourcemap: true,
     target: ['es2018'],
     mainFields: ['module', 'main'],
-    external: ['react', 'react-dom', 'react-dom/client', 'react-masonry-css', 'flexsearch', 'cmdk', 'leaflet', 'leaflet.markercluster', '@samvera/clover-iiif/*'],
+    external: ['react', 'react-dom', 'react-dom/client', 'react-masonry-css', 'flexsearch', 'leaflet', 'leaflet.markercluster', '@allmaps/leaflet', '@nulib/clover', '@nulib/clover/*'],
     logLevel: 'info',
     outExtension: { '.js': '.mjs' },
     metafile: false
@@ -95,10 +97,10 @@ async function run() {
       'react-dom/client',
       'react-masonry-css',
       'flexsearch',
-      'cmdk',
       'leaflet',
       'leaflet.markercluster',
-      '@samvera/clover-iiif/*',
+      '@allmaps/leaflet',
+      '@nulib/clover', '@nulib/clover/*',
     ],
     mainFields: ['module', 'main'],
     conditions: ['module'],
@@ -124,7 +126,7 @@ async function run() {
       sourcemap: true,
       target: ['es2018'],
       mainFields: ['module', 'main'],
-      external: ['react', 'react-dom', 'react-dom/client', 'react-masonry-css', 'flexsearch', 'cmdk', 'leaflet', 'leaflet.markercluster', '@samvera/clover-iiif/*'],
+      external: ['react', 'react-dom', 'react-dom/client', 'react-masonry-css', 'flexsearch', 'leaflet', 'leaflet.markercluster', '@allmaps/leaflet', '@nulib/clover', '@nulib/clover/*'],
       logLevel: 'info',
       outExtension: { '.js': '.mjs' }
     });
@@ -148,10 +150,10 @@ async function run() {
         'react-dom/client',
         'react-masonry-css',
         'flexsearch',
-        'cmdk',
-        'leaflet',
+          'leaflet',
         'leaflet.markercluster',
-        '@samvera/clover-iiif/*',
+        '@allmaps/leaflet',
+        '@nulib/clover', '@nulib/clover/*',
       ],
       mainFields: ['module', 'main'],
       conditions: ['module'],

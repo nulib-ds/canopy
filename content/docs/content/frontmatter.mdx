@@ -2,15 +2,18 @@
 
 Every MDX file can start with a YAML block to set page metadata, connect to works, or toggle special layouts. This guide consolidates every supported key so you do not have to hunt through other docs.
 
-| Key                   | Purpose                                                                     |
-| --------------------- | --------------------------------------------------------------------------- |
-| `title`               | Page title used for `<h1>` and `<title>`.                                   |
-| `description`         | Optional blurb for `<meta name="description">`.                             |
-| `type`                | Overrides the computed page type (used for layout + meta tags).             |
-| `referencedManifests` | List of manifest URLs consumed by `<ReferencedItems />` / `<References />`. |
-| `search`              | When set to `false`, removes the page from the search index.                |
-| `canonical`           | Absolute or relative canonical URL for the page.                            |
-| `image`               | URL or path to a image for and open graph and search results.               |
+| Key                     | Purpose                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `title`                 | Page title used for `<h1>` and `<title>`.                                   |
+| `description`           | Blurb for `<meta name="description">`, and the page's search result.        |
+| `type`                  | Overrides the computed page type (used for layout + meta tags).             |
+| `referencedManifests`   | List of manifest URLs consumed by `<ReferencedItems />` / `<References />`. |
+| `search`                | When set to `false`, removes the page from the search index.                |
+| `searchType`            | The page's type in search, and so its tab; ahead of `type`.                 |
+| `searchSummary`         | The words its search result shows, in place of an excerpt.                  |
+| `searchSummaryMarkdown` | The same, with inline Markdown: code, emphasis.                             |
+| `canonical`             | Absolute or relative canonical URL for the page.                            |
+| `image`                 | URL or path to an image for Open Graph and search results.                  |
 
 ## Title and Description
 

@@ -143,7 +143,12 @@ export default function ContentNavigationScript() {
   function computeOffsetPx() {
     try {
       var root = document.documentElement;
-      var size = root ? parseFloat(window.getComputedStyle(root).fontSize || '16') || 16 : 16;
+      var style = root ? window.getComputedStyle(root) : null;
+      // Where a heading lands when its link is followed: under the sticky header, if it
+      // sticks (\`scroll-padding-top\`, \`header/_header.scss\`).
+      var padding = style ? parseFloat(style.scrollPaddingTop) || 0 : 0;
+      if (padding > 0) return padding;
+      var size = style ? parseFloat(style.fontSize || '16') || 16 : 16;
       return size * 1.618;
     } catch (error) {
       return 0;

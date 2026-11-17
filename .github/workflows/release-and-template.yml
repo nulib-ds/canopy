@@ -17,6 +17,12 @@ jobs:
     if: >-
       ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
+    # npm trusted publishing: npm accepts this job's OIDC identity in place of a token.
+    # Each package's settings on npmjs.com name GitHub Actions, nulib-ds/canopy and this
+    # file, release-and-template.yml (CONTRIBUTING.md, "Publishing to npm").
+    permissions:
+      contents: write
+      id-token: write
     outputs:
       published: ${{ steps.changesets.outputs.published }}
       publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
@@ -32,11 +38,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
+          # The registry npm publishes to; trusted publishing needs it named.
           registry-url: https://registry.npmjs.org
           cache: "npm"
-          scope: "@canopy-iiif"
-          always-auth: true
 
       - name: Install dependencies
         run: |
@@ -44,6 +49,9 @@ jobs:
           npm config set audit false
           npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
+      # No npm token: `changeset publish` runs `npm publish` for each package, and npm
+      # (11.5.1 or later; Node 24 ships 11.6) trades the job's OIDC token for a
+      # short-lived one, and adds provenance.
       - name: Changesets release
         id: changesets
         uses: changesets/action@v1
@@ -51,8 +59,6 @@ jobs:
           publish: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Resolve release version
         id: release_version
@@ -64,8 +70,13 @@ jobs:
       - name: Read release notes from docs data
         id: release_notes
         if: steps.changesets.outputs.published == 'true'
+        # The packages are published by now: a version with no notes in the release log
+        # still gets its GitHub release (in the default words) and its templates.
         run: |
-          NOTES=$(node packages/helpers/release-notes-from-docs.js "${{ steps.release_version.outputs.version }}")
+          if ! NOTES=$(node packages/helpers/release-notes-from-docs.js "${{ steps.release_version.outputs.version }}"); then
+            echo "::warning::No notes for ${{ steps.release_version.outputs.version }} in content/docs/releases/releases.data.mjs; the GitHub release takes the default text."
+            NOTES='{}'
+          fi
           {
             echo 'payload<<EOF'
             echo "$NOTES"
@@ -82,6 +93,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const notes = JSON.parse(process.env.RELEASE_NOTES || '{}');
+            // A prerelease (x.y.z-next.N) is one on GitHub too; npm has it on the `next` tag.
             const version = process.env.RELEASE_VERSION;
             const tag = `v${version}`;
             const body = notes.body && notes.body.trim()
@@ -102,7 +114,7 @@ jobs:
                 name,
                 body,
                 draft: false,
-                prerelease: false,
+                prerelease: version.includes("-"),
               });
             } catch (error) {
               if (error.status !== 404) throw error;
@@ -113,13 +125,15 @@ jobs:
                 name,
                 body,
                 draft: false,
-                prerelease: false,
+                prerelease: version.includes("-"),
               });
             }
 
   template:
     needs: release
-    if: needs.release.result == 'success' && needs.release.outputs.published == 'true'
+    # A prerelease (Changesets' pre mode, `.changeset/pre.json`) is published on npm's
+    # `next` tag; the templates keep the release they have until a release.
+    if: needs.release.result == 'success' && needs.release.outputs.published == 'true' && !contains(needs.release.outputs.releaseVersion, '-')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -130,7 +144,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
@@ -152,14 +166,10 @@ jobs:
           VERSION: ${{ needs.release.outputs.releaseVersion }}
           NOTES: ${{ needs.release.outputs.releaseNotes }}
 
-      - name: Resolve published version
-        id: ver
-        run: |
-          echo "APP=$(npm view @canopy-iiif/app version || echo '')" >> $GITHUB_OUTPUT
-
       - name: Prepare clean template
         env:
-          APP_VERSION: ${{ steps.ver.outputs.APP }}
+          # The version this run published (`npm view` can lag behind a publish).
+          APP_VERSION: ${{ needs.release.outputs.releaseVersion }}
         run: node packages/helpers/template/prepare-template.js
 
       - name: Push to template repository (main)
@@ -171,7 +181,9 @@ jobs:
 
   template-i18n:
     needs: release
-    if: needs.release.result == 'success' && needs.release.outputs.published == 'true'
+    # A prerelease (Changesets' pre mode, `.changeset/pre.json`) is published on npm's
+    # `next` tag; the templates keep the release they have until a release.
+    if: needs.release.result == 'success' && needs.release.outputs.published == 'true' && !contains(needs.release.outputs.releaseVersion, '-')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -182,7 +194,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
@@ -204,14 +216,10 @@ jobs:
           VERSION: ${{ needs.release.outputs.releaseVersion }}
           NOTES: ${{ needs.release.outputs.releaseNotes }}
 
-      - name: Resolve published version
-        id: ver_i18n
-        run: |
-          echo "APP=$(npm view @canopy-iiif/app version || echo '')" >> $GITHUB_OUTPUT
-
       - name: Prepare clean template (i18n)
         env:
-          APP_VERSION: ${{ steps.ver_i18n.outputs.APP }}
+          # The version this run published (`npm view` can lag behind a publish).
+          APP_VERSION: ${{ needs.release.outputs.releaseVersion }}
           TEMPLATE_SOURCE_DIR: packages/helpers/template-i18n
           TEMPLATE_OUT_DIR: .template-i18n-build
         run: node packages/helpers/template/prepare-template.js
@@ -226,7 +234,9 @@ jobs:
 
   template-northwestern:
     needs: release
-    if: needs.release.result == 'success' && needs.release.outputs.published == 'true'
+    # A prerelease (Changesets' pre mode, `.changeset/pre.json`) is published on npm's
+    # `next` tag; the templates keep the release they have until a release.
+    if: needs.release.result == 'success' && needs.release.outputs.published == 'true' && !contains(needs.release.outputs.releaseVersion, '-')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -237,7 +247,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
@@ -259,14 +269,10 @@ jobs:
           VERSION: ${{ needs.release.outputs.releaseVersion }}
           NOTES: ${{ needs.release.outputs.releaseNotes }}
 
-      - name: Resolve published version
-        id: ver_northwestern
-        run: |
-          echo "APP=$(npm view @canopy-iiif/app version || echo '')" >> $GITHUB_OUTPUT
-
       - name: Prepare clean template (northwestern)
         env:
-          APP_VERSION: ${{ steps.ver_northwestern.outputs.APP }}
+          # The version this run published (`npm view` can lag behind a publish).
+          APP_VERSION: ${{ needs.release.outputs.releaseVersion }}
           TEMPLATE_SOURCE_DIR: packages/helpers/template-northwestern
           TEMPLATE_OUT_DIR: .template-northwestern-build
         run: node packages/helpers/template/prepare-template.js

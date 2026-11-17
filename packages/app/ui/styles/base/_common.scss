@@ -1,3 +1,5 @@
+@use "../settings/type";
+
 @layer base {
   body {
     margin: 0;
@@ -29,6 +31,57 @@
     &:hover {
       text-decoration: underline;
     }
+  }
+
+  // Links in running text are underlined as well as colored, so color never carries
+  // their meaning alone (WCAG 1.4.1; ACCESSIBILITY.md C11). Navigation, and links with
+  // a class of their own (cards, buttons, menus), keep their own treatment; the links
+  // Markdown writes carry no class, but for a footnote's way back to its reference (C43).
+  :where(p, li, td, th, blockquote, figcaption)
+    a:where(:not([class]):not(nav a), [data-footnote-backref]) {
+    text-decoration-line: underline;
+    text-underline-offset: 0.15em;
+
+    &:hover {
+      text-decoration-thickness: max(2px, 0.1em);
+    }
+  }
+
+  // Text with nowhere to break, such as an identifier or a path in inline code, wraps
+  // rather than push the page sideways at 320px (WCAG 1.4.10; ACCESSIBILITY.md C13).
+  :where(p, li, dd, blockquote, figcaption),
+  :where(:not(pre)) > code {
+    overflow-wrap: anywhere;
+  }
+
+  // Reading text, as a magazine sets it (settings/_tokens.scss): a page's prose, the
+  // paragraphs, lists and quotes Markdown writes, which carry no class (a task list only
+  // Markdown's own), in the body serif and a step larger. Components keep the
+  // interface's sans, as does whatever a Clover part draws. A site's own `app/styles`
+  // base rules come later in the layer and win.
+  main
+    :where(p, ul, ol, blockquote):not([class]:not(.contains-task-list)):not(
+      :where(
+          [data-canopy-viewer],
+          [data-canopy-slider],
+          [data-canopy-image],
+          [data-canopy-scroll],
+          [data-canopy-related-items],
+          [class*="clover-"]
+        )
+        *
+    ) {
+    @include type.body;
+    max-inline-size: var(--canopy-measure);
+  }
+
+  // A picture Markdown sets in a paragraph keeps the column's whole width, as a figure
+  // runs wider than a magazine's text.
+  main
+    :where(p):not([class]:not(.contains-task-list)):has(
+      > :is(img, picture, video, iframe, svg, a > img)
+    ) {
+    max-inline-size: none;
   }
 
   input,

@@ -10,6 +10,8 @@ common:
     done: "Listo"
     show: "Mostrar"
     hide: "Ocultar"
+    view_work: "Ver obra"
+    copy: "Copiar"
   nouns:
     search: "Buscar"
     filters: "Filtros"
@@ -31,6 +33,8 @@ common:
     details: "detalles"
     breadcrumb: "Miga de pan"
     home: "Inicio"
+    suggestion: "sugerencia"
+    suggestions: "sugerencias"
   types:
     work: "Obras"
     page: "Páginas"
@@ -64,6 +68,9 @@ common:
     step_content: "{direction} {content}"
     item_numbered: "{content} {index}"
     content_key: "Clave de {content}"
+    copy_code: "Copiar el código al portapapeles"
+    copied_code: "Copiado al portapapeles"
+    count_content: "{count} {content}"
   directions:
     left: "izquierda"
     right: "derecha"
@@ -72,3 +79,18 @@ common:
   misc:
     referenced_by: "Referenciado por"
     on_this_page: "En esta página"
+  appearance:
+    label: "Apariencia"
+    system: "Sistema"
+    light: "Claro"
+    dark: "Oscuro"
+  carousel:
+    label: "Contenido destacado"
+    role: "carrusel"
+    slide_role: "diapositiva"
+    slide: "{index} de {total}"
+    previous: "Diapositiva anterior"
+    next: "Diapositiva siguiente"
+    go_to: "Ir a la diapositiva {index}"
+    stop: "Pausar la presentación"
+    start: "Reproducir la presentación"

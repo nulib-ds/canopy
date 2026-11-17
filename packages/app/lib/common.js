@@ -245,16 +245,17 @@ function resolveLocaleFromHref(href) {
   return canonical || defaultLang;
 }
 
+// `light`, `dark`, or `auto` (the visitor's system setting, and a switch in the footer).
 function resolveThemeAppearance() {
   if (cachedAppearance) return cachedAppearance;
   cachedAppearance = 'light';
   try {
-    const { loadCanopyTheme } = require('@canopy-iiif/app/ui/theme');
+    const { loadCanopyTheme } = require('../ui/theme');
     if (typeof loadCanopyTheme === 'function') {
       const theme = loadCanopyTheme();
-      const appearance = theme && theme.appearance ? String(theme.appearance) : '';
-      if (appearance.toLowerCase() === 'dark') {
-        cachedAppearance = 'dark';
+      const appearance = theme && theme.appearance ? String(theme.appearance).toLowerCase() : '';
+      if (appearance === 'dark' || appearance === 'auto') {
+        cachedAppearance = appearance;
       }
     }
   } catch (_) {}
@@ -265,7 +266,7 @@ function resolveThemeAccent() {
   if (cachedAccent) return cachedAccent;
   cachedAccent = 'indigo';
   try {
-    const { loadCanopyTheme } = require('@canopy-iiif/app/ui/theme');
+    const { loadCanopyTheme } = require('../ui/theme');
     if (typeof loadCanopyTheme === 'function') {
       const theme = loadCanopyTheme();
       const accent = theme && theme.accent && theme.accent.name ? String(theme.accent.name) : '';
@@ -288,9 +289,12 @@ function readYamlConfigBaseUrl() {
   } catch (_) { return ''; }
 }
 
+// The site's title and appearance, which components read from the page context
+// (`CanopyFooter` shows the appearance switch where the theme is `auto`).
 function readSiteMetadata() {
   if (cachedSiteMetadata) return cachedSiteMetadata;
-  cachedSiteMetadata = { title: DEFAULT_SITE_TITLE };
+  const appearance = resolveThemeAppearance();
+  cachedSiteMetadata = { title: DEFAULT_SITE_TITLE, appearance };
   try {
     const cfgPath = resolveCanopyConfigPath();
     if (!fs.existsSync(cfgPath)) return cachedSiteMetadata;
@@ -302,7 +306,7 @@ function readSiteMetadata() {
         ? data.site.title.trim()
         : '';
     const resolved = directTitle || nestedTitle || DEFAULT_SITE_TITLE;
-    cachedSiteMetadata = { title: resolved };
+    cachedSiteMetadata = { title: resolved, appearance };
   } catch (_) {}
   return cachedSiteMetadata;
 }
@@ -443,14 +447,21 @@ function htmlShell({ title, body, cssHref, scriptHref, headExtra, bodyClass, lan
   const accent = resolveThemeAccent();
   const htmlAttrs = [];
   if (appearance === 'dark') htmlAttrs.push('class="dark"');
+  if (appearance === 'auto') htmlAttrs.push('data-appearance="auto"');
   htmlAttrs.push(`data-accent="${accent || 'indigo'}"`);
   const htmlAttr = htmlAttrs.length ? ` ${htmlAttrs.join(' ')}` : '';
+  // `appearance: auto`: inline and ahead of the stylesheet, so the first paint is in the
+  // visitor's appearance (lib/build/appearance.js).
+  const appearanceTag =
+    appearance === 'auto'
+      ? `<script>${require('./build/appearance').appearanceScript(withBase('/'))}</script>`
+      : '';
   const hasCustomTitle = /<title\b/i.test(extra);
   const titleTag = hasCustomTitle ? '' : `<title>${title}</title>`;
   const bodyClassName = normalizeClassList(bodyClass);
   const bodyAttr = bodyClassName ? ` class="${bodyClassName}"` : '';
   const htmlLang = typeof lang === 'string' && lang.trim() ? lang.trim() : getDefaultLocaleCode();
-  return `<!doctype html><html lang="${htmlLang}"${htmlAttr}><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>${titleTag}${extra}${cssTag}${scriptTag}</head><body${bodyAttr}>${body}</body></html>`;
+  return `<!doctype html><html lang="${htmlLang}"${htmlAttr}><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>${titleTag}${appearanceTag}${extra}${cssTag}${scriptTag}</head><body${bodyAttr}>${body}</body></html>`;
 }
 
 function withBase(href) {

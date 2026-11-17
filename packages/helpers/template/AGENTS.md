@@ -2,6 +2,14 @@
 
 > Use this document when assisting end users of the Canopy template. Focus on actionable guidance, surface gaps, and keep responses grounded in the files that ship in the template repo.
 
+## 0. Prime directive: WCAG 2.2 AA
+Sites built from this template should conform to WCAG 2.2 at Level AA, and that outranks every other note in this guide. Canopy's components are built and tested to conform; keep what authors add conforming too.
+- Content: give meaningful images alt text (`<Image alt="…" />`), keep headings in order without skipping a level, write link text that names its target, and mark passages in another language with `lang`.
+- Theme and CSS: keep `canopy.yml` theme choices and overrides in `app/styles/` at 4.5:1 for text, and 3:1 for large text, icons, control edges and focus rings. Never remove focus outlines.
+- Custom components (`app/components/`): reachable and operable by keyboard, with a visible focus and an accessible name, and nothing that moves on its own without a way to pause it.
+- If a request would fail a criterion, say so and offer the version that conforms.
+- Canopy's rules are in [`packages/app/DESIGN.md`](https://github.com/nulib-ds/canopy/blob/main/packages/app/DESIGN.md) §0; known issues in Canopy itself are in [`ACCESSIBILITY.md`](https://github.com/nulib-ds/canopy/blob/main/ACCESSIBILITY.md).
+
 ## 1. Mission & Success Criteria
 - Help authors customize their Canopy deployment without touching unpublished monorepo internals.
 - Cite the files the template actually ships so users can trace every recommendation.
@@ -9,17 +17,16 @@
 - Build/dev commands that touch IIIF endpoints (`npm run dev`, `npm run build`) must run with network access enabled.
 
 ## 2. Quick Start Checks
-1. Require Node 18+ (use `nvm use` if `.nvmrc` exists) and install dependencies with `npm install`.
-2. `npm run dev` runs the MDX/IIIF builder plus the preview server on port 5001; `npm run build` emits a production-ready static site into `site/`.
-3. `npm test` only prints a placeholder; let users know automated tests are not bundled yet.
+1. Require Node 24, the version in `.nvmrc` (`nvm use`), and install dependencies with `npm install`.
+2. `npm run dev` (`canopy dev`) runs the MDX/IIIF builder plus the preview server on port 5001; `npm run build` (`canopy build`) emits a production-ready static site into `site/`. `canopy` is the command `@nulib/canopy` installs.
+3. The template bundles no automated tests.
 4. Never edit `site/` manually—it's a build artifact that is overwritten.
 
 ## 3. Project Layout Primer
-- `app/` — Tailwind v4 entrypoint, runtime scripts, and `app/scripts/canopy-build.mjs` (single entry for `dev` + `build`).
+- `app/` — the Tailwind v4 entrypoint (`app/styles/`) and the site's own components (`app/components/`).
 - `assets/` — copied verbatim into `site/` during builds and watched during `dev` for instant reloads.
 - `content/` — MDX pages, optional `_app.mdx` wrapper, and per-directory `_layout.mdx` scaffolds.
-- `packages/app/ui` — UI runtime that templates import via `@canopy-iiif/app/ui` (browser) or `@canopy-iiif/app/ui/server` (SSR-safe MDX components).
-- `packages/app/lib` — builder + hydration runtimes; end users rarely edit this, but AGENTS may need to explain behaviors (e.g., hydration data attributes, IIIF cache management).
+- `@nulib/canopy` (in `node_modules`) — Canopy itself: the builder and hydration runtimes, and the UI that pages import as `@nulib/canopy/ui` (browser) or `@nulib/canopy/ui/server` (SSR-safe MDX components). End users never edit it, but AGENTS may need to explain its behaviors (e.g., hydration data attributes, IIIF cache management). Sites made before Canopy 2 import it by its 1.x name, `@canopy-iiif/app`, which keeps working.
 - `.cache/iiif/` — fetched manifest cache (delete to refetch).
 - `site/` — generated output.
 
@@ -29,7 +36,7 @@
 - `collection` / `manifest` — IIIF sources. Accept a string or array; URIs must respond with Presentation 2/3 JSON.
 - `metadata` — ordered list of manifest fields to promote as facets/labels inside IIIF components.
 - `featured` — manifest IDs for `<Interstitials.Hero />` rotations.
-- `theme` — Radix palettes and appearance for the generated CSS variables (`appearance`, `accentColor`, `grayColor`).
+- `theme` — Radix palettes and appearance for the generated CSS variables (`appearance`: `light`, `dark` or `auto`; `accentColor`: a palette or a quoted hex color; `grayColor`).
 - `basePath` is inferred from `CANOPY_BASE_PATH` / `CANOPY_BASE_URL` (env vars) when deploying under a subdirectory.
 
 ### 4.2 Frontmatter & Layouts
@@ -46,9 +53,9 @@
 ## 5. Content Authoring Workflow
 1. Global wrappers (`content/_app.mdx`) apply site-wide UI (headers, analytics, etc.).
 2. Section wrappers (`content/<section>/_layout.mdx`) add local navigation, metadata, or design tokens per section.
-3. Pages (`content/<section>/<page>.mdx`) can import any component exported from `@canopy-iiif/app/ui/server`.
+3. Pages (`content/<section>/<page>.mdx`) can import any component exported from `@nulib/canopy/ui/server`.
 4. Work pages require `content/works/_layout.mdx`; it receives `props.manifest` (normalized Presentation 3) for building narratives.
-5. Components that hydrate on the client render SSR placeholders. Ensure `app/scripts/canopy-build.mjs` injects the corresponding runtime script (automatic when data attributes like `data-canopy-viewer` are present).
+5. Components that hydrate on the client render SSR placeholders. The build injects the corresponding runtime script (automatic when data attributes like `data-canopy-viewer` are present).
 
 ## 6. Component Reference
 Hydrated components follow a shared pattern:
@@ -58,10 +65,10 @@ Hydrated components follow a shared pattern:
 
 ### 6.1 IIIF Media Wrappers (`packages/app/ui/src/iiif/`)
 - `HelloWorld` — diagnostic stub for verifying MDX imports. Use case: confirm build wiring or demo the component pipeline without pulling IIIF data.
-- `Viewer` (`Viewer.jsx`) — SSR-safe wrapper for `@samvera/clover-iiif/viewer`. Supports `iiifContent`, `options`, and merges defaults (no download badge). Hydrates via `site/canopy-viewer.js` and `data-canopy-viewer`. Use case: embed a full Clover viewer on work pages or editorial features.
-- `Slider` (`Slider.jsx`) — wraps `@samvera/clover-iiif/slider`, normalizes options with `sliderOptions.js`, and hydrates via `data-canopy-slider` + `site/canopy-slider.js`. Use case: create horizontal IIIF carousels (e.g., featured works) outside of the automated RelatedItems component.
-- `Scroll` (`Scroll.jsx`) — lazy-loads `@samvera/clover-iiif/scroll`, yielding a scrollable narrative of canvases. Hydrates via `data-canopy-scroll` in the viewer runtime entry. Use case: present tall storytelling experiences where visitors scroll through canvases sequentially.
-- `Image` (`Image.jsx`) — renders a static hero image pulled from a manifest via `@samvera/clover-iiif/image`. Accepts `height`, `backgroundColor`, and optional `caption`. Use case: drop a single IIIF canvas into MDX as a decorative figure or callout.
+- `Viewer` (`Viewer.jsx`) — SSR-safe wrapper for Clover 4's Viewer (`@nulib/clover/viewer`, in its Default template). Supports `iiifContent`, `options`, and merges defaults (no download badge). Hydrates via `site/canopy-viewer.js` and `data-canopy-viewer`. Use case: embed a full Clover viewer on work pages or editorial features.
+- `Slider` (`Slider.jsx`) — draws Clover 4's `Items` (`@nulib/clover/items`) as a slider, normalizes options with `sliderOptions.js`, and hydrates via `data-canopy-slider` + `site/canopy-slider.js`. Use case: create horizontal IIIF carousels (e.g., featured works) outside of the automated RelatedItems component.
+- `Scroll` (`Scroll.jsx`) — for now Clover 4's Document template, the pages down one scrolling column, until a text-focused reader replaces it. Hydrates via `data-canopy-scroll` in the viewer runtime entry. Use case: present tall storytelling experiences where visitors scroll through canvases sequentially.
+- `Image` (`Image.jsx`) — renders a static hero image pulled from a manifest by Clover 4's `Canvas` (`@nulib/clover/canvas`). Accepts `height`, `backgroundColor`, and optional `caption`. Use case: drop a single IIIF canvas into MDX as a decorative figure or callout.
 - `ImageStory` (`ImageStory.jsx`) — mounts Cogapp’s Storiiies viewer. Props: `iiifContent`, `disablePanAndZoom`, `pointOfInterestSvgUrl`, `viewerOptions`, `height`. Hydrated by `site/canopy-image-story.js`. Use case: create linear, annotation-driven narratives that highlight regions of an image (e.g., guided tours).
 - `RelatedItems` (`MdxRelatedItems.jsx`) — placeholder feeding `site/canopy-related-items.js`, which looks up metadata facets and renders clover sliders per facet. Props mirror the MDX component API (`top`, `iiifContent`, `random`). Use case: surface automated “more like this” sliders on home/works pages using indexed metadata.
 - `Slider`, `Scroll`, `Image`, and `Viewer` share the runtime defined in `packages/app/lib/components/viewer-runtime-entry.js`.
@@ -69,13 +76,14 @@ Hydrated components follow a shared pattern:
 - IIIF primitives (`ManifestPrimitives.jsx`): `Label`, `Metadata`, `RequiredStatement`, `Summary` sanitize internationalized strings, emit facet links, and respect `CANOPY_BASE_PATH`. `Id.jsx` renders a manifest ID block with a customizable heading. Use case: expose structured manifest fields inline without hydrating heavy components.
 
 ### 6.2 Interstitials (`packages/app/ui/src/interstitials/`)
-- `Interstitials.Hero` — hero carousel fed by `featured` entries in `canopy.yml`. Props: `height`, `item`, `index`, `random`, `transition`, `headline`, `description`, `links`, `background` (`theme`|`transparent`), `variant` (`featured` or `breadcrumb`). Uses `computeHeroHeightStyle` from `hero-utils.js`. Hydration script: `site/canopy-hero-slider.js`. Use case: rotate highlighted manifests or contextual breadcrumbs on landing pages.
+- `Interstitials.Hero` — hero carousel fed by `featured` entries in `canopy.yml`. Props: `height`, `item`, `index`, `random`, `transition`, `headline`, `description`, `links`, `background` (`theme`|`transparent`), `variant` (`featured`, `centered` or `breadcrumb`). `centered` lays the hero down the page, the featured works under it in a raised card; `headline` may hold a `<Swoosh>`. Uses `computeHeroHeightStyle` from `hero-utils.js`. Hydration script: `site/canopy-hero-slider.js`. Use case: rotate highlighted manifests or contextual breadcrumbs on landing pages.
 
 ### 6.3 Layout, Navigation, and Utility Components (`packages/app/ui/src/layout/`)
 - `Layout` — page shell that wires headings into a collapsible/floating table of contents, renders section navigation, and injects sticky scripts (content navigation toggle, observers). Accepts `sidebar`, `contentNavigation`, `headings`, etc. Use case: build documentation-style layouts with automatic sidebars/Tables of Contents.
 - `SubNavigation` — renders section trees using `navigationHelpers.buildNavigationForFile`. Accepts `navigation`, `page`, `current`, `heading`, `ariaLabel`. Use case: insert contextual navigation for any directory tree (docs hub, microsite, etc.).
 - `CanopyHeader` — responsive header with brand, nav modal toggles, and optional controls. Uses `NavigationTree`, `CanopyModal`, `LanguageToggle`, and handles body scroll locking via embedded scripts. Use case: ship an accessible site chrome without crafting JS yourself.
-- `CanopyFooter` — wraps footer content with consistent padding. Use case: keep footer content consistent across MDX pages.
+- `CanopyFooter` — the site's footer, in Clover's layout. Children show as they always have; optional `logo`, `title`, `description` and `links` add the site's mark, a sentence and a row of links, where the appearance switch sits with `appearance: auto`. Use case: keep footer content consistent across MDX pages.
+- `Swoosh`, `Band`, `Feature` — homepage parts: the brush stroke under a word or two; a call to action on black (buttons in it take its colors); a section's eyebrow, title (`headingLevel`) and lede.
 - `LanguageToggle` — reads `site.languageToggle` from page context and builds select/list controls for locale switching (`languageToggleShared.jsx`). Props: `languageToggle`, `page`, `variant`, `control`, `showLabel`. Use case: expose per-page locale switches tied to the navigation metadata.
 - `CanopyBrand` — renders the logotype link. Props: `label`, `href`, `Logo` component, `labelId` for accessibility. Use case: drop brand marks in headers/footers without duplicating markup.
 - `CanopyModal` — generic modal used by the header and custom overlays. Props: `variant`, `label`, `logo`, `closeLabel`, `onClose`, `open`, `padded`. Use case: craft bespoke menu/search/CTA overlays reusing the existing animation + accessibility wiring.
@@ -103,10 +111,10 @@ Hydrated components follow a shared pattern:
 ### 6.6 Project-Specific MDX Components (`app/components/*`)
 - **IMPORTANT**: This folder is the canonical place for reusable JSX in templates. AGENTS should encourage users to add or modify components under `app/components/` instead of sprinkling bespoke React snippets directly inside `content/**/*.mdx` unless the user explicitly asks for an inline MDX-only tweak.
 - Why build custom components?
-  - Institutions routinely need bespoke UI (e.g., branded callouts, data visualizations, interactive maps) that the shared `@canopy-iiif/app/ui` set does not cover.
+  - Institutions routinely need bespoke UI (e.g., branded callouts, data visualizations, interactive maps) that the shared `@nulib/canopy/ui` set does not cover.
   - Creating SSR-safe components keeps builds fast and lets authors reuse them across MDX without copying markup.
   - Client-only components unlock integrations with third-party widgets (Knight Lab, charts, analytics) while preserving predictable hydration boundaries.
-  - These source files live next to `app/styles/` and `app/scripts/`; they are bundled during the build, so authors can import local helpers, configs, or data from any relative path under `app/` without publishing a separate package.
+  - These source files live next to `app/styles/`; they are bundled during the build, so authors can import local helpers, configs, or data from any relative path under `app/` without publishing a separate package.
 - Entrypoint: `app/components/mdx.tsx` defines two exports:
   - `components` — map MDX component names to SSR-safe modules (rendered at build time). Example: `Example` → `./Example.tsx`.
   - `clientComponents` — map browser-only names to `.client.tsx` modules. The builder emits placeholders + hydration scripts automatically.
@@ -155,13 +163,12 @@ Hydrated components follow a shared pattern:
 2. Gather file references, cite relative paths + line numbers in responses, and gently remind users to rebuild after config changes.
 3. Hydration bugs: confirm React globals are present (`site/scripts/react-globals.js`), externals (`react`, `react-dom`, `react-dom/client`, `react-masonry-css`) are excluded from browser bundles, and the relevant runtime script is being emitted.
 4. IIIF issues: inspect `.cache/iiif/index.json` for missing manifests, confirm environment variables, and rerun builds with network access.
-5. Documentation gaps: encourage users to open issues in `canopy-iiif/app` so maintainers can formalize workflows.
+5. Documentation gaps: encourage users to open issues in `nulib-ds/canopy` so maintainers can formalize workflows.
 
 ## 13. Appendix: Command Reference
 - `npm install` — install dependencies.
-- `npm run dev` — watch MDX + IIIF sources, rebuild on change, and sync `assets/`.
-- `npm run build` — production build into `site/`.
-- `npm test` — placeholder (returns success after printing a message).
-- `npm run lint`, `npm run format` — optional scripts when ESLint/Prettier configs are present.
+- `npm run dev` (`canopy dev`) — watch MDX + IIIF sources, rebuild on change, and sync `assets/`.
+- `npm run build` (`canopy build`) — production build into `site/`.
+- `npx canopy --help` — the command's options (`--debug` logs each IIIF request).
 
 Use this skeleton as the canonical source when crafting answers for end users of the template repository. Keep responses concise, reference exact files, and escalate undocumented needs back to maintainers.

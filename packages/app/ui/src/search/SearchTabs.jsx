@@ -2,6 +2,14 @@ import React, {useRef, useState, useEffect} from "react";
 import Button from "../layout/Button.jsx";
 import {useLocale} from "../locale/index.js";
 
+// The tab for each type of result (Works, Pages), after WAI-ARIA APG's tabs pattern
+// (ACCESSIBILITY.md R5): one tab stop, the arrow keys, Home and End move between the
+// tabs, and the selection follows focus, as the results show at once. The tabs control
+// the results (`panelId`), which `SearchResults` labels with the selected tab.
+export function searchTabId(type) {
+  return `canopy-search-tab-${String(type || "").toLowerCase()}`;
+}
+
 export default function SearchTabs({
   type = "all",
   onTypeChange,
@@ -11,6 +19,7 @@ export default function SearchTabs({
   activeFilterCount = 0,
   filtersLabel = "Filters",
   filtersOpen = false,
+  panelId,
 }) {
   const {getString, formatString} = useLocale();
   const typeLabels = React.useMemo(
@@ -50,7 +59,15 @@ export default function SearchTabs({
     {content: getString("common.nouns.types", "types")},
   );
 
-  // --- highlight state (ported from RadioGroup idea) ---
+  const activeKey = String(type).toLowerCase();
+  const selectedIndex = orderedTypes.findIndex(
+    (t) => String(t).toLowerCase() === activeKey,
+  );
+  // With no tab selected (`?type=all`), the first is the tab stop.
+  const stopIndex = selectedIndex >= 0 ? selectedIndex : 0;
+
+  // The bar under a tab follows the pointer and keyboard focus, and rests on the
+  // selected tab.
   const [itemBoundingBox, setItemBoundingBox] = useState(null);
   const [wrapperBoundingBox, setWrapperBoundingBox] = useState(null);
   const [highlightedTab, setHighlightedTab] = useState(null);
@@ -61,8 +78,6 @@ export default function SearchTabs({
 
   const repositionHighlight = (e, tabKey) => {
     if (!tabKey || !wrapperRef.current) return;
-
-    // use currentTarget so we get the <button>, not the inner text node
     const item = e.currentTarget;
     setItemBoundingBox(item.getBoundingClientRect());
     setWrapperBoundingBox(wrapperRef.current.getBoundingClientRect());
@@ -74,7 +89,6 @@ export default function SearchTabs({
     setHighlightedTab(null);
   };
 
-  // Optional: snap highlight to the active tab when `type` changes
   useEffect(() => {
     if (!wrapperRef.current) return;
     const activeButton = wrapperRef.current.querySelector(
@@ -91,6 +105,29 @@ export default function SearchTabs({
     setHighlightedTab(type);
   }, [type]);
 
+  const selectAt = (index) => {
+    if (!orderedTypes.length) return;
+    const count = orderedTypes.length;
+    const next = orderedTypes[((index % count) + count) % count];
+    if (onTypeChange) onTypeChange(next);
+    const button =
+      wrapperRef.current &&
+      wrapperRef.current.querySelector(`button[data-tab-value="${next}"]`);
+    if (button) button.focus();
+  };
+
+  const handleKeyDown = (event, index) => {
+    const keys = {
+      ArrowRight: index + 1,
+      ArrowLeft: index - 1,
+      Home: 0,
+      End: orderedTypes.length - 1,
+    };
+    if (!Object.prototype.hasOwnProperty.call(keys, event.key)) return;
+    event.preventDefault();
+    selectAt(keys[event.key]);
+  };
+
   let highlightStyles = {};
   if (itemBoundingBox && wrapperBoundingBox) {
     highlightStyles = {
@@ -102,23 +139,22 @@ export default function SearchTabs({
   }
 
   return (
-    <div className="canopy-search-tabs-wrapper">
+    <div className="canopy-search-tabs-wrapper" onMouseLeave={resetHighlight}>
       <div
         role="tablist"
         aria-label={searchTypesLabel || "Search types"}
         className="canopy-search-tabs"
         ref={wrapperRef}
-        onMouseLeave={resetHighlight}
       >
-        {/* moving highlight */}
         <div
           ref={highlightRef}
           className="canopy-search-tabs__highlight"
           style={highlightStyles}
+          aria-hidden="true"
         />
 
-        {orderedTypes.map((t) => {
-          const active = String(type).toLowerCase() === String(t).toLowerCase();
+        {orderedTypes.map((t, index) => {
+          const active = String(t).toLowerCase() === activeKey;
           const cRaw =
             counts && Object.prototype.hasOwnProperty.call(counts, t)
               ? counts[t]
@@ -127,12 +163,17 @@ export default function SearchTabs({
           return (
             <button
               key={t}
+              id={searchTabId(t)}
               role="tab"
               aria-selected={active}
+              aria-controls={panelId || undefined}
+              tabIndex={index === stopIndex ? 0 : -1}
               type="button"
               data-tab-value={t}
               onClick={() => onTypeChange && onTypeChange(t)}
+              onKeyDown={(event) => handleKeyDown(event, index)}
               onMouseOver={(e) => repositionHighlight(e, t)}
+              onFocus={(e) => repositionHighlight(e, t)}
               className={`canopy-search-tab ${active ? "is-active" : ""}`}
             >
               {toLabel(t)} ({c})

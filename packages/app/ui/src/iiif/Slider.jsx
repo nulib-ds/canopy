@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from "react";
+import {cloverSlider} from "./clover-compat.js";
 import {mergeSliderOptions, normalizeSliderOptions} from "./sliderOptions.js";
 
-// SSR-safe wrapper around Clover's slider. Clover touches the DOM at import time,
-// so we dynamically import it only in the browser.
+// Clover 4's Items, as a slider. The server draws a placeholder, which the slider
+// runtime mounts; in a page's own React tree, Items loads on demand, from its own entry.
 export const Slider = (props = {}) => {
   const [CloverSlider, setCloverSlider] = useState(null);
 
@@ -11,10 +12,10 @@ export const Slider = (props = {}) => {
     const canUseDom =
       typeof window !== "undefined" && typeof document !== "undefined";
     if (canUseDom) {
-      import("@samvera/clover-iiif/slider")
-        .then((mod) => {
+      import("@nulib/clover/items")
+        .then((items) => {
           if (!mounted) return;
-          const Comp = mod && (mod.default || mod.Slider || mod);
+          const Comp = cloverSlider(items);
           setCloverSlider(() => Comp);
         })
         .catch(() => {

@@ -24,11 +24,20 @@ const {logLine} = require("./log");
 const navigation = require("../components/navigation");
 const referenced = require("../components/referenced");
 const bibliography = require("../components/bibliography");
+const {printUpgradeNotices} = require("./upgrade-notices");
 
-// hold records between builds if skipping IIIF
-let iiifRecordsCache = [];
-let iiifManifestIdsCache = [];
-let iiifCollectionIdsCache = [];
+// The IIIF records and ids a rebuild that skips IIIF reuses. On `globalThis`, so that
+// `npm run dev` reloading this module after a change under `lib/` (`dev.js`) keeps them:
+// a reloaded module with none indexed the pages alone, and wrote them alone to the
+// sitemap. The discovery data stays the module's own: a fresh module keeps the catalog
+// already published (`tests/unit/discovery/build.test.js`).
+const held =
+  globalThis.__CANOPY_BUILD_HELD__ ||
+  (globalThis.__CANOPY_BUILD_HELD__ = {
+    iiifRecords: [],
+    manifestIds: [],
+    collectionIds: [],
+  });
 let pageRecords = [];
 let discoveryCache = null;
 
@@ -83,6 +92,8 @@ async function build(options = {}) {
     console.error("No content directory found at", CONTENT_DIR);
     process.exit(1);
   }
+  // What a site made before 2.0 can drop or rename, said once.
+  printUpgradeNotices();
   const stageTimings = [];
   const buildStart = nowMs();
 
@@ -135,15 +146,15 @@ async function build(options = {}) {
       const results = await iiif.buildIiifCollectionPages(CONFIG);
       iiifRecords = results?.iiifRecords;
       discoveryCache = webMcpEnabled(CONFIG) ? results?.discovery || {} : null;
-      iiifRecordsCache = Array.isArray(iiifRecords) ? iiifRecords : [];
+      held.iiifRecords = Array.isArray(iiifRecords) ? iiifRecords : [];
       currentManifestIds = Array.isArray(results?.manifestIds)
         ? results.manifestIds
         : [];
       currentCollectionIds = Array.isArray(results?.collectionIds)
         ? results.collectionIds
         : [];
-      iiifManifestIdsCache = currentManifestIds;
-      iiifCollectionIdsCache = currentCollectionIds;
+      held.manifestIds = currentManifestIds;
+      held.collectionIds = currentCollectionIds;
       logLine(
         `• IIIF records collected: ${Array.isArray(iiifRecords) ? iiifRecords.length : 0}`,
         "blue",
@@ -151,20 +162,20 @@ async function build(options = {}) {
       );
     } else if (!skipIiif && !hasIiifSources) {
       iiifRecords = [];
-      iiifRecordsCache = [];
+      held.iiifRecords = [];
       discoveryCache = {};
       currentManifestIds = [];
       currentCollectionIds = [];
-      iiifManifestIdsCache = [];
-      iiifCollectionIdsCache = [];
+      held.manifestIds = [];
+      held.collectionIds = [];
       logLine("• No IIIF sources configured; skipping", "blue", {dim: true});
     } else {
-      iiifRecords = Array.isArray(iiifRecordsCache) ? iiifRecordsCache : [];
-      currentManifestIds = Array.isArray(iiifManifestIdsCache)
-        ? iiifManifestIdsCache
+      iiifRecords = Array.isArray(held.iiifRecords) ? held.iiifRecords : [];
+      currentManifestIds = Array.isArray(held.manifestIds)
+        ? held.manifestIds
         : [];
-      currentCollectionIds = Array.isArray(iiifCollectionIdsCache)
-        ? iiifCollectionIdsCache
+      currentCollectionIds = Array.isArray(held.collectionIds)
+        ? held.collectionIds
         : [];
       logLine(
         `• Reusing cached IIIF search records (${iiifRecords.length})`,

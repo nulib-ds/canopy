@@ -47,8 +47,12 @@ function cssPreludeLength(css) {
 // Tailwind's `@layer theme` holds its defaults (`--spacing`, `--text-*`) and a
 // site's own `@theme` values. Declaring it ahead of `properties` keeps those
 // below Canopy's tokens and `app/styles` overrides, so Tailwind's default
-// `--color-gray-*` and `--font-*` values can't override them.
-const LAYER_ORDER = "@layer theme, properties;";
+// `--color-gray-*` and `--font-*` values can't override them. Clover 4 draws in
+// `@layer clover` (`@nulib/clover/styles.css`, imported by the UI stylesheet):
+// above Tailwind's preflight (`base`), so its parts keep their own look, and
+// below Canopy's `components` and `utilities`, so a site restyles them.
+const LAYER_ORDER =
+  "@layer theme, properties, base, clover, components, utilities;";
 
 // Places the generated theme ahead of the stylesheet's own rules. The theme
 // and author overrides share `@layer properties`, so source order decides:

@@ -1,4 +1,6 @@
 @use "./buttons" as buttons;
+@use "../settings/focus" as focus;
+@use "../settings/type";
 
 .canopy-interstitial {
   position: relative;
@@ -14,7 +16,9 @@
     --hero-bg-start: var(--color-gray-50);
     --hero-bg-mid: var(--color-accent-50);
     --hero-bg-end: var(--color-accent-200);
-    --hero-dot-bg: var(--color-accent-400);
+    // A slide button's dot holds 3:1 on the page (1.4.11); the current one is the
+    // accent, and larger, so its state is not in its color alone.
+    --hero-dot-bg: var(--color-gray-muted);
     --hero-dot-active-bg: var(--color-accent-default);
 
     background: linear-gradient(
@@ -59,17 +63,33 @@
       gap: 1.5rem;
     }
 
+    // The carousel: its slide on the stage, the rotation control over the stage's
+    // corner (first in reading order, `Hero.jsx`), the slide buttons below it.
     .canopy-interstitial__media-group {
       flex: 1;
       position: relative;
       min-height: var(--hero-height);
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "stage"
+        "dots";
+      align-content: start;
       padding: clamp(1.5rem, 4vw, 3rem);
       box-sizing: border-box;
       min-width: 0;
       overflow: hidden;
+    }
+
+    .canopy-interstitial__slider {
+      grid-area: stage;
+    }
+
+    .canopy-interstitial__rotation {
+      grid-area: stage;
+      align-self: start;
+      justify-self: start;
+      margin: 0.618rem;
     }
 
     .canopy-interstitial__caption {
@@ -85,6 +105,7 @@
     }
 
     .canopy-interstitial__pagination {
+      grid-area: dots;
       position: static;
       transform: none;
       width: 100%;
@@ -112,11 +133,6 @@
       }
     }
 
-    @media (min-width: 64rem) {
-      .canopy-interstitial__body .canopy-interstitial__headline {
-        font-size: 2.618rem;
-      }
-    }
   }
 
   &--hero-breadcrumb {
@@ -140,17 +156,15 @@
     }
 
     .canopy-interstitial__description {
-      font-size: 0.9222rem;
-      font-weight: 500;
+      @include type.code(true);
       color: var(--color-accent-default);
-      font-family: var(--font-mono);
     }
   }
 
   &__breadcrumb {
+    @include type.ui-sm;
     display: inline-flex;
     gap: 0.5rem;
-    font-size: 0.8333rem;
   }
 
   &__breadcrumb a {
@@ -159,16 +173,19 @@
     color: var(--color-gray-muted);
   }
 
-  &__breadcrumb a:hover,
-  &__breadcrumb a:focus-visible {
+  &__breadcrumb a:hover {
     color: var(--color-accent-default);
-    outline: none;
+    text-decoration: underline;
+  }
+
+  &__breadcrumb a:focus-visible {
+    @include focus.focus-ring;
   }
 
   &__breadcrumb-separator,
   &__breadcrumb-current {
     color: var(--color-gray-900);
-    font-weight: 500;
+    font-weight: var(--canopy-weight-bold);
   }
 
   &__slider {
@@ -180,6 +197,8 @@
 
   &__slide-wrapper {
     display: flex;
+    // A horizontal swipe reaches the runtime; a vertical one still scrolls the page.
+    touch-action: pan-y;
   }
 
   &__slide {
@@ -190,23 +209,42 @@
     align-items: stretch;
   }
 
-  &__sr-live {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  // One slide shows at a time, and the controls only once the runtime runs them
+  // (`hero-slider-runtime.js`).
+  &__slide[hidden],
+  &__nav[hidden],
+  &__pagination[hidden],
+  &__rotation[hidden] {
+    display: none;
   }
 
   &__slide-link {
+    position: relative;
     display: block;
     text-decoration: none;
     color: inherit;
     height: 100%;
+    border-radius: var(--canopy-radius-xl);
+  }
+
+  // Focused, a ring over the slide's picture, inside the stage that clips it: the page's
+  // ground, then the accent's text step, so it shows on any picture (2.4.7). Forced-colors
+  // mode drops shadows and keeps the outline.
+  &__slide-link:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+  }
+
+  &__slide-link:focus-visible::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 3px var(--color-gray-50),
+      inset 0 0 0 5px var(--color-accent-default);
+    pointer-events: none;
   }
 
   &__pane {
@@ -253,6 +291,8 @@
     height: 100%;
     flex: 1 1 auto;
     overflow: hidden;
+    border-radius: var(--canopy-radius-xl);
+    background-color: var(--canopy-surface);
   }
 
   &__media--static {
@@ -302,21 +342,24 @@
     pointer-events: auto;
   }
 
+  // The page's title, by the window's width.
   &__headline {
+    @include type.title;
     margin: 0;
-    font-size: 2rem;
-    line-height: 1.08;
   }
 
+  // The hero's standfirst, a lede; in the page's text on the theme's wash.
   &__description {
+    @include type.lede;
     margin: 0;
     max-width: 42rem;
+    color: var(--color-gray-900);
   }
 
   &__caption {
     position: absolute;
     bottom: 1.75rem;
-    font-weight: 500;
+    font-weight: var(--canopy-weight-bold);
     right: 2rem;
     z-index: 3;
   }
@@ -345,6 +388,7 @@
     background-color: var(--color-accent-default) !important;
     pointer-events: auto;
     border: none;
+    border-radius: var(--canopy-radius-pill);
 
     &::after {
       content: none;
@@ -359,12 +403,59 @@
     }
 
     &--prev {
-      left: 0 !important;
+      left: 0.618rem !important;
     }
 
     &--next {
-      right: 0 !important;
+      right: 0.618rem !important;
     }
+
+    &:hover {
+      background-color: var(--color-accent-hover) !important;
+    }
+  }
+
+  // The rotation control: drawn as previous and next are, its glyph the state it will
+  // set (pause while the slides rotate, play once they are stopped).
+  &__rotation {
+    @include buttons.canopy-button-base(0.25rem, 0.25rem);
+    position: relative;
+    z-index: 5;
+    width: 2.618rem;
+    height: 2.618rem;
+    border: none;
+    border-radius: var(--canopy-radius-pill);
+    color: var(--color-gray-50);
+    background-color: var(--color-accent-default);
+
+    &:hover {
+      background-color: var(--color-accent-hover);
+    }
+
+    svg {
+      display: block;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  &__rotation[data-rotation="on"] &__rotation-icon--play,
+  &__rotation[data-rotation="off"] &__rotation-icon--pause {
+    display: none;
+  }
+
+  // The hero clips what spills out of it, so its controls draw their focus inside:
+  // the page's ground on the accent, 4.5:1 (2.4.7).
+  &__rotation:focus-visible,
+  &__nav-btn:focus-visible {
+    outline: 2px solid var(--color-gray-50);
+    outline-offset: -5px;
+  }
+
+  &__dot:focus-visible {
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: -2px;
+    border-radius: var(--canopy-radius-circle);
   }
 
   &__pagination {
@@ -374,21 +465,35 @@
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 0.4rem;
+    gap: 0;
   }
 
+  // Each dot is a 24px target (WCAG 2.5.8; ACCESSIBILITY.md C2): the button is the
+  // target, and its ::before draws the dot at the size it has always had.
   &__dot {
-    display: inline-block;
-    width: 0.45rem;
-    height: 0.45rem;
-    background-color: var(--hero-dot-bg);
-    opacity: 1;
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    &::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: var(--canopy-radius-circle);
+      background-color: var(--hero-dot-bg);
+      transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+    }
   }
 
-  &__dot--active {
+  &__dot--active::before {
     transform: scale(1.35);
     background-color: var(--hero-dot-active-bg);
   }
@@ -408,17 +513,113 @@
     padding-inline: 2.75rem;
   }
 
-  .canopy-interstitial__headline {
-    font-size: 2.618rem;
-  }
-
-  .canopy-interstitial__description {
-    font-size: 1rem;
-  }
 }
 
 @media (min-width: 64rem) {
   .canopy-interstitial__body {
     padding-inline: 4rem;
+  }
+}
+
+// The centered hero (`variant="centered"`), after Clover's homepage: the headline at
+// display size, its words a lede and its links under it, all centered on the page's own
+// ground; the carousel under them in a raised card, each picture whole. The rotation
+// control keeps its corner of the stage, first in reading order (2.2.2).
+.canopy-interstitial--hero-centered {
+  margin-top: 0;
+  padding-top: 0;
+  background: none;
+  min-height: 0;
+
+  .canopy-interstitial__layout {
+    flex-direction: column !important;
+    align-items: center;
+    gap: clamp(1.618rem, 5vw, 2.618rem);
+    min-height: 0;
+    overflow: visible;
+    padding: clamp(1.618rem, 5vw, 2.618rem) clamp(1rem, 4vw, 2rem)
+      clamp(1rem, 3vw, 1.618rem);
+    box-sizing: border-box;
+  }
+
+  .canopy-interstitial__panel,
+  .canopy-interstitial__media-group {
+    width: 100%;
+  }
+
+  .canopy-interstitial__panel {
+    flex: none;
+    padding: 0;
+  }
+
+  .canopy-interstitial__body {
+    align-items: center;
+    text-align: center;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding-inline: 0;
+    gap: 1rem;
+  }
+
+  .canopy-interstitial__body .canopy-interstitial__headline {
+    @include type.display;
+  }
+
+  // A lede, muted on the page's own ground, where `--color-gray-muted` holds 4.5:1.
+  .canopy-interstitial__description {
+    @include type.lede;
+    max-width: 48rem;
+    text-wrap: balance;
+  }
+
+  .canopy-button-group {
+    align-items: center;
+  }
+
+  .canopy-button-group__actions {
+    justify-content: center;
+    padding: 0.618rem 0 0;
+  }
+
+  .canopy-interstitial__media-group {
+    flex: none;
+    max-width: 64rem;
+    min-height: 0;
+    padding: 0 !important;
+    border-radius: var(--canopy-radius-xl);
+    background-color: var(--canopy-surface-raised);
+    box-shadow: var(--canopy-card-shadow);
+    overflow: hidden;
+  }
+
+  .canopy-interstitial__slider {
+    min-height: 0;
+  }
+
+  .canopy-interstitial__pane--static {
+    height: var(--hero-height);
+  }
+
+  .canopy-interstitial__media-frame,
+  .canopy-interstitial__slide-link {
+    border-radius: 0;
+  }
+
+  .canopy-interstitial__media--static {
+    object-fit: contain;
+  }
+
+  .canopy-interstitial__caption--static {
+    margin: 0;
+    padding: 1rem 1.25rem;
+  }
+
+  .canopy-interstitial__pagination {
+    margin: 0;
+    padding: 0 0 1rem;
+  }
+
+  .canopy-interstitial__rotation {
+    margin: 0.75rem;
   }
 }

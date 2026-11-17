@@ -25,8 +25,8 @@ Follow the [Get Started](https://nulib-ds.github.io/canopy/about/get-started) to
 ## Local development
 
 - `npm install`
-- `npm run dev` (serves http://localhost:5001 via `app/scripts/canopy-build.mts`)
-- `npm run build` (renders UI assets + site)
+- `npm run dev` (`canopy dev`: serves http://localhost:5001 and rebuilds on change)
+- `npm run build` (`canopy build`: renders UI assets + site)
 
 Refer to https://nulib-ds.github.io/canopy/docs/developers for full environment, caching, and repo structure notes.
 
@@ -43,15 +43,16 @@ Each page links to deeper guides (assets, works layouts, Search composition, etc
 
 ## Template Workflow
 
-- `.github/workflows/release-and-template.yml` publishes packages and, on release, stages a clean build into `.template-build/` before force-pushing to `nulib-ds/canopy-template`.
-- The staging step strips dev-only paths, rewrites `package.json` to consume published `@canopy-iiif/app` bundles, and keeps the template’s workflow lean.
+- `.github/workflows/release-and-template.yml` publishes packages and, on release, stages a clean build into `.template-build/` before force-pushing to `nulib-ds/canopy-template` (and the i18n and Northwestern templates). A prerelease is published on npm's `next` tag and leaves the templates as they are.
+- The staging step strips dev-only paths, rewrites `package.json` to consume the published `@nulib/canopy` and run its `canopy` command, and keeps the template’s workflow lean.
 - Provide a personal access token as the `TEMPLATE_PUSH_TOKEN` secret and mark `nulib-ds/canopy-template` as a template repo if you want the GitHub “Use this template” button.
 - Details live at https://nulib-ds.github.io/canopy/docs/developers/#template-workflow.
 
-## Publishing `@canopy-iiif/app`
+## Publishing `@nulib/canopy`
 
-- The distributable package lives in `packages/app` and exports the builder plus UI assets.
-- Use Changesets (`npm run changeset`) to record versions, run `npm run release`, and let the release workflow publish to npm before the template sync runs.
+- The distributable package lives in `packages/app` and exports the builder plus UI assets, and the `canopy` command.
+- `packages/app-alias` is `@canopy-iiif/app`, Canopy's 1.x name, published at the same version: each of its entries passes through to `@nulib/canopy`, so sites made before 2.0 upgrade without edits. Changesets versions the two together (`.changeset/config.json`, `fixed`).
+- Use Changesets (`npm run changeset`) to record versions, run `npm run release`, and let the release workflow publish to npm before the template sync runs. It publishes with npm's trusted publishing, with no npm token; CONTRIBUTING.md, "Publishing to npm", has the setup and the first release of `@nulib/canopy`.
 - Keep `repository`, `files`, and `publishConfig.access: public` in `packages/app/package.json` so npm users and GitHub Insights can trace dependents.
 - Publishing guidance, update workflows, and automation hooks are documented at https://nulib-ds.github.io/canopy/docs/releases/.
 

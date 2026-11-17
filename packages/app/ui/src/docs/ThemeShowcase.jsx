@@ -82,9 +82,10 @@ const ColorScaleRow = ({label, prefix}) => (
 );
 
 // The variables a build emits for one palette, without `color-scheme`, which
-// the preview sets from the chosen appearance.
+// the preview sets from the chosen appearance. `role` holds its text step at 4.5:1,
+// as a build's does.
 function paletteVars(type, name, appearance) {
-  const scale = toTailwindScale(name, {appearance});
+  const scale = toTailwindScale(name, {appearance, role: type});
   if (!scale) return null;
   const vars =
     type === "accent"
@@ -167,7 +168,7 @@ export default function ThemeShowcase() {
       background: var(--color-gray-50);
       color: var(--color-gray-900);
       padding: 0.3rem 0.9rem;
-      font-size: 0.85rem;
+      font-size: var(--canopy-text-sm);
       cursor: pointer;
       transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
     }
@@ -180,7 +181,7 @@ export default function ThemeShowcase() {
       border: 1px solid var(--color-gray-400);
       background: transparent;
       padding: 0.35rem 1.2rem;
-      font-size: 0.85rem;
+      font-size: var(--canopy-text-sm);
       cursor: pointer;
       color: var(--color-gray-900);
     }
@@ -195,7 +196,8 @@ export default function ThemeShowcase() {
     }
     .canopy-theme-showcase__section-title {
       margin: 0 0 0.382rem;
-      font-size: 1.382rem;
+      font-size: var(--canopy-text-xl);
+      font-weight: var(--canopy-weight-bold);
     }
     .canopy-theme-showcase__section-description {
       margin: 0 0 1rem;
@@ -215,7 +217,7 @@ export default function ThemeShowcase() {
     }
     .canopy-theme-showcase__scale-label {
       min-width: 90px;
-      font-size: 0.9222rem;
+      font-size: var(--canopy-text-sm);
     }
     .canopy-theme-showcase__scale-track {
       display: flex;
@@ -236,7 +238,7 @@ export default function ThemeShowcase() {
       min-height: 2.618rem;
     }
     .canopy-theme-showcase__scale-token {
-      font-size: 0.8333rem;
+      font-size: var(--canopy-text-sm);
     }
     .canopy-theme-showcase__swatch-grid {
       display: flex;
@@ -254,7 +256,7 @@ export default function ThemeShowcase() {
       gap: 0.35rem;
       cursor: pointer;
       transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-      font-weight: 300;
+      font-weight: var(--canopy-weight-regular);
     }
     .canopy-theme-showcase__swatch:focus-visible {
       outline: 2px solid var(--color-accent-default);
@@ -264,7 +266,7 @@ export default function ThemeShowcase() {
       border-color: var(--color-accent-default);
       background: linear-gradient(135deg, var(--color-accent-50), var(--color-accent-100));
       color: var(--color-gray-900);
-      font-weight: 400;
+      font-weight: var(--canopy-weight-bold);
     }
     .canopy-theme-showcase__swatch[data-swatch-active="true"][data-theme-swatch-type="gray"]  {
       border-color: var(--color-gray-default);
@@ -275,7 +277,7 @@ export default function ThemeShowcase() {
       height: 2.618rem;
     }
     .canopy-theme-showcase__swatch-label {
-      font-size: 0.9222rem;
+      font-size: var(--canopy-text-sm);
       margin-top: 0.1rem;
     }
     .canopy-theme-showcase__swatch-controls { display: none; }

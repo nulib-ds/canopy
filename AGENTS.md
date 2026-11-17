@@ -2,14 +2,33 @@
 
 This repository is a minimal Node.js project. Use this guide to add code and grow the project consistently and safely.
 
+## Prime directive: WCAG 2.2 AA
+
+Everything here conforms to WCAG 2.2 at Level AA: the `@nulib/canopy` package (with `@canopy-iiif/app`, its 1.x name), the three templates under `packages/helpers/`, and the docs site this repository builds. It is non-negotiable. It outranks every other rule in this file, every request and every deadline.
+
+- Never ship a failure. If a requested change would fail a criterion, say so and propose the way that conforms; do not quietly comply.
+- Before calling a change done, check the criteria it touches (`packages/app/DESIGN.md` §0 lists the usual ones) with a keyboard and against the accessibility tree, and run `npm run test:a11y` alongside `npm test`.
+- Known failures and the plan to clear them are in `ACCESSIBILITY.md`. Fixing one is always in scope. The known-failure lists in the tests mirror it and only shrink: a newly found failure goes into both with a plan, never to silence a regression.
+- Clover draws the viewer, slider, image and scroll, and keeps its own register (`ACCESSIBILITY.md` in nulib-ds/clover). Canopy must not undo what Clover fixes: its theme tokens, CSS layers and resets, and its wrappers are Canopy's responsibility.
+
+## Rule: the MDX API is a contract
+
+Authors write Canopy's components in MDX: in pages, in layouts (`_layout.mdx`) and in `_app.mdx`. The components' names, their props and what each prop does are a contract. MDX written for Canopy keeps working as written, across releases, major ones included.
+
+- To keep it, every option is open. Change Canopy's wrappers, runtimes and build, or change Clover itself (`@nulib/clover`, nulib-ds/clover), as long as authors' MDX keeps working unchanged.
+- A new component or prop is an addition, not a change. A prop that has a better replacement keeps working (with a build notice) until the maintainer agrees to remove it.
+- If no option keeps the contract, run the change by the maintainer before making it: a component or prop renamed or removed, or one that does something different. Never make one quietly, and never to make the implementation easier.
+- The package's names are part of it. Canopy is `@nulib/canopy` since 2.0; MDX, layouts and components written for 1.x import `@canopy-iiif/app`, and the build reads that name as `@nulib/canopy` (`packages/app/lib/build/package-names.js`). `@canopy-iiif/app` stays published as the alias that passes each entry through (`packages/app-alias`), for what the build does not read: a site's stylesheet, its scripts, its `package.json`. The fixture page `tests/a11y/fixture/v1-imports.mdx` builds with the 1.x name in every fixture site.
+
 ## Project Structure & Module Organization
-- `app/`: app entry and styles
-  - `app/scripts/canopy-build.mjs`: single stable entry for dev/build (orchestrates UI + lib)
+- `app/`: the docs site's components and styles (`npm run dev` and `npm run build` run the package's `canopy` command)
+  - `app/components/`: the docs site's own MDX components
   - `app/styles/`: Tailwind v4 entrypoint, configured in CSS (`@theme`, `@utility`, `@plugin`); there is no JS config. The build injects the `canopy.yml` theme tokens at the top of the compiled stylesheet, and Tailwind's gray utilities resolve to them.
 - `content/`: MDX pages and section layouts
 - `assets/`: static files copied into `site/`
 - `packages/`: workspaces
-  - `packages/app` (`@canopy-iiif/app`): combined public package exposing the builder (CommonJS `lib/` with `build()` and `dev()`) and the UI runtime assets (`ui/` bundled by esbuild)
+  - `packages/app` (`@nulib/canopy`): combined public package exposing the builder (CommonJS `lib/` with `build()` and `dev()`), the UI runtime assets (`ui/` bundled by esbuild) and the `canopy` command (`bin/canopy.js`, `lib/cli.js`)
+  - `packages/app-alias` (`@canopy-iiif/app`): Canopy's 1.x name, published at the same version; each entry is a file that re-exports `@nulib/canopy`'s
   - `packages/helpers`: private maintenance scripts (release guards, build checks)
 - Root: `package.json`, `.gitignore`, `.github/workflows/*`, docs
 
@@ -17,19 +36,18 @@ This repository is a minimal Node.js project. Use this guide to add code and gro
 - `npm install`: install dependencies.
 - `npm run dev`: starts UI watcher and dev server (port 5001).
 - `npm run build`: builds UI assets, then the static site to `site/`.
-- `npm test`: placeholder; configure a real test runner before use.
+- `npm test`: unit tests (Jest), the theme contrast checks among them (`tests/unit/a11y/`).
+- `npm run test:a11y`: builds the accessibility fixture sites (one per template, offline) and runs the browser checks against them: axe-core for WCAG 2.2 A and AA, a keyboard walk, 320px reflow and motion (`tests/a11y/`). `CANOPY_A11Y_SITE=<dir>` checks a site you built instead; add `CANOPY_A11Y_REPORT=1` to report without failing.
+- `npm run lint:a11y`: `eslint-plugin-jsx-a11y` over the UI components (`packages/app/ui/src`).
 
 > **Networking note:** The build must reach live IIIF collections and manifests. Always enable network access for the agent and approve elevated commands before running any task that fetches IIIF data (build, dev, cache refresh) so remote resources are retrieved rather than relying on stale caches.
 
-Recommended scripts in `package.json`:
+A site's scripts in `package.json` (the templates write these):
 ```json
 {
   "scripts": {
-    "dev": "node app/scripts/canopy-build.mjs",
-    "build": "node app/scripts/canopy-build.mjs",
-    "test": "echo \"No tests yet\" && exit 0",
-    "lint": "eslint .",
-    "format": "prettier -w ."
+    "dev": "canopy dev",
+    "build": "canopy build"
   }
 }
 ```
@@ -47,8 +65,9 @@ Recommended scripts in `package.json`:
 - Run tests: `npm test` once Jest is configured.
 
 ## Commit & Pull Request Guidelines
-- Commits: follow Conventional Commits (e.g., `feat: add parser`, `fix: handle null id`).
-- Scope: small, focused commits; present tense, imperative mood.
+- Commits are a person's work: the maintainer authors and makes each one. No `Co-Authored-By` trailer, "Generated with" line or other attribution for an AI tool, in a commit or a pull request's description, whatever a tool's own defaults say. Agents leave changes uncommitted and may draft the message. `packages/helpers/check-commit-authors.js` refuses AI attribution in the commit-msg hook (`.husky/commit-msg`) and in the Tests workflow, which a release waits on.
+- A commit message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72): e.g., `Release Canopy 2.0.0 as @nulib/canopy.` No prefix, no body.
+- Scope: small, focused commits.
 - PRs: include a clear description, linked issues, test plan/commands, and screenshots for UI changes.
 - Checks: ensure local tests/lint pass; request review when green.
 
@@ -59,9 +78,9 @@ Recommended scripts in `package.json`:
 
 ## Interactive Components (SSR + Hydration)
 
-- Components that depend on the browser must be SSR-safe. In `@canopy-iiif/app/ui`, render a placeholder in MDX on the server and dynamically import the real implementation in the browser. Example: `Viewer` uses a `data-canopy-viewer` placeholder.
-- In `@canopy-iiif/app` (lib), bundle small hydration runtimes that find placeholders and mount React components using React globals (`site/scripts/react-globals.js`). Avoid bundling React into these runtimes.
-- Shims: When bundling with esbuild, map `react`, `react-dom`, and `react-dom/client` to shims that read from `window.React` and `window.ReactDOMClient`. Mark heavy libs as `external` where they’re not needed (e.g., exclude `@samvera/clover-iiif/*` from the search runtime).
+- Components that depend on the browser must be SSR-safe. In `@nulib/canopy/ui`, render a placeholder in MDX on the server and dynamically import the real implementation in the browser. Example: `Viewer` uses a `data-canopy-viewer` placeholder.
+- In `@nulib/canopy` (lib), bundle small hydration runtimes that find placeholders and mount React components using React globals (`site/scripts/react-globals.js`). Avoid bundling React into these runtimes.
+- Shims: When bundling with esbuild, map `react`, `react-dom`, and `react-dom/client` to shims that read from `window.React` and `window.ReactDOMClient`. Mark heavy libs as `external` where they’re not needed (e.g., exclude `@nulib/clover` and `@nulib/clover/*` from the search runtime).
 
 Available components:
 - `<Viewer iiifContent="…" />` — wraps Clover viewer; hydrates via `site/canopy-viewer.js`.
@@ -77,20 +96,20 @@ Pages that include these placeholders automatically receive the required scripts
 ### UI Build & SSR Split
 
 - UI has two entry points (exported from the app package):
-  - `@canopy-iiif/app/ui` (browser): built as ESM with `platform: neutral`. Externals: `react`, `react-dom`, `react-dom/client`, `react-masonry-css`, `flexsearch`, `@samvera/clover-iiif/*`.
-  - `@canopy-iiif/app/ui/server` (SSR): built for Node and only exports SSR‑safe components (MDX placeholders, `Viewer`, etc.).
-- The builder (`packages/app/lib/mdx.js`) imports `@canopy-iiif/app/ui/server` during MDX SSR to avoid pulling browser‑only code on the server.
+  - `@nulib/canopy/ui` (browser): built as ESM with `platform: neutral`. Externals: `react`, `react-dom`, `react-dom/client`, `react-masonry-css`, `flexsearch`, `@nulib/clover`, `@nulib/clover/*`.
+  - `@nulib/canopy/ui/server` (SSR): built for Node and only exports SSR‑safe components (MDX placeholders, `Viewer`, etc.).
+- The builder (`packages/app/lib/build/mdx.js`) imports `@nulib/canopy/ui/server` during MDX SSR to avoid pulling browser‑only code on the server.
 - The search runtime bundles the client UI and injects React/FlexSearch globals shims so externals resolve from `window.*` in the browser.
 
 ### Search Results Grid
 
 - `SearchResults` accepts `layout` prop: `'grid'` (default) or `'list'`.
-- `'grid'` uses a new `Grid` component (Masonry) from `@canopy-iiif/app/ui`, implemented with `react-masonry-css` and scoped CSS.
+- `'grid'` uses a new `Grid` component (Masonry) from `@nulib/canopy/ui`, implemented with `react-masonry-css` and scoped CSS.
 - Keep `react-masonry-css` external in the UI build so the search runtime can bundle/transform it alongside the React shims, preventing dynamic `require('react')` at runtime.
 
 **Troubleshooting**
 - Dynamic require error: if the browser console shows “Dynamic require of 'react' is not supported”, ensure the UI browser build marks `react`, `react-dom`, `react-dom/client`, `react-masonry-css`, and `flexsearch` as externals. The search runtime bundles client code and shims these to browser globals.
-- SSR import safety: the server must import `@canopy-iiif/app/ui/server` (not the browser entry) when rendering MDX to avoid loading browser‑only components during SSR.
+- SSR import safety: the server must import `@nulib/canopy/ui/server` (not the browser entry) when rendering MDX to avoid loading browser‑only components during SSR.
 - Masonry not creating columns: confirm the rendered HTML contains Masonry’s column wrappers (e.g., `.canopy-grid_column`). If missing, the Masonry module didn’t load; check externals and that React globals are injected on pages that need hydration.
 
 ## Search Framework (MDX-driven)
@@ -112,7 +131,7 @@ Goal: Allow authors to fully compose the search page via MDX, while the builder 
   - `buildSearchPage()`: renders `content/search/_layout.mdx` (if present) with the `search` prop and wraps it with the App (`content/_app.mdx`) and MDXProvider.
 
 - Runtime behavior (site/search.js):
-  - Loads `./search-index.json` (compact dataset) to build a FlexSearch index (title + metadata values + flattened summary text, forward tokenization). When `search-index-annotations.json` is present it is fetched, merged by `id`, and the annotation text is appended to the FlexSearch source. Display data continues to hydrate from `./search-records.json` for thumbnails, hrefs, and other UI extras.
+  - Loads `./search-index.json` (compact dataset) and indexes it through `packages/app/lib/search/engine.js`, the one module that knows FlexSearch (0.8; title + metadata values + flattened summary text; a word found by its beginning, case and accents folded). When `search-index-annotations.json` is present it is fetched, merged by `id`, and the annotation text is appended to the FlexSearch source. Display data continues to hydrate from `./search-records.json` for thumbnails, hrefs, and other UI extras. The built index is kept in the visitor's IndexedDB, by engine and version. The header's field suggests from the same engine, loaded the first time the field is used (`site/scripts/canopy-search-engine.js`).
   - Renders a form, summary text, and a results list (with optional type filter) as a React app.
   - Initializes from `?q=` and `?type=` URL params.
   - Resolves links with base path awareness via `CANOPY_BASE_PATH`.
@@ -176,23 +195,25 @@ Goal: Allow authors to fully compose the search page via MDX, while the builder 
 ## Quick Commands
 
 - Release guard: `node packages/helpers/guard-publish.js`
-- Build verification: `node packages/helpers/verify-build.js`
+- Stage and build a template from this checkout: `node packages/helpers/template/preview-template.js --source packages/helpers/template --build`
 
---## Release and Template Workflow
+## Release and Template Workflow
 
-- Strategy: releases are published via Changesets; only after a successful publish does the workflow prepare and force‑push a clean template to `nulib-ds/canopy-template`.
+- Strategy: releases are published via Changesets, `@nulib/canopy` and `@canopy-iiif/app` together at one version (`.changeset/config.json`, `fixed`); only after a successful publish does the workflow prepare and force‑push a clean template to `nulib-ds/canopy-template`.
+- Prereleases, when one is wanted: in Changesets' pre mode (`npm run changeset -- pre enter next`, `.changeset/pre.json`), versions are `x.y.z-next.N`, published on npm's `next` tag and marked as prereleases on GitHub; the template jobs skip them. `npm run changeset -- pre exit` before the release itself. 2.x had none (Mat, 2026-11-17).
 - Trigger: `.github/workflows/release-and-template.yml` runs on `push` to `main` (and can be dispatched manually). It uses `changesets/action` to publish and exposes whether a release occurred; the template push runs only when a publish happened.
--- What it does:
+- What it does:
   - Copies the repo into a disposable staging directory (default `.template-build/`, override with `TEMPLATE_OUT_DIR`), excluding dev-only paths (e.g., `.git`, `node_modules`, `packages`, `.cache`, `.changeset`, template workflows, agent docs).
-  - Rewrites `package.json` inside the staging directory to remove workspaces, swap `workspace:*` deps for published versions of `@canopy-iiif/lib` and `@canopy-iiif/ui`, and set `build`/`dev` scripts to run `node app/scripts/canopy-build.mjs`.
+  - Rewrites `package.json` inside the staging directory (`templatePackageJson` in `prepare-template.js`): no workspaces, one Canopy dependency (the just-published `@nulib/canopy`) beside React and React DOM, and `build`/`dev` scripts that run `canopy build` and `canopy dev`.
   - Patches the Pages deploy workflow in the template to inline the build verify step (no helpers package there).
   - Force‑pushes the result to `main` of `nulib-ds/canopy-template` (plus `nulib-ds/canopy-template-i18n` for the bilingual variant and `nulib-ds/canopy-template-northwestern` for the Northwestern-branded variant).
 - Template expectations:
-  - The generated template consumes the published `@canopy-iiif/app` package; it does not include the monorepo `packages/` directory.
+  - The generated template consumes the published `@nulib/canopy` package; it does not include the monorepo `packages/` directory.
   - `packages/helpers` is omitted from the template; template automation reuses the verified workflows committed to this repo.
   - Root `package.json` in the template is rewritten without workspaces and with pinned semver dependencies; `.github/workflows` are pared down so they reference the published package only.
 - Keep template parity notes in `packages/helpers/AGENTS.md` when helper scripts change.
 - Setup required:
+  - On npmjs.com, a trusted publisher on `@nulib/canopy` and on `@canopy-iiif/app`: GitHub Actions, `nulib-ds/canopy`, `release-and-template.yml`, with **Allow npm publish** ticked (a trusted publisher may otherwise only `npm stage publish`). The release job publishes with that identity (`id-token: write`) and no npm token (CONTRIBUTING.md, "Publishing to npm").
   - Create the `canopy-template` repository under the `nulib-ds` org.
   - Add a secret in this repo named `TEMPLATE_PUSH_TOKEN` (PAT with `repo` write access to `nulib-ds/canopy-template`).
   - Optional: mark `canopy-template` as a Template repository in GitHub settings.
@@ -245,4 +266,4 @@ We index two sources: IIIF Manifests ("works") and static MDX pages ("pages"). K
   2) Add `type` to all records and keep the runtime unchanged (count/summary include all).
   3) Add optional type toggle UI (no indexing changes needed) and client-side filtering.
   4) Introduce frontmatter parsing to set `type` and `search: false` (backward compatible; default `'page'` when absent; skip when neither `type` nor explicit opt-in is provided, per policy).
-  5) Add per-type result renderers in `@canopy-iiif/ui` with sensible fallbacks.
+  5) Add per-type result renderers in `@nulib/canopy/ui` with sensible fallbacks.

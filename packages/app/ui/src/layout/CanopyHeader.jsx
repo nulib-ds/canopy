@@ -37,6 +37,30 @@ function HeaderScript() {
     }
   }
 
+  // The header's height, measured, for the page's scroll padding and whatever sticks
+  // under the header (\`--canopy-header-height\`, \`header/_header.scss\`), so a taller
+  // header (longer words, larger text) never covers what takes focus (2.4.11).
+  function trackHeaderHeight() {
+    var header = doc.querySelector('.canopy-header');
+    if (!header) return;
+    var set = function () {
+      try {
+        var height = Math.ceil(header.getBoundingClientRect().height);
+        if (height > 0) root.style.setProperty('--canopy-header-height', height + 'px');
+      } catch (_) {}
+    };
+    set();
+    if (typeof window.ResizeObserver === 'function') {
+      try {
+        new window.ResizeObserver(set).observe(header);
+      } catch (_) {}
+    } else {
+      window.addEventListener('resize', set);
+    }
+  }
+
+  ready(trackHeaderHeight);
+
   ready(function () {
     var header = doc.querySelector('.canopy-header');
     if (!header) return;
@@ -98,8 +122,13 @@ function HeaderScript() {
       return 'closed';
     }
 
+    // The dialog's own field, never the header's inline one, which the compact layout
+    // hides (a hidden field takes no focus, and focus stayed behind the dialog).
     function focusSearchForm() {
-      var input = header.querySelector('[data-canopy-search-form-input]');
+      var modal = modalFor('search');
+      var input =
+        (modal && modal.querySelector('[data-canopy-search-form-input]')) ||
+        header.querySelector('[data-canopy-search-form-input]');
       if (!input) return;
       var raf = typeof window !== 'undefined' && window.requestAnimationFrame;
       (raf || function (fn) { return setTimeout(fn, 16); })(function () {
@@ -187,15 +216,70 @@ function HeaderScript() {
       }
     }
 
+    // Where focus was when a dialog opened, to go back to when it closes (2.4.3).
+    var returnFocus = {};
+
+    function visible(el) {
+      return !!(el && el.isConnected && el.getClientRects().length);
+    }
+
+    function restoreFocus(type) {
+      var target = returnFocus[type];
+      returnFocus[type] = null;
+      if (!visible(target)) {
+        target = header.querySelector('[data-canopy-header-toggle="' + type + '"]');
+      }
+      if (!visible(target)) return;
+      try {
+        target.focus({ preventScroll: true });
+      } catch (_) {
+        try { target.focus(); } catch (_) {}
+      }
+    }
+
     function toggle(type, force) {
       var current = stateFor(type) === 'open';
       var shouldOpen = typeof force === 'boolean' ? force : !current;
+      if (shouldOpen && !current) returnFocus[type] = doc.activeElement;
       if (shouldOpen && type === 'nav') setState('search', 'closed');
       if (shouldOpen && type === 'search') setState('nav', 'closed');
       setState(type, shouldOpen ? 'open' : 'closed');
       if (type === 'search' && shouldOpen) focusSearchForm();
       if (type === 'nav' && shouldOpen) focusNavMenu();
+      if (current && !shouldOpen) restoreFocus(type);
     }
+
+    // An open dialog (aria-modal) keeps Tab and Shift+Tab inside it.
+    var FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), ' +
+      'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    function openModal() {
+      if (header.getAttribute(SEARCH_ATTR) === 'open') return modalFor('search');
+      if (header.getAttribute(NAV_ATTR) === 'open') return modalFor('nav');
+      return null;
+    }
+
+    doc.addEventListener('keydown', function (event) {
+      if (event.key !== 'Tab') return;
+      var modal = openModal();
+      if (!modal) return;
+      var stops = [].filter.call(modal.querySelectorAll(FOCUSABLE), visible);
+      if (!stops.length) return;
+      var first = stops[0];
+      var last = stops[stops.length - 1];
+      var active = doc.activeElement;
+      if (!modal.contains(active)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
 
     function setupNavItemToggles() {
       var toggles = doc.querySelectorAll('[' + NAV_ITEM_TOGGLE_ATTR + ']');
@@ -615,6 +699,7 @@ export default function CanopyHeader(props = {}) {
       <CanopyModal
         id="canopy-modal-nav"
         variant="nav"
+        ariaLabel={primaryNavigationLabel}
         labelledBy="canopy-modal-nav-label"
         label={resolvedTitle}
         logo={SiteLogo}
@@ -743,6 +828,7 @@ export default function CanopyHeader(props = {}) {
       <CanopyModal
         id="canopy-modal-search"
         variant="search"
+        ariaLabel={resolvedSearchLabel}
         labelledBy="canopy-modal-search-label"
         label={resolvedTitle}
         logo={SiteLogo}

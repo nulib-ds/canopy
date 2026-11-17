@@ -18,6 +18,7 @@ export default function CanopyModal(props = {}) {
     bodyClassName,
     padded = true,
     className,
+    ariaLabel,
     children,
   } = props;
 
@@ -36,8 +37,11 @@ export default function CanopyModal(props = {}) {
 
   if (variant) modalProps['data-canopy-modal'] = variant;
 
+  // `ariaLabel` names the dialog for what it is ("Filters"), where the brand at its top,
+  // the site's title, would not; without it the brand names the dialog.
   const resolvedLabelId = labelledBy || (label ? `${variant || 'modal'}-label` : undefined);
-  if (resolvedLabelId) modalProps['aria-labelledby'] = resolvedLabelId;
+  if (typeof ariaLabel === 'string' && ariaLabel.trim()) modalProps['aria-label'] = ariaLabel.trim();
+  else if (resolvedLabelId) modalProps['aria-labelledby'] = resolvedLabelId;
 
   if (typeof onBackgroundClick === 'function') {
     modalProps.onClick = (event) => {

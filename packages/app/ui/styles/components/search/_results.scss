@@ -1,4 +1,5 @@
 @use "../buttons" as buttons;
+@use "../../settings/type";
 
 .canopy-search-tabs-wrapper {
   display: flex;
@@ -19,16 +20,19 @@
 
   button {
     @include buttons.canopy-button-base(0.382rem, 0.618rem);
+    @include type.ui;
     border: none;
-    font-size: 1rem;
     color: var(--color-gray-muted);
-    transition: all 0.2s ease-in-out;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
 
+    // A fill under the pointer, the page's text on it: the accent's text step is held on
+    // the page, not on a tint.
     &.active,
     &:hover {
-      color: var(--color-accent-default);
-      background-color: var(--color-accent-100);
-      font-weight: 400;
+      color: var(--color-gray-900);
+      background-color: var(--canopy-surface);
     }
   }
 }
@@ -113,10 +117,8 @@
   }
 
   .canopy-search-form-modal__title {
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-sm);
+    @include type.ui-sm(bold);
     color: var(--color-gray-900);
-    font-weight: 500;
   }
 }
 
@@ -124,31 +126,44 @@
   display: none;
 }
 
+// The field's suggestions under it (`search-form-runtime.js`): a raised card, its items
+// rows with a fill under the pointer and the focus ring on the one in focus (2.4.7;
+// ACCESSIBILITY.md C32).
 .canopy-search-teaser {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(100% + 4px);
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  top: calc(100% + 0.382rem);
+  background: var(--canopy-surface-raised);
+  border-radius: var(--canopy-radius-lg);
+  box-shadow:
+    0 0 0 1px var(--canopy-edge),
+    var(--canopy-shadow-lg);
   z-index: 1000;
   overflow: auto;
   max-height: 60vh;
-  padding: 0.5rem 0;
+  padding: 0.382rem 0;
   display: none;
 }
 
 .canopy-search-teaser__list {
   display: flex;
   flex-direction: column;
-  gap: 0.382rem;
-  padding: 0.618rem;
+  gap: 0.236rem;
+  padding: 0.382rem 0.618rem;
+}
+
+// Each type's suggestions, a group named by its label.
+.canopy-search-teaser__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.236rem;
 }
 
 .canopy-search-teaser__label {
   padding: 0.382rem 0.618rem;
-  font-weight: 500;
-  font-size: 0.8333rem;
+  font-weight: var(--canopy-weight-bold);
+  font-size: var(--canopy-text-label);
   color: var(--color-gray-muted);
 }
 
@@ -157,14 +172,24 @@
   align-items: center;
   gap: 0.618rem;
   padding: 0.382rem;
+  border-radius: var(--canopy-radius-md);
+  background: transparent;
+  box-shadow: none;
   text-decoration: none;
   color: var(--color-gray-900);
   transition: background 120ms ease;
 
-  &:hover,
+  // A row, not a card: none of `.canopy-card`'s lift.
+  &:hover {
+    background: var(--canopy-surface);
+    box-shadow: none;
+    transform: none;
+  }
+
   &:focus-visible {
-    background: var(--color-gray-100);
-    outline: none;
+    background: var(--canopy-surface);
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: -2px;
   }
 }
 
@@ -172,7 +197,8 @@
   flex: 0 0 48px;
   height: 48px;
   overflow: hidden;
-  background: var(--color-gray-100);
+  border-radius: var(--canopy-radius-sm);
+  background: var(--canopy-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,8 +218,8 @@
 }
 
 .canopy-search-teaser__title {
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: var(--canopy-weight-bold);
+  font-size: var(--canopy-text-sm);
   line-height: 1.3;
   color: var(--color-gray-900);
   white-space: nowrap;
@@ -202,7 +228,7 @@
 }
 
 .canopy-search-teaser__meta {
-  font-size: 0.78rem;
+  font-size: var(--canopy-text-label);
   color: var(--color-gray-muted);
   white-space: nowrap;
   overflow: hidden;

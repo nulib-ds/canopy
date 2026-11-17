@@ -1,5 +1,12 @@
 # Template Northwestern – AGENT Notes
 
+Prime directive: WCAG 2.2 AA
+----------------------------
+- Sites built from this template should conform to WCAG 2.2 at Level AA, and that outranks every other note here, the brand included. Northwestern's rules apply where they conform; when one conflicts with a criterion, conformance wins and the deviation is recorded in `DESIGN.md` with its reason.
+- Content: meaningful images get alt text, headings stay in order without skipping a level, link text names its target, and passages in another language carry `lang`.
+- Theme and CSS: brand colors in `app/styles/` stay at 4.5:1 for text, and 3:1 for large text, icons, control edges and focus rings. Never remove focus outlines.
+- If a request would fail a criterion, say so and offer the version that conforms. Canopy's rules are in [`packages/app/DESIGN.md`](https://github.com/nulib-ds/canopy/blob/main/packages/app/DESIGN.md) §0; known issues in Canopy itself are in [`ACCESSIBILITY.md`](https://github.com/nulib-ds/canopy/blob/main/ACCESSIBILITY.md).
+
 Mission
 -------
 - Provide a Northwestern University Libraries-branded starting point for Canopy IIIF projects.

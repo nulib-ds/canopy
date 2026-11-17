@@ -1,0 +1,3 @@
+#!/bin/sh
+# Commits are a person's work: refuse a message that credits an AI tool (AGENTS.md).
+node packages/helpers/check-commit-authors.js --message-file "$1"

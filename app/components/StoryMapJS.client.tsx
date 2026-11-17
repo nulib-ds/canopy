@@ -1,4 +1,4 @@
-import {withBasePath} from '@canopy-iiif/app/base-path';
+import {withBasePath} from '@nulib/canopy/base-path';
 import React, {useEffect, useId, useMemo, useRef} from 'react';
 
 type StoryMapData = string | Record<string, unknown>;

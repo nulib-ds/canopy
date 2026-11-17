@@ -1,0 +1,132 @@
+---
+title: Style guide
+description: The type, color, shape and space every Canopy page and component is drawn with.
+---
+
+import StyleGuide from "@canopy-iiif/helpers/docs/components/StyleGuide.jsx";
+
+<StyleGuide.Styles />
+
+# Style guide
+
+<p className="canopy-lead">Every Canopy page is drawn from one small set of styles: two families, two weights, eleven text styles, a palette from your theme, and a few shapes and steps of space. Components use nothing else, so a change you make in `canopy.yml` or in a token restyles every one of them.</p>
+
+This page draws each style with the stylesheet your site ships, in its theme, so what you see is what your pages get. Its numbers are read from the page as it renders.
+
+## Type
+
+Canopy sets type as a magazine does: a sans for headlines and the interface, a serif for reading.
+
+### Families
+
+<StyleGuide.Families />
+
+### Weights
+
+Two weights, and only two: **bold (700)** for headings, labels, a card's title and emphasis, and regular (400) for everything else. Hierarchy comes from size and color, not from weights in between.
+
+### Text styles
+
+Every piece of text on a page is one of these. Headings, paragraphs and lists you write in Markdown take them on their own; components take them from the stylesheet.
+
+<StyleGuide.TypeStyles />
+
+Use them in your own markup with their classes:
+
+| Style            | Class                    | Size token                           |
+| ---------------- | ------------------------ | ------------------------------------ |
+| Display          | `canopy-type-display`    | `--canopy-text-display`              |
+| Title            | `canopy-type-title`      | `--canopy-text-title`                |
+| Heading 2        | `canopy-type-h2`         | `--canopy-text-2xl`                  |
+| Heading 3        | `canopy-type-h3`         | `--canopy-text-xl`                   |
+| Heading 4 to 6   | `canopy-type-h4`         | `--canopy-text-lg`                   |
+| Lede             | `canopy-type-lede`       | `--canopy-text-lede`                 |
+| Body             | `canopy-type-body`       | `--canopy-text-body`                 |
+| Interface        | `canopy-type-ui`         | `--canopy-text-md`                   |
+| Interface, small | `canopy-type-ui-sm`      | `--canopy-text-sm`                   |
+| Label            | `canopy-type-label`      | `--canopy-text-label`                |
+| Code             | `canopy-type-code`       | `--canopy-text-code`                 |
+
+```mdx
+<p className="canopy-type-label">Featured</p>
+<p className="canopy-type-lede">Prints and drawings from three collections.</p>
+```
+
+A class sets the look only. Use the element that says what the text is, such as a heading for a heading, so the page's outline stays right.
+
+## Color
+
+Colors come from your theme (`accentColor`, `grayColor` and `appearance` in `canopy.yml`). Canopy holds each pair of text and ground at 4.5:1 or more, and each control's edge and focus ring at 3:1, for every palette, in light and dark.
+
+### Text
+
+<StyleGuide.Swatches group="text" />
+
+### Fills
+
+<StyleGuide.Swatches group="fills" />
+
+### Surfaces and edges
+
+Panels are solid fills, not outlines; cards are lifted off the page with a hairline and a soft shadow.
+
+<StyleGuide.Swatches group="surfaces" />
+
+### Black
+
+A band and a code block are black in both appearances.
+
+<StyleGuide.Swatches group="black" />
+
+## Shape
+
+Corners nest: what sits inside a rounded thing takes a smaller step. Search fields and round controls are pills.
+
+<StyleGuide.Shapes />
+
+Keyboard focus is always a ring in the accent, standing off the element so the page shows between, as above.
+
+## Space
+
+Space steps on the golden ratio from the page's `1rem`. The more closely two things belong together, the smaller the step between them; a container's inset is a step larger than the gap between what it holds.
+
+<StyleGuide.Spacing />
+
+## Components
+
+### Buttons
+
+<ButtonWrapper>
+  <Button href="/docs/" label="Primary" />
+  <Button href="/docs/theme/" label="Secondary" variant="secondary" />
+</ButtonWrapper>
+
+### A section's introduction
+
+<Feature eyebrow="Eyebrow" title="A section's title" headingLevel={4}>
+  A lede under it, in the reading serif, muted, and whatever follows.
+</Feature>
+
+### A call to action
+
+<Band>
+  <p className="canopy-type-title">A band's title</p>
+  <p>A sentence on black, in the reading serif.</p>
+  <ButtonWrapper>
+    <Button href="/docs/" label="Primary" />
+    <Button href="/docs/theme/" label="Secondary" variant="secondary" />
+  </ButtonWrapper>
+</Band>
+
+### Words in a page
+
+A paragraph as an author writes it, with [a link](/docs/), some _emphasis_, **bold words** and `inline code`.
+
+> A quotation, set apart from the text around it.
+
+- A list item
+- Another, as long as it needs to be to show how a list's lines wrap at the measure the body text keeps.
+
+The <Swoosh>brush stroke</Swoosh> marks a word or two, once or twice on a page.
+
+<StyleGuide.Script />

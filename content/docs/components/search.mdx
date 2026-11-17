@@ -18,11 +18,10 @@ Search primitives expose SSR-safe markup that hydrates into a FlexSearch-powered
 | Component | Prop | Type | Notes |
 | --- | --- | --- | --- |
 | `Search` | `layout` | string | Optional layout override for the results region (`'grid'` or `'list'`). |
-| `SearchForm` | `id`, `className` | string | Wire a custom label/`aria` relationship or add utility classes. |
 | `SearchSummary` | `className` | string | Finely control typography above the results. |
 | `SearchResults` | `layout` | string | Choose between `'grid'` (masonry) and `'list'` (stacked cards). |
-| `SearchTabs` | `className` | string | Style the per-type toggle list. |
-| `SearchTotal` | `className` | string | Display the live count anywhere on the page. |
+| `SearchResults` | `headingLevel` | number | The level of each page result's title, 2 to 6. By default one below the last heading before the results: `2` under the page's `h1`. |
+| `SearchTabs` | `className` | string | Style the per-type tabs. |
 | `SearchFormModal` | `mode` | `'dialog' \/ 'inline'` | Render the search drawer in dialog or inline form mode. |
 
 > Every component reads from the same client store and URL params, so you can scatter them around the layout without extra plumbing.
@@ -31,24 +30,17 @@ Search primitives expose SSR-safe markup that hydrates into a FlexSearch-powered
 
 ### Custom layout
 
-Compose your own layout inside `content/search/_layout.mdx` and let Canopy inject the `search` prop.
+Compose your own layout inside `content/search/_layout.mdx`. The header's search field drives
+the results, so the layout needs no field of its own; open it with the page's `h1`.
 
 ```mdx filename="content/search/_layout.mdx"
----
-title: Search
----
-
 <section className="space-y-6">
   <header className="space-y-2">
     <h1>Search</h1>
     <p>Browse works and documentation pages from the Northwestern collections.</p>
   </header>
-  <SearchForm />
   <SearchTabs />
-  <div className="flex items-center justify-between text-sm text-gray-700">
-    <SearchSummary />
-    <SearchTotal />
-  </div>
+  <SearchSummary />
 </section>
 
 <SearchResults layout="grid" />

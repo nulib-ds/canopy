@@ -1,43 +1,61 @@
+@use "../settings/type";
+
+// Headings take the text styles by level (settings/_type.scss): a page's `h1` is its
+// title, `h2` and `h3` step down, `h4` to `h6` share a size and are told apart by their
+// place. Element selectors, after Tailwind's preflight in the layer (it sets headings'
+// weight to `inherit`); a site's own `app/styles` base rules come later still and win:
+// a 1.x site keeps its headings' face and weight.
 @layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
   h1 {
-    font-size: 2rem;
-    line-height: 1.25;
+    @include type.title;
     margin: 0 0 1rem 0;
   }
 
   h2 {
-    font-size: 1.618rem;
-    line-height: 1.25;
+    @include type.h2;
     margin: 2.618rem 0 1rem;
   }
 
   h3 {
-    font-size: 1.382rem;
-    line-height: 1.3;
-    letter-spacing: -0.0125em;
+    @include type.h3;
     margin: 1.618rem 0 1rem;
   }
 
-  h4 {
-    font-size: 1.111rem !important;
-    line-height: 1.3;
-    letter-spacing: -0.0125em !important;
+  h4,
+  h5,
+  h6 {
+    @include type.h4;
     margin: 1.382rem 0 0.618rem 0;
   }
 
+  // The brand's name, set as an `h4` is; its size is the header's and footer's.
+  :where(.canopy-logo) {
+    @include type.h4;
+  }
+
+  :where(strong, b) {
+    font-weight: var(--canopy-weight-bold);
+  }
+
+  // Words under a title.
   .canopy-lead {
-    font-size: 1.382rem;
-    color: var(--color-gray-muted);
+    @include type.lede;
     margin: 0.5rem 0 2rem 0;
-    line-height: 1.4;
   }
 }
 
+// 1.x's utility, now the headings' family as the text styles set it.
 @utility font-display {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  font-variation-settings:
-    "SOFT" 100,
-    "WONK" 1;
+  font-family: var(--canopy-font-display);
+  font-weight: var(--canopy-weight-bold);
+  letter-spacing: var(--canopy-tracking-tight);
 }

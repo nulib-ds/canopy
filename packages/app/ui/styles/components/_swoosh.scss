@@ -1,0 +1,50 @@
+// `<Swoosh>`: the brush stroke under its words, after Clover's homepage. An SVG shape
+// (`--canopy-swoosh`) used as a mask over the accent's solid step, faint where the pen
+// comes down and full where it lifts, so it takes the site's accent whatever it is. It
+// sits behind the letters, at their foot, so they read over it, and it rises a little to
+// the right. Drawn in once from the left as the page loads; at once where motion is
+// reduced. An inline block, so a phrase wider than the line wraps inside it rather than
+// push the page sideways (1.4.10), the stroke under its last line.
+@layer components {
+  .canopy-swoosh {
+    display: inline-block;
+    max-width: 100%;
+    position: relative;
+    isolation: isolate;
+    z-index: 0;
+  }
+
+  .canopy-swoosh::after {
+    content: "";
+    position: absolute;
+    bottom: -0.1em;
+    left: -0.04em;
+    right: -0.06em;
+    height: 0.42em;
+    rotate: 1.5deg;
+    z-index: -1;
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-accent-600) 30%, transparent),
+      var(--color-accent-600)
+    );
+    mask: var(--canopy-swoosh) center / 100% 100% no-repeat;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .canopy-swoosh::after {
+      animation: canopy-swoosh-draw 700ms var(--canopy-ease) 300ms both;
+    }
+  }
+
+  @keyframes canopy-swoosh-draw {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+}

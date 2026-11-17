@@ -20,7 +20,8 @@ function writeChangeset(bump) {
   const file = path.join(dir, name);
   const header = [
     '---',
-    "'@canopy-iiif/app': " + bump,
+    // @nulib/canopy and @canopy-iiif/app are one fixed group (.changeset/config.json).
+    "'@nulib/canopy': " + bump,
     '---',
     '',
     `chore: version bump (${bump}) via helper script.`,

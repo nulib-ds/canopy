@@ -3,6 +3,8 @@ const fsp = fs.promises;
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
 const http = require("http");
+const {withUiStylesImports} = require("./ui-styles");
+const {PACKAGE_NAME} = require("./package-names");
 let sass = null;
 try {
   sass = require("sass");
@@ -20,15 +22,17 @@ const {
 } = require("./styles");
 const APP_COMPONENTS_DIR = path.join(process.cwd(), "app", "components");
 
+// As `styles.js`: the site's own Tailwind CLI, else this package's.
 function resolveTailwindCli() {
-  const root = process.cwd();
-  try {
-    const pkgPath = require.resolve("@tailwindcss/cli/package.json", { paths: [root] });
-    const cliEntry = path.join(path.dirname(pkgPath), "dist", "index.mjs");
-    if (fs.existsSync(cliEntry)) {
-      return { cmd: process.execPath || "node", args: [cliEntry] };
-    }
-  } catch (_) {}
+  for (const from of [process.cwd(), __dirname]) {
+    try {
+      const pkgPath = require.resolve("@tailwindcss/cli/package.json", { paths: [from] });
+      const cliEntry = path.join(path.dirname(pkgPath), "dist", "index.mjs");
+      if (fs.existsSync(cliEntry)) {
+        return { cmd: process.execPath || "node", args: [cliEntry] };
+      }
+    } catch (_) {}
+  }
   return null;
 }
 const PORT = Number(process.env.PORT || 5001);
@@ -47,8 +51,8 @@ const CUSTOM_COMPONENT_EXTENSIONS = new Set(
   ) => ext.toLowerCase())
 );
 const APP_WATCH_TARGETS = [
-  { dir: APP_LIB_DIR, label: "@canopy-iiif/app/lib" },
-  { dir: APP_UI_DIR, label: "@canopy-iiif/app/ui" },
+  { dir: APP_LIB_DIR, label: `${PACKAGE_NAME}/lib` },
+  { dir: APP_UI_DIR, label: `${PACKAGE_NAME}/ui` },
 ];
 const HAS_APP_WORKSPACE = (() => {
   try {
@@ -402,7 +406,7 @@ function watchAppComponentsPerDir(dir) {
   };
 }
 
-// Watch @canopy-iiif/app/ui dist output to enable live reload for UI edits during dev.
+// Watch the package's ui dist output to enable live reload for UI edits during dev.
 // When UI dist changes, rebuild the search runtime bundle and trigger a browser reload.
 async function rebuildSearchBundle() {
   try {
@@ -1145,17 +1149,18 @@ async function dev() {
         });
         // No theme here: injectThemeTokens() adds it to the site stylesheet.
         // A copy baked into this package file would outlive canopy.yml edits
-        // and, once imported, override the fresh theme.
+        // and, once imported, override the fresh theme. Clover's stylesheets
+        // come first, as the UI build writes them (`ui-styles.js`).
         const cssOutput = result && result.css ? result.css : "";
-        fs.writeFileSync(uiStylesCss, cssOutput, "utf8");
+        fs.writeFileSync(uiStylesCss, withUiStylesImports(cssOutput), "utf8");
         console.log(
-          "[tailwind] rebuilt @canopy-iiif/app/ui styles →",
+          `[tailwind] rebuilt ${PACKAGE_NAME}/ui styles →`,
           prettyPath(uiStylesCss)
         );
         return true;
       } catch (err) {
         console.warn(
-          "[tailwind] failed to rebuild @canopy-iiif/app/ui styles:",
+          `[tailwind] failed to rebuild ${PACKAGE_NAME}/ui styles:`,
           err && err.message ? err.message : err
         );
         return false;
@@ -1169,7 +1174,7 @@ async function dev() {
       if (!fs.existsSync(uiStylesCss)) return;
       const handler = () =>
         scheduleTailwindRestart(
-          "[tailwind] detected @canopy-iiif/app/ui styles change — restarting Tailwind",
+          `[tailwind] detected ${PACKAGE_NAME}/ui styles change — restarting Tailwind`,
           "[tailwind] compile after UI styles change failed"
         );
       try {
@@ -1192,7 +1197,7 @@ async function dev() {
       attachCssWatcher();
       scheduleTailwindRestart(
         ok
-          ? "[tailwind] detected @canopy-iiif/app/ui Sass change — restarting Tailwind"
+          ? `[tailwind] detected ${PACKAGE_NAME}/ui Sass change — restarting Tailwind`
           : "[tailwind] Sass compile failed — attempting Tailwind restart",
         "[tailwind] compile after UI Sass change failed"
       );
@@ -1326,7 +1331,7 @@ async function dev() {
     console.log(
       "[Watching]",
       prettyPath(UI_DIST_DIR),
-      "(@canopy-iiif/app/ui dist)"
+      `(${PACKAGE_NAME}/ui dist)`
     );
     const urw = tryRecursiveWatchUiDist();
     if (!urw) watchUiDistPerDir();

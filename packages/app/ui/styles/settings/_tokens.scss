@@ -1,0 +1,170 @@
+// Canopy's design tokens (packages/app/DESIGN.md §1): what every component draws with, so
+// a theme or a site's own stylesheet restyles them all at once. The 2.x look's values,
+// after Clover's docs tokens (nulib-ds/clover, `docs/styles/tokens.css`), under Canopy's
+// prefix: Tailwind owns the bare `--text-*`, `--radius-*` and `--shadow-*`, which a site's
+// utility classes read.
+//
+// In `@layer properties`, with the color tokens the build writes from canopy.yml, and
+// ahead of a site's own `app/styles`, which come later in the layer and win: a site sets
+// any of these without `!important`. Square corners and no shadows are one line each
+// (`--canopy-radius-sm: 0`, `--canopy-shadow-md: none`, …), as the Northwestern template
+// sets them. Nothing forces a value on every element (ACCESSIBILITY.md, R1).
+//
+// Dark mode: the values that differ are under `:root.dark` (every dark appearance sets the
+// class), and under the system's dark scheme for `appearance: auto` before its script runs.
+
+$canopy-swoosh: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 24' preserveAspectRatio='none'%3E%3Cpath d='M3 14.5c34-4.2 74-6.1 118-6.6 52-.6 107 .9 175-3.4 2.2-.1 3.6 1.6 3.4 3.4-.2 1.6-1.4 2.7-3 2.9-69 6.3-122 5.3-175 5.9-41 .5-79 2.3-115 6.5-2.4.3-4.5-1.4-4.7-3.8-.2-2.3 1.4-4.5 3.7-4.9z'/%3E%3C/svg%3E");
+
+@mixin canopy-dark-tokens {
+  // A raised surface is lighter than the page in the dark, where a shadow does not read.
+  --canopy-surface-raised: var(--color-gray-300);
+  --canopy-surface-sunken: var(--color-gray-100);
+  --canopy-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.25), 0 1px 3px rgb(0 0 0 / 0.19);
+  --canopy-shadow-md: 0 6px 24px rgb(0 0 0 / 0.4);
+  --canopy-shadow-lg: 0 8px 24px -8px rgb(0 0 0 / 0.38), 0 2px 6px -2px rgb(0 0 0 / 0.25);
+  // Black on a near-black page: a hairline sets it off.
+  --canopy-band-edge: var(--canopy-edge);
+}
+
+@layer properties {
+  :root,
+  :host {
+    // ── Type ───────────────────────────────────────────────────────────────────────
+    // As a magazine sets it: a sans for headlines and the interface, a serif for reading.
+    // Both ship with the package and are served from the site itself
+    // (`lib/build/fonts.js`), then the system's own. A site that sets these in its own
+    // `app/styles` keeps its families.
+    //
+    // Google Sans Flex: headings, navigation, buttons, cards, labels, metadata, search.
+    --font-sans:
+      "Google Sans Flex", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+      "Helvetica Neue", Arial, sans-serif;
+    // Source Serif 4: a page's prose, its ledes and its quotes, on a marketing page and
+    // in a long read alike.
+    --font-serif:
+      "Source Serif 4", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --default-font-family: var(--font-sans);
+    // Headings' family, and reading text's (`base/_common.scss`): set
+    // `--canopy-font-body: var(--font-sans)` for one family throughout.
+    --canopy-font-display: var(--font-sans);
+    --canopy-font-body: var(--font-serif);
+    // Two weights, and only two: hierarchy comes from size and color.
+    --canopy-weight-regular: 400;
+    --canopy-weight-bold: 700;
+    // The size scale. Each text style (`settings/_type.scss`) takes one step; nothing else
+    // sets a size. Nothing in the interface goes below `--canopy-text-sm` but labels,
+    // whose uppercase letters carry more width a point.
+    --canopy-text-label: 0.875rem;
+    --canopy-text-sm: 0.9375rem;
+    --canopy-text-md: 1rem;
+    // Reading text: a step over the interface, as a serif at the same size reads smaller
+    // than the sans beside it.
+    --canopy-text-body: 1.0625rem;
+    --canopy-text-lg: 1.125rem;
+    --canopy-text-xl: 1.382rem;
+    --canopy-text-2xl: 1.618rem;
+    // By the window's width: words under a title, a page's or section's title, a hero's
+    // headline (one line of about ten words from 320px up).
+    --canopy-text-lede: clamp(var(--canopy-text-lg), 2vw, 1.375rem);
+    --canopy-text-title: clamp(1.875rem, 3.2vw, 2.618rem);
+    --canopy-text-display: clamp(2rem, 8vw, 5.236rem);
+    --canopy-text-code: 0.875rem;
+    // Tracking: tighter as type grows, open for uppercase labels.
+    --canopy-tracking-display: -0.04em;
+    --canopy-tracking-tight: -0.02em;
+    --canopy-tracking-snug: -0.01em;
+    --canopy-tracking-label: 0.06em;
+    // Reading text's longest line, a magazine column's: about 70 characters (under the
+    // 80 WCAG 1.4.8 advises).
+    --canopy-measure: 70ch;
+
+    // ── Shape ──────────────────────────────────────────────────────────────────────
+    // What sits inside a rounded thing takes a smaller step, so corners nest.
+    --canopy-radius-none: 0;
+    --canopy-radius-sm: 4px;
+    --canopy-radius-md: 8px;
+    --canopy-radius-lg: 12px;
+    --canopy-radius-xl: 16px;
+    --canopy-radius-pill: 999px;
+    --canopy-radius-circle: 50%;
+    // Clover reads its own radius tokens; they follow Canopy's.
+    --clover-radius: var(--canopy-radius-sm);
+    --clover-radius-pill: var(--canopy-radius-pill);
+
+    // ── Surfaces ───────────────────────────────────────────────────────────────────
+    // Solid fills, not outlines: a panel is a block of color, set off by contrast and
+    // space. Text tokens hold 4.5:1 on each (tests/unit/a11y/contrast.test.js).
+    --canopy-surface: var(--color-gray-200);
+    --canopy-surface-raised: var(--color-gray-50);
+    --canopy-surface-sunken: var(--color-gray-300);
+    // A hairline, between the gray's steps 4 and 7: decoration, never the only thing that
+    // marks a control.
+    --canopy-edge: color-mix(in oklab, var(--color-gray-300) 50%, var(--color-gray-400));
+    // A control's edge (a field, an outline button): the muted text mixed into the page,
+    // as light as keeps 3:1 against it (WCAG 1.4.11), as Clover's fields are.
+    --canopy-control-edge: color-mix(in srgb, var(--color-gray-muted) 80%, var(--color-gray-50));
+
+    // ── Shadows ────────────────────────────────────────────────────────────────────
+    --canopy-shadow-none: none;
+    --canopy-shadow-sm: 0 1px 2px rgb(28 32 36 / 0.03), 0 1px 3px rgb(28 32 36 / 0.06);
+    --canopy-shadow-md: 0 1px 2px rgb(0 0 0 / 0.04), 0 6px 24px rgb(0 0 0 / 0.06);
+    --canopy-shadow-lg: 0 8px 24px -8px rgb(28 32 36 / 0.13), 0 2px 6px -2px rgb(28 32 36 / 0.08);
+    // A card lifted off the page: a hairline edge, then a close, soft shadow.
+    --canopy-card-shadow: 0 0 0 1px var(--canopy-edge), var(--canopy-shadow-md);
+
+    // ── Focus ──────────────────────────────────────────────────────────────────────
+    // The text accent, 4.5:1 on the page, so the ring holds 3:1 under every palette.
+    // Components draw it as an outline (`focus-ring` in `settings/_focus.scss`), which
+    // forced-colors mode keeps; `--canopy-focus-ring` is the same ring as a shadow.
+    --canopy-focus-color: var(--color-accent-default);
+    --canopy-focus-width: 2px;
+    --canopy-focus-offset: 2px;
+    --canopy-focus-ring:
+      0 0 0 var(--canopy-focus-offset) var(--color-gray-50),
+      0 0 0 calc(var(--canopy-focus-offset) + var(--canopy-focus-width)) var(--canopy-focus-color);
+
+    // ── Bands ──────────────────────────────────────────────────────────────────────
+    // Black in both appearances, its words white (`<Band>`): 21:1, and its muted words
+    // 9:1 or more.
+    --canopy-band-background: #000;
+    --canopy-band-text: #fff;
+    --canopy-band-muted: color-mix(in srgb, #fff 72%, #000);
+    --canopy-band-edge: transparent;
+
+    // ── The brush stroke ───────────────────────────────────────────────────────────
+    // A hand-drawn swoosh, used as a mask over the accent (`<Swoosh>`, the wordmark), so
+    // it takes the site's accent whatever it is.
+    --canopy-swoosh: #{$canopy-swoosh};
+
+    // ── Motion ─────────────────────────────────────────────────────────────────────
+    --canopy-ease: cubic-bezier(0.65, 0, 0.35, 1);
+
+    // ── Space ──────────────────────────────────────────────────────────────────────
+    // The golden steps from the page's 1rem, as Clover's (`--clover-space-*`): the more
+    // closely two things belong together, the smaller the step between them; a container's
+    // inset is a step larger than the gap between what it holds.
+    --canopy-space-3xs: 0.146rem;
+    --canopy-space-2xs: 0.236rem;
+    --canopy-space-xs: 0.382rem;
+    --canopy-space-s: 0.618rem;
+    --canopy-space-m: 1rem;
+    --canopy-space-l: 1.618rem;
+    --canopy-space-xl: 2.618rem;
+    --canopy-space-2xl: 4.236rem;
+
+    // ── Layout ─────────────────────────────────────────────────────────────────────
+    // How far down the window what sticks must stand to clear the sticky header: 4rem
+    // while the header sticks (`header/_header.scss`), none otherwise.
+    --canopy-sticky-top: 0px;
+  }
+
+  :root.dark {
+    @include canopy-dark-tokens;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root[data-appearance="auto"]:not(.light) {
+      @include canopy-dark-tokens;
+    }
+  }
+}

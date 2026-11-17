@@ -1,6 +1,11 @@
 Workspace Agent Notes
 =====================
 
+Prime directive: WCAG 2.2 AA
+----------------------------
+- Everything the workspaces ship conforms to WCAG 2.2 at Level AA, and that outranks every note below. The rules are in the root `AGENTS.md` and `packages/app/DESIGN.md` §0; known failures are in `ACCESSIBILITY.md`.
+- Cleanup and architecture work inherits it: a refactor that drops a name, moves focus or lowers a contrast ratio is not done.
+
 Purpose
 -------
 - Coordinate long-running cleanup and architecture work inside `packages/`.
@@ -16,9 +21,9 @@ Directory Playbooks
 Active Themes
 -------------
 1. Keep helper scripts confined to `packages/helpers/`; add npm scripts instead of creating a root `scripts/` directory.
-2. Maintain the release contract: only `@canopy-iiif/app` is publishable, and UI assets must be built via `prepublishOnly`.
+2. Maintain the release contract: only `@nulib/canopy` (`packages/app`) and its 1.x name `@canopy-iiif/app` (`packages/app-alias`) are publishable, at one version, and UI assets must be built via `prepublishOnly`.
 3. Tailwind 4 is the baseline: CLI resolution goes through `@tailwindcss/cli`, configuration is CSS-first in `app/styles/index.css`, and `lib/build/theme-tokens.js` injects the `canopy.yml` tokens (with `@layer theme, properties;` so Tailwind's defaults rank below them). The JS preset/plugin/`ui/tailwind-config` are deprecated no-ops.
-4. Guard SSR safety by importing UI code through `@canopy-iiif/app/ui/server` on the Node side and keeping browser bundles free of inlined React deps.
+4. Guard SSR safety by importing UI code through `@nulib/canopy/ui/server` on the Node side and keeping browser bundles free of inlined React deps.
 5. Track search/IIIF roadmap items centrally so both lib and UI teams stay aligned.
 
 Session Ritual
@@ -30,7 +35,7 @@ Session Ritual
 Reference Commands
 ------------------
 - Full build/dev loop: `npm run build` / `npm run dev`
-- UI bundle only: `npm -w @canopy-iiif/app run ui:build`
+- UI bundle only: `npm -w @nulib/canopy run ui:build`
 
 Related Docs
 ------------

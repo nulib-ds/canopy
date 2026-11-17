@@ -10,6 +10,8 @@ common:
     done: "Done"
     show: "Show"
     hide: "Hide"
+    view_work: "View work"
+    copy: "Copy"
   nouns:
     search: "Search"
     filters: "Filters"
@@ -31,6 +33,8 @@ common:
     details: "details"
     breadcrumb: "Breadcrumb"
     home: "Home"
+    suggestion: "suggestion"
+    suggestions: "suggestions"
   types:
     work: "Works"
     page: "Pages"
@@ -64,6 +68,9 @@ common:
     step_content: "{direction} {content}"
     item_numbered: "{content} {index}"
     content_key: "{content} key"
+    copy_code: "Copy code to clipboard"
+    copied_code: "Copied to clipboard"
+    count_content: "{count} {content}"
   directions:
     left: "left"
     right: "right"
@@ -72,3 +79,18 @@ common:
   misc:
     referenced_by: "Referenced by"
     on_this_page: "On this page"
+  appearance:
+    label: "Appearance"
+    system: "System"
+    light: "Light"
+    dark: "Dark"
+  carousel:
+    label: "Featured content"
+    role: "carousel"
+    slide_role: "slide"
+    slide: "{index} of {total}"
+    previous: "Previous slide"
+    next: "Next slide"
+    go_to: "Go to slide {index}"
+    stop: "Pause the slideshow"
+    start: "Play the slideshow"

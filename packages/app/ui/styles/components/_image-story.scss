@@ -1,8 +1,8 @@
 .canopy-image-story.storiiies-viewer {
   --storiiies-viewer-container-bg: var(--color-gray-200);
   --storiiies-viewer-font-family: var(--default-font-family);
-  --storiiies-viewer-font-size: 1rem;
-  --storiiies-viewer-title-font-size: 1.222rem;
+  --storiiies-viewer-font-size: var(--canopy-text-md);
+  --storiiies-viewer-title-font-size: var(--canopy-text-lg);
   --storiiies-viewer-fg: var(--color-gray-900);
   --storiiies-viewer-bg: var(--color-gray-50);
   --storiiies-viewer-outer-spacing: 1rem;
@@ -20,13 +20,20 @@
     margin-top: 1.618rem;
   }
 
+  // It scrolls, so it takes focus (`tabindex="0"`), and shows it: drawn inside, as the
+  // viewer's frame clips (WCAG 2.4.7; ACCESSIBILITY.md C23).
+  .storiiies-viewer__info-text:focus-visible {
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: -2px;
+  }
+
   p {
     font-size: var(--storiiies-viewer-font-size);
     color: var(--color-gray-800);
   }
 
   .storiiies-viewer__text-section {
-    font-weight: 300;
+    font-weight: var(--canopy-weight-regular);
 
     strong {
       display: none;
@@ -34,13 +41,13 @@
 
     &.storiiies-viewer__title {
       font-size: var(--storiiies-viewer-title-font-size);
-      font-weight: 500;
+      font-weight: var(--canopy-weight-bold);
       color: var(--color-gray-900);
     }
   }
 
   .storiiies-viewer__info-area {
-    font-weight: 300;
+    font-weight: var(--canopy-weight-regular);
   }
 
   &[data-canopy-image-story] {

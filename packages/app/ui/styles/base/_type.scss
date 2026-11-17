@@ -1,0 +1,51 @@
+@use "../settings/type";
+
+// Each text style as a class (`.canopy-type-<style>`), for an author's own markup in MDX:
+// `<p className="canopy-type-label">`. The docs' Style guide page shows them all. In
+// `@layer components`, so a class wins over an element's own style, and a site's
+// utilities over the class.
+@layer components {
+  .canopy-type-display {
+    @include type.display;
+  }
+
+  .canopy-type-title {
+    @include type.title;
+  }
+
+  .canopy-type-h2 {
+    @include type.h2;
+  }
+
+  .canopy-type-h3 {
+    @include type.h3;
+  }
+
+  .canopy-type-h4 {
+    @include type.h4;
+  }
+
+  .canopy-type-lede {
+    @include type.lede;
+  }
+
+  .canopy-type-body {
+    @include type.body;
+  }
+
+  .canopy-type-ui {
+    @include type.ui;
+  }
+
+  .canopy-type-ui-sm {
+    @include type.ui-sm;
+  }
+
+  .canopy-type-label {
+    @include type.label;
+  }
+
+  .canopy-type-code {
+    @include type.code;
+  }
+}
