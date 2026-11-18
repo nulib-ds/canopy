@@ -1084,6 +1084,12 @@ async function compileMdxFile(filePath, outPath, Layout, extraProps = {}) {
     href = withBase(href);
     return React.createElement("a", {href, ...rest}, props.children);
   };
+  // And for a page's own pictures, as for its links: `![…](/images/a.webp)` resolves under
+  // a site's base path too. A full URL, or a site's own `img`, is left as it is.
+  const Img = function Img(props) {
+    const {src = "", ...rest} = props || {};
+    return React.createElement("img", {src: withBase(src), ...rest});
+  };
   const app = await loadAppWrapper();
   const dirLayout = await getNearestDirLayout(filePath);
   const contentNode = React.createElement(MDXContent, extraProps);
@@ -1126,7 +1132,12 @@ async function compileMdxFile(filePath, outPath, Layout, extraProps = {}) {
   const withContext = PageContext
     ? React.createElement(PageContext.Provider, {value: contextValue}, withApp)
     : withApp;
-  const compMap = {...components, ...headingComponents, a: Anchor};
+  const compMap = {
+    ...(components && components.img ? {} : {img: Img}),
+    ...components,
+    ...headingComponents,
+    a: Anchor,
+  };
   if (markdownTableComponent && !compMap.table) {
     compMap.table = markdownTableComponent;
   }

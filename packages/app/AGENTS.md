@@ -300,6 +300,7 @@ The 2.0.2 patch
 - **The docs site's own**: "Canopy is a project of Northwestern University Libraries." under the header on its home page, as Clover's docs have it (`packages/helpers/docs/ProjectCredit.js`); a template has its own home page, so never carries it.
 - **Dev server**: `dev.js` rebuilds the UI styles when `version-parity.css` changes, as it did for Sass alone. A UI component's JSX shows only after a restart (the server bundle is imported once); the UI watcher was found gone mid-session three times, cause not found.
 - **Checks**: `specs/carousel.spec.mjs` (rewritten), `header-search.spec.mjs`, `related-items.spec.mjs` (slider headers, list markers), `work.spec.mjs`; unit tests for the dots' share, the default theme and the colors notice; the fixture's prose page has a bulleted and a numbered list.
+- **After 2.0.2** (2026-11-18, uncommitted): a page's Markdown pictures take the site's base path as its links do: `mdx.js` maps `img` to `Img` (`withBase`, root paths only, never twice), unless the site maps `img` itself, so `![…](/images/a.webp)` works under `/canopy/`. The docs' diagram is drawn anew (`packages/helpers/AGENTS.md`); the templates' commits are named for their version (`push-template.js`); the dev server serves `.webp`, `.avif`, `.woff2`, `.ico` and `.mjs` with their types.
 - **Left**: Fraunces for most headings, Google Sans for reading, Source Serif gone, waiting on Mat's OK to download Fraunces (four files, 275 KB, Google Fonts) and his choice of its weight; the Canopy diagram's redraw, after the release.
 
 References
