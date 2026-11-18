@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {cloverViewer, noticeUnsupported} from "./clover-compat.js";
+import {useLocale} from "../locale/index.js";
 
 // Clover 4's Viewer, in its Default template. The server draws a placeholder, which
 // the viewer runtime mounts; in a page's own React tree, Clover loads on demand, from
@@ -36,6 +37,7 @@ function deepMerge(base, override) {
 
 export const Viewer = (props) => {
   const [CloverViewer, setCloverViewer] = useState(null);
+  const {getString} = useLocale();
   const mergedOptions = deepMerge(
     DEFAULT_VIEWER_OPTIONS,
     props && props.options
@@ -86,7 +88,13 @@ export const Viewer = (props) => {
     }
     return (
       // `clover-viewer`, Clover 3's root, for a site's 1.x styles (`version-parity.css`).
-      <div data-canopy-viewer="1" className="not-prose clover-viewer">
+      // On a work page the viewer runtime adds a toggle beside it, named in the page's
+      // words (`viewer-runtime-entry.js`).
+      <div
+        data-canopy-viewer="1"
+        data-canopy-viewer-widen={getString("common.actions.widen_viewer", "Widen the viewer")}
+        className="not-prose clover-viewer"
+      >
         <script
           type="application/json"
           dangerouslySetInnerHTML={{ __html: json }}

@@ -1,4 +1,5 @@
 @use "../settings/type";
+@use "../settings/focus" as focus;
 @layer components {
   .canopy-work--layout {
     --canopy-work-gap: clamp(1.5rem, 3vw, 2.75rem);
@@ -27,9 +28,97 @@
     box-shadow: var(--canopy-card-shadow);
   }
 
+  // The viewer's toggle (`lib/components/viewer-runtime-entry.js`): from 961px, where the
+  // viewer and the work's words sit side by side, it spreads the viewer across the column
+  // and stacks the words under it, and back (Mat, 2026-11-18). It straddles the viewer's
+  // corner beside Clover's own controls: 36px, its edge 3:1 (1.4.11, 2.5.8), its icon the
+  // way it will go.
+  .canopy-work--primary {
+    position: relative;
+  }
+
+  .canopy-work__widen {
+    display: none;
+  }
+
+  @media (min-width: 961px) {
+    .canopy-work__widen {
+      position: absolute;
+      top: 1.5rem;
+      inset-inline-end: -1.125rem;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      width: 2.25rem;
+      height: 2.25rem;
+      padding: 0;
+      border: 1px solid var(--canopy-control-edge);
+      border-radius: var(--canopy-radius-pill);
+      background-color: var(--canopy-surface-raised);
+      color: var(--color-gray-default);
+      cursor: pointer;
+
+      &:hover {
+        border-color: var(--color-gray-muted);
+      }
+
+      &:focus-visible {
+        @include focus.focus-ring;
+      }
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+    }
+
+    .canopy-work__widen[aria-pressed="true"] .canopy-work__widen-icon--widen,
+    .canopy-work__widen[aria-pressed="false"] .canopy-work__widen-icon--narrow {
+      display: none;
+    }
+
+    .canopy-work--layout[data-viewer="wide"] {
+      flex-direction: column;
+
+      > .canopy-work--primary,
+      > .canopy-work--secondary {
+        flex-basis: auto;
+        width: 100%;
+      }
+    }
+  }
+
+  // The work's metadata (`<Metadata>`, `dl.clover-metadata`) in columns wherever it has the
+  // column's whole width, under a wide viewer or under 961px: three at most, fewer where
+  // a column would be under 16rem (Mat, 2026-11-18: "try three columns max"), read across,
+  // then down. Its references, attribution and id keep the whole width ("don't do
+  // columns here").
+  @mixin metadata-columns {
+    --canopy-metadata-gap: var(--canopy-space-l);
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(max(min(100%, 16rem), calc((100% - 2 * var(--canopy-metadata-gap)) / 3)), 1fr)
+    );
+    column-gap: var(--canopy-metadata-gap);
+    // Each label and its value at the top of its cell, its value right under it, however
+    // tall the row's other cells are.
+    align-items: start;
+  }
+
+  .canopy-work--layout[data-viewer="wide"] .canopy-work--secondary dl.clover-metadata {
+    @include metadata-columns;
+  }
+
   @media (max-width: 960px) {
     .canopy-work--layout {
       flex-direction: column;
+    }
+
+    .canopy-work--secondary dl.clover-metadata {
+      @include metadata-columns;
     }
 
     .canopy-work--primary,
@@ -48,6 +137,11 @@
 
       dl {
         padding: 0;
+      }
+
+      // The metadata set apart from the references above it and the attribution under it.
+      dl.clover-metadata {
+        margin-block: var(--canopy-space-l);
       }
 
       dl > div {

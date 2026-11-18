@@ -119,7 +119,7 @@ test('takes a hex accent and derives its steps', () => {
   expect(themeFrom('  accentColor: "#06f"\n').accent.scale['600']).toBe('#0066ff');
   expect(themeFrom('  accentColor: "0f62fe"\n').accent.name).toBe('#0f62fe');
   // Not a palette or a color: the default accent.
-  expect(themeFrom('  accentColor: notacolor\n').accent.name).toBe('indigo');
+  expect(themeFrom('  accentColor: notacolor\n').accent.name).toBe('gold');
 });
 
 test('appearance auto emits light tokens, and dark ones for a dark system or a dark page', () => {

@@ -43,5 +43,5 @@ search:
 webmcp: true
 theme:
   appearance: light
-  accentColor: "#0f62fe"
-  grayColor: slate
+  accentColor: gold
+  grayColor: sand

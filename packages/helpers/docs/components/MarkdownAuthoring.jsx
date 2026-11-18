@@ -34,7 +34,7 @@ Company rule.`;
 
 const componentStyles = `
 .markdown-authoring {
-  padding: 1.618rem 0;
+  padding: clamp(var(--canopy-space-xl, 2.618rem), 6vw, var(--canopy-space-2xl, 4.236rem)) 0;
 }
 
 .markdown-authoring__container {
@@ -53,10 +53,13 @@ const componentStyles = `
   text-align: center;
 }
 
+/* Two balanced lines, centered over the words under it, however wide the column. */
 .markdown-authoring__heading {
   font-size: var(--canopy-text-title, 2rem);
   line-height: 1.1;
-  margin: 0;
+  margin: 0 auto;
+  max-width: 14em;
+  text-wrap: balance;
 }
 
 .markdown-authoring__description {
@@ -69,7 +72,7 @@ const componentStyles = `
 .markdown-authoring__grid {
   display: flex;
   flex-wrap: nowrap;
-  gap: 2.618rem;
+  gap: clamp(var(--canopy-space-l, 1.618rem), 4vw, var(--canopy-space-2xl, 4.236rem));
   animation: markdown-authoring-panel-in 0.8s forwards;
 }
 

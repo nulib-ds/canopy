@@ -1,5 +1,20 @@
 const releases = [
   {
+    "version": "2.0.2",
+    "date": "2026-11-18",
+    "summary": "Refinements to the look: the hero, sliders, header, work page, spacing and default colors.",
+    "highlights": [
+      "The hero moves only when a visitor moves it; its dots are translucent where 3:1 allows.",
+      "Prose takes its column’s whole width, numbered lists number again, and slider cards show no stray bullets.",
+      "Sliders show their cards’ edges and shadows, their arrows sit a step in, and a facet’s value links to its works.",
+      "The header’s search is a button that opens into its field, the navigation at the header’s end.",
+      "Wider columns (75rem and 90rem) and more room between sections; the hero lines up with them.",
+      "A work page’s viewer widens across the page at a toggle, its metadata in up to three columns under it.",
+      "Gold on sand is the default theme; a 1.x site that names no colors hears how to keep indigo.",
+      "No brush stroke: <Swoosh> keeps working and draws nothing."
+    ]
+  },
+  {
     "version": "2.0.1",
     "date": "2026-11-17",
     "summary": "Canopy 2: published as @nulib/canopy, drawn with Clover 4, with a new look and rebuilt search.",

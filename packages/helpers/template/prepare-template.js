@@ -69,6 +69,31 @@ function copyRepoToTemplate() {
   execFileSync('rsync', args, { stdio: 'inherit' });
 }
 
+// npm takes a few minutes to serve a version it has just accepted ("Your package is being
+// processed"; 2.0.0 took about 150 seconds). The template's lockfile names the version just
+// published, so wait until npm serves it. `view` and `sleep` are for the tests.
+function waitForPublished(name, version, options = {}) {
+  if (!version) return 0;
+  const view =
+    options.view ||
+    ((spec) =>
+      execFileSync('npm', ['view', spec, 'version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim());
+  const sleep = options.sleep || ((seconds) => execFileSync('sleep', [String(seconds)]));
+  const intervalSeconds = options.intervalSeconds || 15;
+  const attempts = options.attempts || 40;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    let served = '';
+    try {
+      served = view(`${name}@${version}`);
+    } catch (_) {}
+    if (served === version) return attempt;
+    if (attempt === attempts) break;
+    console.log(`[template] waiting for npm to serve ${name}@${version} (${attempt}/${attempts})`);
+    sleep(intervalSeconds);
+  }
+  throw new Error(`${name}@${version} is not served by npm after ${(attempts * intervalSeconds) / 60} minutes`);
+}
+
 function regeneratePackageLock() {
   const lockPath = path.join(OUTPUT_ROOT, 'package-lock.json');
   rmrf(lockPath);
@@ -223,6 +248,7 @@ function main(templateRoot) {
   copyRepoToTemplate();
   applyTemplateOverrides(resolvedTemplateRoot);
   rewritePackageJson(appVersion);
+  if (!process.env.APP_SOURCE) waitForPublished('@nulib/canopy', appVersion);
   regeneratePackageLock();
   const writeTemplateDeploy = require('./write-template-deploy');
   writeTemplateDeploy(OUTPUT_ROOT);
@@ -230,7 +256,7 @@ function main(templateRoot) {
   applyTemplateAppOverrides(resolvedTemplateRoot);
 }
 
-module.exports = { templatePackageJson };
+module.exports = { templatePackageJson, waitForPublished };
 
 if (require.main === module) {
   try { main(); } catch (e) { console.error(e); process.exit(1); }

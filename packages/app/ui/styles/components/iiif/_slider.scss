@@ -1,5 +1,61 @@
+@use "../../settings/focus" as focus;
+
 // The slider is Clover 4's Items (`clover-items`), which draws itself from Clover's
-// tokens; Canopy keeps only the room above it.
+// tokens. Canopy keeps the room above it (a golden step more since 2.0.2), and sets its
+// previous and next a golden step in from the track's edges (`--canopy-space-s`), off the
+// cards' corners, where Clover has them at the edge (`--clover-space-2xs`). A vertical
+// slider keeps Clover's.
 .canopy-slider {
-  margin: 1.618rem 0 0;
+  margin: var(--canopy-space-xl) 0 0;
+}
+
+// Under Canopy's header (a facet's slider) the track follows it at the header's own
+// distance, Clover's, not a slider's room above it.
+.canopy-slider__header + [data-canopy-slider] .canopy-slider {
+  margin-top: 0;
+}
+
+@layer components {
+  .clover-items.canopy-slider:not([data-orientation="vertical"]) {
+    .clover-items-scroll-prev {
+      inset-inline-start: var(--canopy-space-s);
+    }
+
+    .clover-items-scroll-next {
+      inset-inline-end: var(--canopy-space-s);
+    }
+  }
+
+  // A facet's slider (`<RelatedItems>`): its value is its heading and the link to every
+  // work with that value on the search page, where Clover's header had "View all" beside
+  // it (lib/build/mdx.js, `makeHeader`). The title's own color and weight, underlined, as
+  // a link in running text is (C11); the page's "View all" goes with it, unseen, so a
+  // screen reader hears where it goes (2.4.4), the value first (2.5.3).
+  .canopy-slider__title-link {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    border-radius: var(--canopy-radius-sm);
+
+    &:hover {
+      text-decoration-thickness: max(2px, 0.1em);
+    }
+
+    &:focus-visible {
+      @include focus.focus-ring;
+    }
+  }
+
+  .canopy-slider__more {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 }

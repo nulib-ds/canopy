@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const {PACKAGE_NAME, LEGACY_NAMES} = require('./package-names');
+const {DEFAULT_ACCENT, DEFAULT_GRAY} = require('../../ui/theme');
 
 // What 1.x sites installed for Canopy and 2.x does without.
 const LEFT_OVER = [
@@ -23,6 +24,23 @@ function readJson(file) {
     return null;
   }
 }
+
+// The `theme` a site's `canopy.yml` names, or null with no `canopy.yml` to read.
+function readTheme(root) {
+  try {
+    const yaml = require('js-yaml');
+    const config = yaml.load(fs.readFileSync(path.join(root, 'canopy.yml'), 'utf8')) || {};
+    return config.theme && typeof config.theme === 'object' ? config.theme : {};
+  } catch (_) {
+    return null;
+  }
+}
+
+// The colors a site that names none takes, and the ones it took before 2.0.2.
+const DEFAULT_COLORS = [
+  {key: 'accentColor', now: DEFAULT_ACCENT, before: 'indigo'},
+  {key: 'grayColor', now: DEFAULT_GRAY, before: 'slate'},
+];
 
 // The site's own components that import a package, as paths from the site's root.
 function filesImporting(root, name) {
@@ -64,6 +82,18 @@ function upgradeNotices(root = process.cwd()) {
     notes.push(
       `Canopy is published as ${PACKAGE_NAME} since 2.0. ${legacy} passes through to it and keeps ` +
         `working; to switch, name ${PACKAGE_NAME} in package.json and app/styles/index.css. ${GUIDE}`,
+    );
+  }
+
+  // A site made before 2.0 that names no colors had indigo on slate; it is gold on sand now.
+  const theme = legacy ? readTheme(root) : null;
+  const unnamed = theme ? DEFAULT_COLORS.filter(({key}) => !theme[key]) : [];
+  if (unnamed.length) {
+    const list = (pick, joiner = ' and ') => unnamed.map(pick).join(joiner);
+    notes.push(
+      `canopy.yml names no ${list(({key}) => key, ' or ')}, so the site takes Canopy's: ` +
+        `${list(({now}) => now)} since 2.0.2, where it was ${list(({before}) => before)}. To keep ` +
+        `those, set ${list(({key, before}) => `${key}: ${before}`)} under theme in canopy.yml. ${GUIDE}`,
     );
   }
 

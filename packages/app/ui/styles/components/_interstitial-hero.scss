@@ -16,9 +16,11 @@
     --hero-bg-start: var(--color-gray-50);
     --hero-bg-mid: var(--color-accent-50);
     --hero-bg-end: var(--color-accent-200);
-    // A slide button's dot holds 3:1 on the page (1.4.11); the current one is the
+    // A slide button's dot: the muted gray, the hero's ground showing through, at the share
+    // the theme's build works out (`--canopy-dot-share`, ui/theme-palette.js): 80%, or
+    // nearer solid where 3:1 on that ground needs it (1.4.11). The current one is the
     // accent, and larger, so its state is not in its color alone.
-    --hero-dot-bg: var(--color-gray-muted);
+    --hero-dot-bg: color-mix(in srgb, var(--color-gray-muted) var(--canopy-dot-share, 100%), transparent);
     --hero-dot-active-bg: var(--color-accent-default);
 
     background: linear-gradient(
@@ -36,11 +38,16 @@
       display: none;
     }
 
+    // Its words and carousel within the page's wide column, inset as `<Container>` is, so
+    // the headline is level with the sections under it; the hero's ground spans the window.
     .canopy-interstitial__layout {
       display: flex;
       flex-direction: column;
       min-height: var(--hero-height);
       width: 100%;
+      max-width: var(--canopy-container-wide);
+      margin-inline: auto;
+      box-sizing: border-box;
       overflow: hidden;
     }
 
@@ -49,22 +56,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: clamp(1.618rem, 5vw, 3rem) clamp(1.618rem, 4vw, 3rem);
+      padding: clamp(1.618rem, 5vw, 3rem) 1.618rem;
       box-sizing: border-box;
       min-width: 0;
     }
 
+    // The panel's inset is the column's, so the words start where the sections' do.
     .canopy-interstitial__body {
       align-items: flex-start;
       text-align: left;
       width: 100%;
       max-width: none;
       margin: 0;
+      padding-inline: 0;
       gap: 1.5rem;
     }
 
-    // The carousel: its slide on the stage, the rotation control over the stage's
-    // corner (first in reading order, `Hero.jsx`), the slide buttons below it.
+    // The carousel: its slide on the stage, the slide buttons below it.
     .canopy-interstitial__media-group {
       flex: 1;
       position: relative;
@@ -75,7 +83,7 @@
         "stage"
         "dots";
       align-content: start;
-      padding: clamp(1.5rem, 4vw, 3rem);
+      padding: clamp(1.5rem, 4vw, 3rem) 1.618rem;
       box-sizing: border-box;
       min-width: 0;
       overflow: hidden;
@@ -83,13 +91,6 @@
 
     .canopy-interstitial__slider {
       grid-area: stage;
-    }
-
-    .canopy-interstitial__rotation {
-      grid-area: stage;
-      align-self: start;
-      justify-self: start;
-      margin: 0.618rem;
     }
 
     .canopy-interstitial__caption {
@@ -213,8 +214,7 @@
   // (`hero-slider-runtime.js`).
   &__slide[hidden],
   &__nav[hidden],
-  &__pagination[hidden],
-  &__rotation[hidden] {
+  &__pagination[hidden] {
     display: none;
   }
 
@@ -415,38 +415,8 @@
     }
   }
 
-  // The rotation control: drawn as previous and next are, its glyph the state it will
-  // set (pause while the slides rotate, play once they are stopped).
-  &__rotation {
-    @include buttons.canopy-button-base(0.25rem, 0.25rem);
-    position: relative;
-    z-index: 5;
-    width: 2.618rem;
-    height: 2.618rem;
-    border: none;
-    border-radius: var(--canopy-radius-pill);
-    color: var(--color-gray-50);
-    background-color: var(--color-accent-default);
-
-    &:hover {
-      background-color: var(--color-accent-hover);
-    }
-
-    svg {
-      display: block;
-      width: 1rem;
-      height: 1rem;
-    }
-  }
-
-  &__rotation[data-rotation="on"] &__rotation-icon--play,
-  &__rotation[data-rotation="off"] &__rotation-icon--pause {
-    display: none;
-  }
-
   // The hero clips what spills out of it, so its controls draw their focus inside:
   // the page's ground on the accent, 4.5:1 (2.4.7).
-  &__rotation:focus-visible,
   &__nav-btn:focus-visible {
     outline: 2px solid var(--color-gray-50);
     outline-offset: -5px;
@@ -523,8 +493,7 @@
 
 // The centered hero (`variant="centered"`), after Clover's homepage: the headline at
 // display size, its words a lede and its links under it, all centered on the page's own
-// ground; the carousel under them in a raised card, each picture whole. The rotation
-// control keeps its corner of the stage, first in reading order (2.2.2).
+// ground; the carousel under them in a raised card, each picture whole.
 .canopy-interstitial--hero-centered {
   margin-top: 0;
   padding-top: 0;
@@ -617,9 +586,5 @@
   .canopy-interstitial__pagination {
     margin: 0;
     padding: 0 0 1rem;
-  }
-
-  .canopy-interstitial__rotation {
-    margin: 0.75rem;
   }
 }

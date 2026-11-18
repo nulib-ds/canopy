@@ -44,8 +44,8 @@ const GRAY_COLOR_NAMES = ["gray", "mauve", "slate", "sage", "olive", "sand"];
 const APPEARANCES = ["light", "dark"];
 const DEFAULTS = {
   appearance: "light",
-  accentColor: "indigo",
-  grayColor: "slate",
+  accentColor: "gold",
+  grayColor: "sand",
 };
 const Section = ({title, description, children}) => (
   <div className="canopy-theme-showcase__section">

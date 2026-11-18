@@ -12,10 +12,16 @@ short hash to keep routes unique.
 ## Page structure
 
 1. **Hero + Viewer** — `<Viewer>` renders the IIIF manifest via Clover. It hydrates in the browser
-   but exposes a placeholder server-side so SSR stays safe.
+   but exposes a placeholder server-side so SSR stays safe. Where the viewer and the work's words sit
+   side by side (961px and wider), a toggle at the viewer's corner, **Widen the viewer**, spreads it
+   across the page and stacks the words under it; the visitor's choice holds for the next work. It
+   comes with the layout's `canopy-work--layout` and `canopy-work--primary` classes, and its name
+   with `common.actions.widen_viewer` in `locale.yml`.
 2. **Metadata** — The manifest `label`, `summary`, `metadata`, and `requiredStatement` are rendered as
    description lists. Metadata labels that match entries in `canopy.yml → metadata` gain facet links
-   to `/search` pre-filtered by that label/value.
+   to `/search` pre-filtered by that label/value. Wherever the metadata has the page's whole width,
+   under a widened viewer or on a narrow window, it runs in up to three columns; the attribution
+   and the manifest's id keep the whole width.
 3. **References** — `<References />` shows Markdown pages that cite the work via the
    `referencedManifests` [front matter field](./frontmatter). This creates a two-way link between essays and works
    automatically.

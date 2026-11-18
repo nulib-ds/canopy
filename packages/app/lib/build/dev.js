@@ -1202,6 +1202,11 @@ async function dev() {
         "[tailwind] compile after UI Sass change failed"
       );
     };
+    // What the UI stylesheet is made of: its Sass, and the plain CSS its compiled
+    // `index.css` imports (`version-parity.css`, ui-styles.js). Never `index.css`
+    // itself, which this writes.
+    const isUiStyleSource = (fn) =>
+      /\.s[ac]ss$/i.test(String(fn)) || /(^|[\\/])version-parity\.css$/i.test(String(fn));
     if (fs.existsSync(uiStylesDir)) {
       try {
         fs.watch(
@@ -1209,7 +1214,7 @@ async function dev() {
           { persistent: false, recursive: true },
           (evt, fn) => {
             try {
-              if (fn && /\.s[ac]ss$/i.test(String(fn))) handleUiSassChange();
+              if (fn && isUiStyleSource(fn)) handleUiSassChange();
             } catch (_) {}
           }
         );
@@ -1223,7 +1228,7 @@ async function dev() {
               { persistent: false },
               (evt, fn) => {
                 try {
-                  if (fn && /\.s[ac]ss$/i.test(String(fn))) handleUiSassChange();
+                  if (fn && isUiStyleSource(fn)) handleUiSassChange();
                 } catch (_) {}
                 scan(dir);
               }

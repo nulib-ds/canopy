@@ -114,8 +114,8 @@ Two things went with Clover 3:
 
 - **Type.** Google Sans Flex for headings and the interface, Source Serif 4 for reading, both served from your site. Rules in your own `app/styles` come after Canopy's, so a face your site sets, such as the 1.x templates' Fraunces, stays.
 - **Components.** The header, footer, buttons, cards, the search field and its results, dialogs, code blocks and the work page are restyled; the [Style guide](/docs/theme/style-guide) shows each text style, color, corner and step of space.
-- **Color.** Text in the accent and muted text are held at 4.5:1 contrast on every surface, so some move a shade. A site that names no `accentColor` keeps indigo. `accentColor` takes a hex color now, and `appearance: auto` follows the reader's system.
-- **New, all optional:** `<Swoosh>`, `<Band>` and `<Feature>`; the hero's `variant="centered"`; the footer's `logo`, `title`, `description`, `links` and `brandHref`; a class for each text style (`.canopy-type-*`) and tokens for spacing (`--canopy-space-*`).
+- **Color.** Text in the accent and muted text are held at 4.5:1 contrast on every surface, so some move a shade. A site that names no `accentColor` or `grayColor` is gold on sand since 2.0.2 (indigo on slate before); to keep the 1.x colors, set `accentColor: indigo` and `grayColor: slate` under `theme` in `canopy.yml`. `accentColor` takes a hex color now, and `appearance: auto` follows the reader's system.
+- **New, all optional:** `<Swoosh>` (which draws nothing since 2.0.2), `<Band>` and `<Feature>`; the hero's `variant="centered"`; the footer's `logo`, `title`, `description`, `links` and `brandHref`; a class for each text style (`.canopy-type-*`) and tokens for spacing (`--canopy-space-*`).
 
 ### The hero
 

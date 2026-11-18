@@ -3,9 +3,10 @@
 @use "../buttons" as buttons;
 @use "../../settings/type";
 
-// The header (`CanopyHeader`): 64px, solid, the brand at its start, the search field and
-// the primary navigation after it, the language switch and the compact layout's two
-// buttons at its end. Sticky only where the window is tall enough to spare it: zoomed in,
+// The header (`CanopyHeader`): 64px, solid, the brand at its start; at its end the search,
+// the primary navigation, then the language switch and the compact layout's two buttons.
+// At desktop widths the search is a button that opens into its field (the header's
+// script); the field grows from the button toward the brand. Sticky only where the window is tall enough to spare it: zoomed in,
 // it scrolls away with the page (1.4.10), and the page leaves room under it for whatever
 // takes focus (2.4.11).
 @layer components {
@@ -65,8 +66,80 @@
   .canopy-header__desktop-search {
     display: none;
     flex: 1 1 20rem;
+    justify-content: flex-end;
     min-width: 0;
     max-width: 36rem;
+    margin-inline-start: auto;
+  }
+
+  .canopy-header__desktop-search[data-expanded="false"] {
+    flex: 0 0 auto;
+
+    .canopy-header__search-field {
+      display: none;
+    }
+  }
+
+  .canopy-header__desktop-search[data-expanded="true"] .canopy-header__search-toggle {
+    display: none;
+  }
+
+  .canopy-header__search-field {
+    width: 100%;
+  }
+
+  // The button the search opens from: the field's own pill and edge (3:1, 1.4.11), its
+  // icon and word, 44px tall (2.5.8).
+  .canopy-header__search-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    padding: 0 1.125rem 0 0.875rem;
+    border: 1px solid var(--canopy-control-edge);
+    border-radius: var(--canopy-radius-pill);
+    background-color: var(--color-gray-50);
+    color: var(--color-gray-default);
+    cursor: pointer;
+    @include type.ui;
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      border-color: var(--color-gray-muted);
+    }
+
+    &:focus-visible {
+      @include focus.focus-ring;
+    }
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  // Opened, the field grows out of the button, where motion is welcome. Its suggestions
+  // are not clipped: only the field's pill is, and only as it grows.
+  @media (prefers-reduced-motion: no-preference) {
+    .canopy-header__desktop-search[data-canopy-header-search="ready"][data-expanded="true"]
+      .canopy-search-form {
+      animation: canopy-header-search-open 200ms var(--canopy-ease) backwards;
+    }
+  }
+
+  @keyframes canopy-header-search-open {
+    from {
+      clip-path: inset(0 0 0 calc(100% - 8rem) round var(--canopy-radius-pill));
+    }
+
+    to {
+      clip-path: inset(0 round var(--canopy-radius-pill));
+    }
   }
 
   .canopy-header__desktop-search [data-canopy-search-form] {
@@ -272,15 +345,27 @@
     }
 
     .canopy-header__desktop-search {
-      display: block;
+      display: flex;
     }
 
+    // The primary navigation at the header's end, after the search and before the
+    // actions: the first of them takes the room the actions' margin would, so they stay
+    // together.
     .canopy-header__desktop-nav {
       display: flex;
+      margin-inline-start: auto;
+    }
+
+    .canopy-header__desktop-search ~ .canopy-header__desktop-nav {
+      margin-inline-start: 0;
     }
 
     .canopy-header__actions {
       display: flex;
+    }
+
+    .canopy-header__desktop-nav ~ .canopy-header__actions {
+      margin-left: 0;
     }
 
     .canopy-header__search-trigger {

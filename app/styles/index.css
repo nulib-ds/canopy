@@ -11,9 +11,9 @@
  */
 
 @utility max-w-content {
-  max-width: 1080px;
+  max-width: var(--canopy-container-content, 75rem);
 }
 
 @utility max-w-wide {
-  max-width: 1300px;
+  max-width: var(--canopy-container-wide, 90rem);
 }

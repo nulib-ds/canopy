@@ -206,16 +206,46 @@ test("a text step that already passes stays Radix's own", () => {
       }
     }
   }
-  // The default theme (indigo on slate) keeps every step, in both appearances.
+  // The default theme (gold on sand) keeps every step, in both appearances.
   for (const appearance of APPEARANCES) {
-    expect(scales[appearance].accent.indigo['800'].toLowerCase()).toBe(
-      toTailwindScale('indigo', { appearance })['800'].toLowerCase(),
+    expect(scales[appearance].accent.gold['800'].toLowerCase()).toBe(
+      toTailwindScale('gold', { appearance })['800'].toLowerCase(),
     );
-    expect(scales[appearance].gray.slate['800'].toLowerCase()).toBe(
-      toTailwindScale('slate', { appearance })['800'].toLowerCase(),
+    expect(scales[appearance].gray.sand['800'].toLowerCase()).toBe(
+      toTailwindScale('sand', { appearance })['800'].toLowerCase(),
     );
   }
   expect(unchanged.length).toBeGreaterThan(PALETTES.length * 2);
+});
+
+// The hero's slide buttons draw their dots in the muted gray over the hero's ground, at
+// the share the build works out for the theme (`--canopy-dot-share`): where they sit, 63%
+// of the way from accent 50 to accent 200, and on accent 200 itself, each dot holds 3:1
+// (1.4.11). 80% for most themes, the most translucent it goes.
+test("the hero's translucent dots hold 3:1 on its ground, in every palette", () => {
+  const { dotShare } = require('../../../packages/app/ui/theme-palette');
+  const failing = [];
+  const shares = new Set();
+  for (const appearance of APPEARANCES) {
+    for (const accent of ACCENTS) {
+      const own = scales[appearance].accent[accent];
+      for (const gray of PALETTES) {
+        const grayScale = scales[appearance].gray[gray];
+        const share = dotShare(own, grayScale);
+        shares.add(share);
+        for (const ground of [mixSrgb(own['200'], own['50'], 0.63), own['200']]) {
+          const ratio = contrast(mixSrgb(grayScale['800'], ground, share), ground);
+          if (ratio < NON_TEXT) failing.push(`${appearance} ${gray}/${accent} ${ratio.toFixed(2)}:1`);
+        }
+      }
+    }
+  }
+  expect(failing).toEqual([]);
+  expect(Math.min(...shares)).toBe(0.8);
+  // The default theme, gold on sand, is at 80% in both appearances.
+  for (const appearance of APPEARANCES) {
+    expect(dotShare(scales[appearance].accent.gold, scales[appearance].gray.sand)).toBe(0.8);
+  }
 });
 
 // The hover fill moves away from the label (darker on light, lighter on dark), or toward
@@ -253,9 +283,9 @@ function ratiosFor(appearance, accent, gray) {
 }
 
 test.each(APPEARANCES)(
-  'the default theme (indigo on slate) passes every pair in %s mode',
+  'the default theme (gold on sand) passes every pair in %s mode',
   (appearance) => {
-    const ratios = ratiosFor(appearance, 'indigo', 'slate');
+    const ratios = ratiosFor(appearance, 'gold', 'sand');
     const failing = PAIRS.filter((pair) => ratios[pair.name] < pair.min).map(
       (pair) => `${pair.name} ${ratios[pair.name].toFixed(2)}:1`,
     );

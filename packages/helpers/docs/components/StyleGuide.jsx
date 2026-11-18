@@ -90,7 +90,7 @@ const SWATCHES = {
     ['--color-accent-default', 'Primary fill', 'A primary button; its label is accent 50.'],
     ['--color-accent-hover', 'Primary hover', 'The fill under the pointer, away from its label.'],
     ['--color-accent-50', 'Label on a fill', 'The words on a primary fill, 4.5:1.'],
-    ['--color-accent-600', 'Accent, solid', 'The brush stroke’s ink, a quotation’s rule.'],
+    ['--color-accent-600', 'Accent, solid', 'A quotation’s rule.'],
   ],
   surfaces: [
     ['--color-gray-50', 'Page', 'The ground everything stands on.'],

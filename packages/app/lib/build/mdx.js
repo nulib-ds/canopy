@@ -1515,10 +1515,46 @@ async function ensureFacetsRuntime() {
   const entry = `
     function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn,{once:true}); else fn(); }
     function parseProps(el){ try{ const s=el.querySelector('script[type="application/json"]'); if(s) return JSON.parse(s.textContent||'{}'); }catch(_){ } return {}; }
-    function buildSliderProps(iiifContent, options){
-      const props = { iiifContent };
+    // Canopy draws each slider's header (makeHeader), so Clover draws only its items, the
+    // list named by the slider's value.
+    function buildSliderProps(iiifContent, options, name){
+      const props = { iiifContent, header: false };
+      if (name) props['aria-label'] = String(name);
       if (options && typeof options === 'object') props.options = options;
       return props;
+    }
+    // A slider's header: its value, the link to every work with it on the search page
+    // (with the page's "View all" for words a screen reader hears, 2.4.4), and its facet
+    // under it. Clover's classes, so it looks as Clover's own header did.
+    function makeHeader(value, facet, href, viewAll){
+      try {
+        const header = document.createElement('header');
+        header.className = 'clover-items-header canopy-slider__header';
+        const title = document.createElement('h2');
+        title.className = 'clover-items-title clover-title canopy-slider__title';
+        const link = document.createElement('a');
+        link.className = 'canopy-slider__title-link';
+        link.href = href;
+        link.textContent = String(value);
+        if (viewAll) {
+          const more = document.createElement('span');
+          more.className = 'canopy-slider__more';
+          more.textContent = ', ' + viewAll;
+          link.appendChild(more);
+        }
+        title.appendChild(link);
+        header.appendChild(title);
+        if (facet) {
+          const about = document.createElement('p');
+          about.className = 'clover-items-description';
+          about.textContent = String(facet);
+          header.appendChild(about);
+        }
+        return header;
+      } catch(_) { return null; }
+    }
+    function searchHref(labelSlug, valueSlug){
+      return rootBase() + '/search/index.html?' + encodeURIComponent(labelSlug) + '=' + encodeURIComponent(valueSlug);
     }
     function rootBase(){
       try {
@@ -1551,6 +1587,7 @@ async function ensureFacetsRuntime() {
           const ver = await getApiVersion();
           const verQ = ver ? ('?v=' + encodeURIComponent(ver)) : '';
           const sliderOptions = (props && typeof props.sliderOptions === 'object') ? props.sliderOptions : null;
+          const viewAll = typeof props.viewAll === 'string' ? props.viewAll : 'View all';
           const res = await fetch(rootBase() + '/api/search/facets.json' + verQ).catch(()=>null);
           if(!res || !res.ok) return;
           const json = await res.json().catch(()=>null);
@@ -1573,7 +1610,9 @@ async function ensureFacetsRuntime() {
               const wrap = document.createElement('div');
               wrap.setAttribute('data-facet-label', entry.label);
               wrap.setAttribute('class', 'canopy-slider');
-              const ph = makeSliderPlaceholder(buildSliderProps(rootBase() + '/api/facet/' + (allow.slug) + '/' + pick.valueSlug + '.json' + verQ, sliderOptions));
+              const header = makeHeader(pick.value, entry.label, searchHref(allow.slug, pick.valueSlug), viewAll);
+              if (header) wrap.appendChild(header);
+              const ph = makeSliderPlaceholder(buildSliderProps(rootBase() + '/api/facet/' + (allow.slug) + '/' + pick.valueSlug + '.json' + verQ, sliderOptions, pick.value));
               if (ph) wrap.appendChild(ph);
               el.appendChild(wrap);
             });
@@ -1587,7 +1626,9 @@ async function ensureFacetsRuntime() {
             const wrap = document.createElement('div');
             wrap.setAttribute('data-facet-label', s.label);
             wrap.setAttribute('class', 'canopy-slider');
-            const ph = makeSliderPlaceholder(buildSliderProps(rootBase() + '/api/facet/' + s.labelSlug + '/' + s.valueSlug + '.json' + verQ, sliderOptions));
+            const header = makeHeader(s.value, s.label, searchHref(s.labelSlug, s.valueSlug), viewAll);
+            if (header) wrap.appendChild(header);
+            const ph = makeSliderPlaceholder(buildSliderProps(rootBase() + '/api/facet/' + s.labelSlug + '/' + s.valueSlug + '.json' + verQ, sliderOptions, s.value));
             if (ph) wrap.appendChild(ph);
             el.appendChild(wrap);
           });

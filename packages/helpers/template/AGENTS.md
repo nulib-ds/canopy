@@ -35,7 +35,7 @@ Sites built from this template should conform to WCAG 2.2 at Level AA, and that 
 - `title` — site-wide fallback title.
 - `collection` / `manifest` — IIIF sources. Accept a string or array; URIs must respond with Presentation 2/3 JSON.
 - `metadata` — ordered list of manifest fields to promote as facets/labels inside IIIF components.
-- `featured` — manifest IDs for `<Interstitials.Hero />` rotations.
+- `featured` — manifest IDs for `<Interstitials.Hero />`'s slides.
 - `theme` — Radix palettes and appearance for the generated CSS variables (`appearance`: `light`, `dark` or `auto`; `accentColor`: a palette or a quoted hex color; `grayColor`).
 - `basePath` is inferred from `CANOPY_BASE_PATH` / `CANOPY_BASE_URL` (env vars) when deploying under a subdirectory.
 

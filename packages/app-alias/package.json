@@ -1,6 +1,6 @@
 {
   "name": "@canopy-iiif/app",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": false,
   "description": "Canopy's 1.x name, kept so that sites made before 2.0 upgrade without edits: each entry passes through to @nulib/canopy, the package Canopy is published as.",
   "license": "MIT",
@@ -55,7 +55,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@nulib/canopy": "2.0.1"
+    "@nulib/canopy": "2.0.2"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",

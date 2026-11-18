@@ -12,8 +12,9 @@ const {
   variablesToCss,
 } = require("./theme-palette");
 
-const DEFAULT_ACCENT = "indigo";
-const DEFAULT_GRAY = "slate";
+// A site that names no colors: gold on sand (Mat, 2026-11-18; indigo on slate until 2.0.2).
+const DEFAULT_ACCENT = "gold";
+const DEFAULT_GRAY = "sand";
 const DEBUG_FLAG_RAW = String(process.env.CANOPY_DEBUG_THEME || "");
 const DEBUG_ENABLED = /^(1|true|yes|on)$/i.test(DEBUG_FLAG_RAW.trim());
 
@@ -140,6 +141,8 @@ function loadCanopyTheme(options = {}) {
 }
 
 module.exports = {
+  DEFAULT_ACCENT,
+  DEFAULT_GRAY,
   loadCanopyTheme,
   toTailwindScale,
   normalizeAccentName,

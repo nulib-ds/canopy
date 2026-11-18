@@ -117,7 +117,7 @@ Theme foundation (2.x Phase 3)
 ------------------------------
 2026-11-14 / claude. In this tree, uncommitted. The rules are in `DESIGN.md` §1.
 
-- **Decisions (Mat, 2026-11-14).** A site that names no `accentColor` keeps indigo; Clover's `#0f62fe` can go into the v2 templates with the new look (Phase 5). `appearance: auto` is added, and `light` stays the default.
+- **Decisions (Mat, 2026-11-14).** A site that names no `accentColor` keeps indigo (until 2.0.2: Mat, 2026-11-18, "make default colors no longer indigo. make it gold and sand." The defaults are `DEFAULT_ACCENT` and `DEFAULT_GRAY` in `ui/theme.js`, and the docs and default template name them too); Clover's `#0f62fe` can go into the v2 templates with the new look (Phase 5). `appearance: auto` is added, and `light` stays the default.
 - **Text steps held by their ratio (ACCESSIBILITY.md C4).** `ui/theme-color.js` holds the math: WCAG contrast, mixing in OKLab, `ensureContrast`. `toTailwindScale(name, { appearance, role })` in `ui/theme-palette.js` moves level 800 of a role toward black (white, in dark mode) only as far as 4.5:1 needs. An accent's is checked against every palette's level 50 and its own; a gray's against its own. Without `role` a scale is Radix's own, as before. `theme.js` and the docs' `ThemeShowcase` pass the role.
 - **The primary hover (C5).** `--color-accent-hover` is `color-mix(in oklab, var(--color-accent-default) 80%, #000)` (`#fff` in dark mode), so a site's own `--color-accent-default` reaches it. Only a fill already at black or white gets a hex that moves toward its label (`accentHover`). The Northwestern template sets Purple 90, its hover before.
 - **Hex accents.** `accentColor: "#0f62fe"` (`normalizeAccentName`): step 9 is the hex, 1 to 8 are mixed toward the page, 10 to 12 toward black (white, in dark mode).
@@ -155,6 +155,7 @@ The carousel (2.x Phase 4)
   - `specs/carousel.spec.mjs` covers hover, keyboard focus, the buttons, reduced motion, hidden slides and both languages.
   - Playwright 1.56 takes `reducedMotion` only as a context option (`page.emulateMedia`), not through `test.use`.
 - **No known failures are left** in `tests/a11y/known-failures.mjs` (C1 was the last).
+- **No rotation since 2.0.2** (2026-11-18, Mat, of the pause control: "remove this functionality"). The hero moves only when a visitor moves it (previous, next, a slide's button, a swipe), so 2.2.2 leaves it nothing to pause. The rotation control, its words (`common.carousel.stop` and `start`) and its styles are gone; the slides are polite from the start. `specs/carousel.spec.mjs` checks that nothing moves on its own, and `specs/motion.spec.mjs` still fails any carousel that advances with no pause first.
 
 The new look (2.x Phase 6)
 --------------------------
@@ -282,6 +283,24 @@ What is left, in order (2026-11-16). Phases 0 to 4, 6 and 7 are above.
 - **Open, in any phase.**
   - Scroll as a text-focused reader, after Clover's Document (Mat, 2026-11-13).
   - Mat's OK on the 1.x options that now do nothing (`VIEWER_UNSUPPORTED`).
+
+The 2.0.2 patch
+---------------
+2026-11-18 / claude, with Mat in the docs preview. Released as 2.0.2 (`npm run version:packages`, a patch). Each change is Mat's call, quoted where it changes what Canopy does. Every prop keeps working (the MDX API is a contract).
+
+- **The hero does not rotate** ("remove this functionality", of the pause control): `hero-slider-runtime.js` moves a slide only when a visitor does, the pause control and its words (`common.carousel.stop`, `start`) are gone, and the slides are polite from the start (ACCESSIBILITY.md C1). The docs' home page takes the default `featured` layout, words and carousel side by side ("make this left/right"); the templates keep `centered`. Its dots are the muted gray at the share the theme's build works out (`--canopy-dot-share`, `ui/theme-palette.js` `dotShare`): 80%, "more translucent", or nearer solid where 3:1 on the hero's ground needs it, as a black accent does (C30).
+- **Prose across its column** ("address why paragraphs are not extending to their edges"): the 70ch measure (`--canopy-measure`) is gone from `base/_common.scss` and the tokens.
+- **A list's markers are the list's**: `ul` disc and `ol` decimal, its items taking them, where every `li` was set `disc`. Clover's slider track asks for none and gets none ("why this marker bullet is here"), and numbered lists show numbers again.
+- **Sliders** (`version-parity.css`, `iiif/_slider.scss`): the track takes a rem more room above and below and a pixel at the sides, given back as margin, so the cards' rings and shadows show and nothing of a card out of view does ("we don't see the edge/dropshadow of the items off screen"); Clover's scroll shades are off; previous and next sit `--canopy-space-s` in ("use gr steps"). A facet's slider (`<RelatedItems>`) is headed by its value, the link to its works, "View all" with it unseen (`mdx.js` `makeHeader`, `common.actions.view_all`); Clover draws no header there (`header: false`) and names the list by the value.
+- **No brush stroke** ("the marker under things is a Clover thing"): `_swoosh.scss`, the brand's stroke and `--canopy-swoosh` are gone; `<Swoosh>` stays and renders its words, and the docs' and templates' headlines no longer use it.
+- **Gold on sand** ("make default colors no longer indigo"): `DEFAULT_ACCENT` and `DEFAULT_GRAY` in `ui/theme.js`, `canopy.yml` (the docs and the default template), the Theme page's reset, the fixture's fallbacks. A 1.x site whose `canopy.yml` names no colors hears it once a build (`upgrade-notices.js`).
+- **The header**: the primary navigation at its end ("align this right"); at desktop widths the search is a button that opens into its field ("make this search be a button that can extend out the input/form"; `CanopyHeader.jsx` `setupDesktopSearch`), except on the search page (`page.type === 'search'`), whose field it is.
+- **Columns and spacing** ("improve the spacing/gaps on pages. extend container"): `--canopy-container-content` 75rem and `--canopy-container-wide` 90rem (were 1080 and 1300px), the featured hero in the wide column with `<Container>`'s inset, sections a golden step apart, sliders `--canopy-space-xl`. The docs' home sections' headings break in two balanced lines.
+- **The work page** ("add a toggle that extends the viewer across"): `viewer-runtime-entry.js` adds a toggle (`aria-pressed`, `common.actions.widen_viewer`) beside the viewer in `canopy-work--layout` from 961px; wide, the words stack under the viewer, and the metadata (`dl.clover-metadata` alone: "don't do columns here", of the attribution) runs in three columns at most ("try three columns max") wherever it has the whole width, top-aligned (`_work.scss`). The choice is kept in the browser (`canopy:work-viewer`).
+- **The docs site's own**: "Canopy is a project of Northwestern University Libraries." under the header on its home page, as Clover's docs have it (`packages/helpers/docs/ProjectCredit.js`); a template has its own home page, so never carries it.
+- **Dev server**: `dev.js` rebuilds the UI styles when `version-parity.css` changes, as it did for Sass alone. A UI component's JSX shows only after a restart (the server bundle is imported once); the UI watcher was found gone mid-session three times, cause not found.
+- **Checks**: `specs/carousel.spec.mjs` (rewritten), `header-search.spec.mjs`, `related-items.spec.mjs` (slider headers, list markers), `work.spec.mjs`; unit tests for the dots' share, the default theme and the colors notice; the fixture's prose page has a bulleted and a numbered list.
+- **Left**: Fraunces for most headings, Google Sans for reading, Source Serif gone, waiting on Mat's OK to download Fraunces (four files, 275 KB, Google Fonts) and his choice of its weight; the Canopy diagram's redraw, after the release.
 
 References
 ----------

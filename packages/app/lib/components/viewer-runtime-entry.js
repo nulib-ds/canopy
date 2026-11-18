@@ -81,7 +81,57 @@ function mountAll(selector, key) {
   } catch (_) {}
 }
 
+/*
+ * A work page's viewer (`.canopy-work--layout`, a site's `content/works/_layout.mdx`): a
+ * toggle at its top corner spreads it across the column, the work's words stacked under
+ * it, and back. A toggle button (`aria-pressed`) named in the page's words (the Viewer's
+ * `data-canopy-viewer-widen`, `common.actions.widen_viewer`), its name the same either
+ * way. The visitor's choice holds for the next work they open, where the browser keeps it.
+ * Its look, and where it shows, are `ui/styles/components/_work.scss`.
+ */
+const WORK_VIEWER_KEY = 'canopy:work-viewer';
+const WIDEN_ICONS =
+  '<svg class="canopy-work__widen-icon canopy-work__widen-icon--widen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>' +
+  '<svg class="canopy-work__widen-icon canopy-work__widen-icon--narrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8l4 4-4 4M21 8l-4 4 4 4M10 12h4"/></svg>';
+
+function setupWorkLayouts() {
+  document.querySelectorAll('.canopy-work--layout').forEach((layout) => {
+    try {
+      const primary = layout.querySelector(':scope > .canopy-work--primary');
+      const viewer = primary && primary.querySelector('[data-canopy-viewer]');
+      if (!viewer || primary.querySelector(':scope > .canopy-work__widen')) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'canopy-work__widen';
+      button.setAttribute('aria-label', viewer.getAttribute('data-canopy-viewer-widen') || 'Widen the viewer');
+      button.innerHTML = WIDEN_ICONS;
+      let wide = false;
+      try {
+        wide = window.localStorage.getItem(WORK_VIEWER_KEY) === 'wide';
+      } catch (_) {}
+      const apply = (next) => {
+        wide = next;
+        layout.setAttribute('data-viewer', wide ? 'wide' : 'split');
+        button.setAttribute('aria-pressed', wide ? 'true' : 'false');
+        // The viewer's canvas fits itself to its new width.
+        try {
+          window.dispatchEvent(new Event('resize'));
+        } catch (_) {}
+      };
+      button.addEventListener('click', () => {
+        apply(!wide);
+        try {
+          window.localStorage.setItem(WORK_VIEWER_KEY, wide ? 'wide' : 'split');
+        } catch (_) {}
+      });
+      primary.insertBefore(button, primary.firstChild);
+      apply(wide);
+    } catch (_) {}
+  });
+}
+
 ready(() => {
+  setupWorkLayouts();
   mountAll('[data-canopy-viewer]', 'viewer');
   mountAll('[data-canopy-scroll]', 'scroll');
   mountAll('[data-canopy-image]', 'image');

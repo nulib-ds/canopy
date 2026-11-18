@@ -30,7 +30,11 @@ const HOMES = ['/', '/es/'];
 const QUERY = 'ma';
 const FOUND = IS_EXTERNAL ? /\S/ : /A map of the coast/;
 
+// At desktop widths, away from the search page, the header's search is a button that
+// opens into its field (CanopyHeader.jsx); open it as a visitor does.
 async function headerField(page) {
+  const toggle = page.locator('.canopy-header__search-toggle');
+  if ((await toggle.count()) && (await toggle.isVisible())) await toggle.click();
   const fields = page.locator('[data-canopy-search-form-input]');
   for (let i = 0; i < (await fields.count()); i += 1) {
     if (await fields.nth(i).isVisible()) return fields.nth(i);

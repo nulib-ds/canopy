@@ -6,14 +6,16 @@ image: https://iiif.dc.library.northwestern.edu/iiif/3/138a94b0-175a-4152-98c7-d
 
 import MarkdownAuthoringInterstitial from "@canopy-iiif/helpers/docs/components/MarkdownAuthoring.jsx";
 import CollectionExampleInterstitial from "@canopy-iiif/helpers/docs/components/CollectionExampleInterstitial.jsx";
+import ProjectCredit from "@canopy-iiif/helpers/docs/ProjectCredit.js";
+
+<ProjectCredit />
 
 <Interstitials.Hero
-  headline={<>Create fast & light digital projects with <Swoosh>natural markdown</Swoosh></>}
+  headline="Create fast & light digital projects with natural markdown"
   description="Canopy provides a content-first approach to generating static websites and adding context to IIIF material from libraries, archives, and museums. There is no need to manage derivatives or complex backends. Just create markdown projects that are easy to build, maintain, and publish."
   background="theme"
   random={false}
   transition="fade"
-  variant="centered"
   links={[
     {
       href: "/search",

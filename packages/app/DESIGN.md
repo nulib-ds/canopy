@@ -177,9 +177,10 @@ and a class for authors (`.canopy-type-<style>`, `base/_type.scss`):
 - **As a magazine sets it** (Mat, 2026-11-15): a sans for headlines and the interface, a
   serif for reading, one serif on every page, marketing and long read alike (Newsreader
   was tried and read too light beside the headlines on a marketing page).
-  - In the serif: the paragraphs, lists and quotes Markdown writes (no class), held to
-    `--canopy-measure` (70ch); a picture's paragraph keeps the column's width
-    (`base/_common.scss`); every lede.
+  - In the serif: the paragraphs, lists and quotes Markdown writes (no class), across the
+    whole width of what holds them, as the components beside them are (Mat, 2026-11-18:
+    paragraphs reach their container's edges; the 70ch measure is gone,
+    `base/_common.scss`); every lede.
   - In the sans: headings, navigation, buttons (wherever they sit), cards, labels,
     metadata, tables, search, the footer, and whatever a Clover part draws.
   - `--canopy-font-body: var(--font-sans)` sets one family throughout, as the
@@ -222,16 +223,16 @@ and a class for authors (`.canopy-type-<style>`, `base/_type.scss`):
   element that needs one.
 - On black (`<Band>`, code blocks) the ring is white.
 
-### Bands, code and the brush stroke
+### Bands and code
 
 - **Black materials.** `<Band>` and code blocks are black in both appearances, their
   words white or near-white (19:1 or more), their quieter words `--canopy-band-muted`
   (9:1 or more); on a dark page a hairline sets them off (`--canopy-band-edge`). A
   `<Button>` on a band takes the band's colors.
-- **The brush stroke**, `--canopy-swoosh`: a hand-drawn swoosh used as a mask over the
-  accent's solid step, under a word or two (`<Swoosh>`) and under the site's name when the
-  brand is pointed at or focused. It is decoration only, drawn in once as the page loads,
-  at once where motion is reduced.
+- **No brush stroke** since 2.0.2 (Mat, 2026-11-18: "the marker under things is a Clover
+  thing. remove this in Canopy."). `<Swoosh>` draws nothing and its words read as they
+  are; it stays so MDX written with it keeps working. The brand draws no stroke under the
+  site's name; its focus ring is the controls' own.
 
 ### Space
 
@@ -239,6 +240,13 @@ and a class for authors (`.canopy-type-<style>`, `base/_type.scss`):
   `--canopy-space-2xl` (4.236rem), as Clover's: the more closely two things belong
   together, the smaller the step between them; a container's inset is a step larger than
   the gap between what it holds.
+- **Two columns**, as tokens: the page's own, `--canopy-container-content` (75rem,
+  `<Container>`, `max-w-content`), and a wide one for sections side by side and the
+  featured hero, `--canopy-container-wide` (90rem, `variant="wide"`, `max-w-wide`). Wider
+  since 2.0.2 (1080 and 1300px), so a wide window keeps less of itself empty. The hero's
+  words start where the sections' do: its panel's inset is `<Container>`'s, 1.618rem.
+- **Sections apart** by a golden step between `--canopy-space-xl` and `-2xl`, by the
+  window; sliders by `--canopy-space-xl`.
 
 ### Layout
 
@@ -246,3 +254,15 @@ and a class for authors (`.canopy-type-<style>`, `base/_type.scss`):
   in, it scrolls away (1.4.10). While it sticks, `--canopy-sticky-top` is 4rem, the
   page's `scroll-padding-top` leaves room under it (2.4.11), and whatever else sticks
   stands below it.
+- At its end the header holds the search, the primary navigation and the actions (2.0.2).
+  At desktop widths the search is a button that opens into its field, a disclosure
+  (`aria-expanded`): focus goes into the field, Escape gives it back to the button, and
+  an empty field left behind closes. On the search page the field is the page's own and
+  shows, with no button.
+- A facet's slider (`<RelatedItems>`) is headed by its value, the link to every work with
+  it (2.0.2), where Clover's header put "View all" beside it; the page's "View all" goes
+  with the value, unseen (2.4.4).
+- A work page (`canopy-work--layout`): from 961px the viewer and the work's words sit side
+  by side, and a toggle at the viewer's corner (`aria-pressed`) spreads the viewer across
+  the column with the words under it (2.0.2). Wherever the metadata has the whole width it
+  runs in three columns at most, none under 16rem; its attribution and id keep the width.
