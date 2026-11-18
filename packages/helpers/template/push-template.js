@@ -6,6 +6,15 @@ function run(cmd, opts) {
   execSync(cmd, { stdio: 'inherit', ...opts });
 }
 
+// A template's one commit: the Canopy release it ships, and nothing else (Mat, 2026-11-18:
+// "templates should be generically tied to version. there should be no commit history.").
+// Each release starts the template's history over (`git init`, a forced push), so its
+// repository only ever holds this commit.
+function templateCommitMessage(version) {
+  const v = String(version || '').trim().replace(/^v/, '');
+  return v ? `Canopy ${v}` : 'Canopy';
+}
+
 function resolveOutDir() {
   const envDir = process.env.TEMPLATE_OUT_DIR;
   return path.resolve(process.cwd(), envDir || '.template-build');
@@ -24,7 +33,7 @@ function main() {
   run('git config user.name "Mat Jordan"', { cwd });
   run('git config user.email "mat@northwestern.edu"', { cwd });
   run('git add .', { cwd });
-  const commitMessage = process.env.TEMPLATE_COMMIT_MESSAGE || 'Update template from app/main';
+  const commitMessage = templateCommitMessage(process.env.APP_VERSION);
   run('git commit -m "$TEMPLATE_COMMIT_MESSAGE"', {
     cwd,
     env: { ...process.env, TEMPLATE_COMMIT_MESSAGE: commitMessage },
@@ -35,6 +44,8 @@ function main() {
   );
   run('git push --force origin main', { cwd });
 }
+
+module.exports = { templateCommitMessage };
 
 if (require.main === module) {
   try {

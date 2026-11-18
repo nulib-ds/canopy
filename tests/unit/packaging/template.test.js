@@ -79,7 +79,8 @@ test('a prerelease is one on GitHub, and leaves the templates as they are', () =
     expect(job).toMatch(/!contains\(needs\.release\.outputs\.releaseVersion, '-'\)/);
   }
   expect(workflow).not.toMatch(/npm view @canopy-iiif\/app/);
-  expect((workflow.match(/APP_VERSION: \$\{\{ needs\.release\.outputs\.releaseVersion \}\}/g) || []).length).toBe(3);
+  // Each template job hands the version to its preparation and to its push (its commit's name).
+  expect((workflow.match(/APP_VERSION: \$\{\{ needs\.release\.outputs\.releaseVersion \}\}/g) || []).length).toBe(6);
 });
 
 test('both packages release together, and a release with no notes still gets its templates', () => {
@@ -125,4 +126,26 @@ test('a template waits for npm to serve the version just published', () => {
     waitForPublished('@nulib/canopy', '2.0.1', {view: () => '', sleep: () => {}, intervalSeconds: 15, attempts: 4}),
   ).toThrow(/not served by npm after 1 minutes/);
   expect(waitForPublished('@nulib/canopy', '', {view: () => '', sleep: () => {}})).toBe(0);
+});
+
+// A template's repository holds one commit, named for the Canopy release it ships: each
+// release starts its history over (`push-template.js`).
+test('a template is one commit, named for its Canopy version, with no history', () => {
+  const {templateCommitMessage} = require('../../../packages/helpers/template/push-template');
+  expect(templateCommitMessage('2.0.2')).toBe('Canopy 2.0.2');
+  expect(templateCommitMessage('v2.1.0')).toBe('Canopy 2.1.0');
+  expect(templateCommitMessage('')).toBe('Canopy');
+
+  const push = read('packages/helpers/template/push-template.js');
+  expect(push).toMatch(/git init -b main/);
+  expect(push).toMatch(/git push --force origin main/);
+
+  const workflow = require('js-yaml').load(read('.github/workflows/release-and-template.yml'));
+  for (const job of ['template', 'template-i18n', 'template-northwestern']) {
+    const steps = workflow.jobs[job].steps;
+    expect(steps.some((step) => /commit message/i.test(step.name || ''))).toBe(false);
+    const pushStep = steps.find((step) => /push-template\.js/.test(step.run || ''));
+    expect(pushStep.env.APP_VERSION).toBe('${{ needs.release.outputs.releaseVersion }}');
+    expect(pushStep.env.TEMPLATE_COMMIT_MESSAGE).toBeUndefined();
+  }
 });

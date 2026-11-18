@@ -153,19 +153,6 @@ jobs:
           npm config set audit false
           npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
-      - name: Build template commit message
-        id: template_commit
-        run: |
-          MESSAGE=$(node -e "const notes = process.env.NOTES ? JSON.parse(process.env.NOTES) : {}; const summary = notes.summary ? ' – ' + notes.summary : ''; const version = process.env.VERSION || ''; process.stdout.write('Update template for v' + version + summary);")
-          {
-            echo 'text<<EOF'
-            echo "$MESSAGE"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-        env:
-          VERSION: ${{ needs.release.outputs.releaseVersion }}
-          NOTES: ${{ needs.release.outputs.releaseNotes }}
-
       - name: Prepare clean template
         env:
           # The version this run published (`npm view` can lag behind a publish).
@@ -176,7 +163,8 @@ jobs:
         env:
           TEMPLATE_PUSH_TOKEN: ${{ secrets.TEMPLATE_PUSH_TOKEN }}
           TARGET_REPO: nulib-ds/canopy-template
-          TEMPLATE_COMMIT_MESSAGE: ${{ steps.template_commit.outputs.text }}
+          # The template's one commit is named for this version (`push-template.js`).
+          APP_VERSION: ${{ needs.release.outputs.releaseVersion }}
         run: node packages/helpers/template/push-template.js
 
   template-i18n:
@@ -203,19 +191,6 @@ jobs:
           npm config set audit false
           npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
-      - name: Build template commit message
-        id: template_i18n_commit
-        run: |
-          MESSAGE=$(node -e "const notes = process.env.NOTES ? JSON.parse(process.env.NOTES) : {}; const summary = notes.summary ? ' – ' + notes.summary : ''; const version = process.env.VERSION || ''; process.stdout.write('Update template-i18n for v' + version + summary);")
-          {
-            echo 'text<<EOF'
-            echo "$MESSAGE"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-        env:
-          VERSION: ${{ needs.release.outputs.releaseVersion }}
-          NOTES: ${{ needs.release.outputs.releaseNotes }}
-
       - name: Prepare clean template (i18n)
         env:
           # The version this run published (`npm view` can lag behind a publish).
@@ -228,7 +203,8 @@ jobs:
         env:
           TEMPLATE_PUSH_TOKEN: ${{ secrets.TEMPLATE_I18N_PUSH_TOKEN }}
           TARGET_REPO: nulib-ds/canopy-template-i18n
-          TEMPLATE_COMMIT_MESSAGE: ${{ steps.template_i18n_commit.outputs.text }}
+          # The template's one commit is named for this version (`push-template.js`).
+          APP_VERSION: ${{ needs.release.outputs.releaseVersion }}
           TEMPLATE_OUT_DIR: .template-i18n-build
         run: node packages/helpers/template/push-template.js
 
@@ -256,19 +232,6 @@ jobs:
           npm config set audit false
           npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
-      - name: Build template commit message
-        id: template_northwestern_commit
-        run: |
-          MESSAGE=$(node -e "const notes = process.env.NOTES ? JSON.parse(process.env.NOTES) : {}; const summary = notes.summary ? ' – ' + notes.summary : ''; const version = process.env.VERSION || ''; process.stdout.write('Update template-northwestern for v' + version + summary);")
-          {
-            echo 'text<<EOF'
-            echo "$MESSAGE"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-        env:
-          VERSION: ${{ needs.release.outputs.releaseVersion }}
-          NOTES: ${{ needs.release.outputs.releaseNotes }}
-
       - name: Prepare clean template (northwestern)
         env:
           # The version this run published (`npm view` can lag behind a publish).
@@ -281,6 +244,7 @@ jobs:
         env:
           TEMPLATE_PUSH_TOKEN: ${{ secrets.TEMPLATE_PUSH_TOKEN }}
           TARGET_REPO: nulib-ds/canopy-template-northwestern
-          TEMPLATE_COMMIT_MESSAGE: ${{ steps.template_northwestern_commit.outputs.text }}
+          # The template's one commit is named for this version (`push-template.js`).
+          APP_VERSION: ${{ needs.release.outputs.releaseVersion }}
           TEMPLATE_OUT_DIR: .template-northwestern-build
         run: node packages/helpers/template/push-template.js

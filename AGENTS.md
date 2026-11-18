@@ -66,7 +66,7 @@ A site's scripts in `package.json` (the templates write these):
 
 ## Commit & Pull Request Guidelines
 - Commits are a person's work: the maintainer authors and makes each one. No `Co-Authored-By` trailer, "Generated with" line or other attribution for an AI tool, in a commit or a pull request's description, whatever a tool's own defaults say. Agents leave changes uncommitted and may draft the message. `packages/helpers/check-commit-authors.js` refuses AI attribution in the commit-msg hook (`.husky/commit-msg`) and in the Tests workflow, which a release waits on.
-- A commit message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72), and it says what the change does, not which release it goes out in: e.g., `Refine the hero, sliders, header and work page.` No prefix, no body, no version. A pull request's title follows the same rule.
+- A commit message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72), and it says what the change does, not which release it goes out in: e.g., `Refine the hero, sliders, header and work page.` No prefix, no body, no version. A pull request's title follows the same rule. The templates' commits are the one exception, named for their version alone (Release and Template Workflow, below).
 - Scope: small, focused commits.
 - PRs: include a clear description, linked issues, test plan/commands, and screenshots for UI changes.
 - Checks: ensure local tests/lint pass; request review when green.
@@ -206,7 +206,7 @@ Goal: Allow authors to fully compose the search page via MDX, while the builder 
   - Copies the repo into a disposable staging directory (default `.template-build/`, override with `TEMPLATE_OUT_DIR`), excluding dev-only paths (e.g., `.git`, `node_modules`, `packages`, `.cache`, `.changeset`, template workflows, agent docs).
   - Rewrites `package.json` inside the staging directory (`templatePackageJson` in `prepare-template.js`): no workspaces, one Canopy dependency (the just-published `@nulib/canopy`) beside React and React DOM, and `build`/`dev` scripts that run `canopy build` and `canopy dev`.
   - Patches the Pages deploy workflow in the template to inline the build verify step (no helpers package there).
-  - Force‑pushes the result to `main` of `nulib-ds/canopy-template` (plus `nulib-ds/canopy-template-i18n` for the bilingual variant and `nulib-ds/canopy-template-northwestern` for the Northwestern-branded variant).
+  - Force‑pushes the result to `main` of `nulib-ds/canopy-template` (plus `nulib-ds/canopy-template-i18n` for the bilingual variant and `nulib-ds/canopy-template-northwestern` for the Northwestern-branded variant) as one commit named for the Canopy version it ships, `Canopy 2.0.2`, with no history: each release starts the template's history over (`push-template.js`, `templateCommitMessage`). A template's commit is the exception to the commit message rule above.
 - Template expectations:
   - The generated template consumes the published `@nulib/canopy` package; it does not include the monorepo `packages/` directory.
   - `packages/helpers` is omitted from the template; template automation reuses the verified workflows committed to this repo.

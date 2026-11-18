@@ -629,6 +629,11 @@ const MIME = {
   ".jpeg": "image/jpeg",
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".ico": "image/x-icon",
+  ".woff2": "font/woff2",
+  ".mjs": "application/javascript; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
 };
 

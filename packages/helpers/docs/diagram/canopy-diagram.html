@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Canopy diagram</title>
+<!--
+  The docs' diagram of what Canopy does (`content/about/index.mdx`), drawn as a page and
+  rendered to `assets/canopy-diagram.webp` by `render-diagram.mjs`: a scholarly essay
+  citing a digitized primary source and an archival letter, which Canopy builds into a
+  digital scholarship project. Its images are the docs' own IIIF works, Northwestern's;
+  its faces the package's own (`packages/app/ui/fonts`), the letter's the system's hand.
+-->
+<style>
+  @font-face { font-family: "Google Sans Flex"; font-weight: 400 700; src: url("../../../app/ui/fonts/google-sans-flex-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Source Serif 4"; font-style: normal; font-weight: 400 700; src: url("../../../app/ui/fonts/source-serif-4-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Source Serif 4"; font-style: italic; font-weight: 400 700; src: url("../../../app/ui/fonts/source-serif-4-italic-latin.woff2") format("woff2"); }
+
+  :root {
+    --ink: #21201c;
+    --muted: #63635e;
+    --hair: #e4e1d6;
+    --gold: #8c7a5e;
+    --gold-deep: #71624b;
+    --gold-soft: #efe5cf;
+    --sand: #f5f1e6;
+    --nu: #4e2a84;
+    --shadow: 0 1px 2px rgb(45 35 15 / 0.08), 0 14px 34px rgb(45 35 15 / 0.16);
+    --shadow-sm: 0 1px 2px rgb(45 35 15 / 0.08), 0 6px 14px rgb(45 35 15 / 0.1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { width: 1600px; height: 1056px; font-family: "Google Sans Flex", system-ui, sans-serif; color: var(--ink); }
+
+  .panel {
+    position: absolute; inset: 0; border-radius: 36px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 48%, #fffdf8 0%, rgb(255 253 248 / 0) 100%),
+      linear-gradient(180deg, #f7f3e9 0%, #f2ecdf 100%);
+  }
+  .label { position: absolute; font-weight: 700; font-size: 30px; letter-spacing: -0.01em; text-align: center; transform: translateX(-50%); white-space: nowrap; }
+
+  /* ── A window, as a browser draws one ── */
+  .window { position: absolute; background: #fff; border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+  .chrome { height: 34px; display: flex; align-items: center; gap: 12px; padding: 0 14px; background: #f1eee6; border-bottom: 1px solid var(--hair); }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .dots i:nth-child(1) { background: #e9917f; } .dots i:nth-child(2) { background: #e8c27a; } .dots i:nth-child(3) { background: #9fc790; }
+  .url { flex: 1; height: 20px; border-radius: 10px; background: #fff; border: 1px solid var(--hair); font-size: 11px; color: var(--muted); display: flex; align-items: center; padding: 0 10px; }
+
+  /* ── Digitized primary source: a library's viewer ── */
+  .source { left: 560px; top: 100px; width: 480px; height: 330px; }
+  .source .head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .nu { width: 28px; height: 28px; border-radius: 4px; background: var(--nu); color: #fff; font: 700 17px/28px "Source Serif 4", serif; text-align: center; }
+  .source .title { font-size: 14px; font-weight: 700; line-height: 1.2; }
+  .source .meta { font-size: 10.5px; color: var(--muted); }
+  .viewer { position: relative; margin: 0 14px; height: 204px; border-radius: 8px; background: #2a2925; overflow: hidden; }
+  .viewer img { position: absolute; inset: 8px; width: calc(100% - 16px); height: calc(100% - 16px); object-fit: contain; }
+  .zoom { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .zoom b { width: 24px; height: 24px; border-radius: 50%; background: rgb(255 255 255 / 0.92); color: var(--ink); font: 700 15px/24px "Google Sans Flex", sans-serif; text-align: center; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); }
+  .source .caption { display: flex; justify-content: space-between; padding: 9px 14px; font-size: 10.5px; color: var(--muted); }
+  .badge-iiif { font-weight: 700; color: var(--gold-deep); letter-spacing: 0.04em; }
+
+  /* ── Paper: the essay and the letter ── */
+  .sheet { position: absolute; width: 300px; height: 452px; border-radius: 4px; }
+  .essay-back { left: 76px; top: 174px; background: #f7f4ec; transform: rotate(-3.2deg); box-shadow: var(--shadow-sm); }
+  .essay { left: 70px; top: 168px; background: #fffefa; transform: rotate(-1deg); box-shadow: var(--shadow); padding: 22px 22px 18px; font-family: "Source Serif 4", serif; }
+  .essay .journal { font: 700 7px/1 "Google Sans Flex", sans-serif; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; display: flex; justify-content: space-between; }
+  .essay h2 { margin: 14px 0 4px; font-size: 17px; line-height: 1.18; font-weight: 600; letter-spacing: -0.005em; }
+  .essay .by { font-style: italic; font-size: 9px; color: var(--muted); margin-bottom: 10px; }
+  .essay p { margin: 0 0 6px; font-size: 7.4px; line-height: 1.55; text-align: justify; hyphens: auto; color: #33312b; }
+  .essay p:first-of-type::first-letter { float: left; font-size: 25px; line-height: 0.9; padding: 2px 4px 0 0; font-weight: 600; color: var(--ink); }
+  .cite { background: var(--gold-soft); box-shadow: 0 0 0 1.5px var(--gold-soft); border-radius: 2px; }
+  .cite sup { font: 700 6.5px/1 "Google Sans Flex", sans-serif; color: var(--gold-deep); margin-left: 1px; }
+  .notes { position: absolute; left: 22px; right: 22px; bottom: 14px; border-top: 0.75px solid #d8d2c2; padding-top: 6px; font-size: 6.4px; line-height: 1.5; color: var(--muted); }
+
+  .letter { left: 1230px; top: 168px; transform: rotate(1.4deg); padding: 28px 24px 20px;
+    background:
+      linear-gradient(180deg, rgb(120 90 40 / 0) 32.6%, rgb(120 90 40 / 0.1) 33.3%, rgb(120 90 40 / 0) 34%, rgb(120 90 40 / 0) 66%, rgb(120 90 40 / 0.1) 66.7%, rgb(120 90 40 / 0) 67.4%),
+      radial-gradient(ellipse at 30% 20%, #fbf4df 0%, #f2e5c4 70%, #e9d9b0 100%);
+    box-shadow: var(--shadow), inset 0 0 26px rgb(140 105 50 / 0.18);
+    font-family: "Bradley Hand", "Snell Roundhand", cursive; color: #3a2c1c; }
+  .letter .date { text-align: right; font-size: 14px; margin-bottom: 16px; }
+  .letter .hand { font-size: 15px; line-height: 31px; }
+  .letter .sign { margin-top: 10px; font-size: 15px; line-height: 26px; padding-left: 96px; }
+  .tag { position: absolute; right: 18px; bottom: 16px; padding: 5px 9px; background: #fbf8f0; border: 1px solid #b8aa8a; border-radius: 2px; font: 700 9px/1 "Google Sans Flex", sans-serif; letter-spacing: 0.14em; color: #5b5142; box-shadow: 0 1px 2px rgb(0 0 0 / 0.08); transform: rotate(-1.4deg); }
+
+  /* ── Canopy ── */
+  .canopy { position: absolute; left: 800px; top: 468px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 12px 24px 12px 14px; background: #fff; border-radius: 999px; box-shadow: var(--shadow); font-weight: 700; font-size: 27px; letter-spacing: -0.01em; white-space: nowrap; }
+  .canopy svg { width: 38px; height: 38px; }
+
+  /* ── Digital scholarship project: a Canopy site ── */
+  .project { left: 465px; top: 572px; width: 670px; height: 392px; }
+  .site-head { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 1px solid #efece4; }
+  .site-head .brand { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; }
+  .site-head .brand i { width: 16px; height: 16px; border-radius: 50%; display: block; background: conic-gradient(from 200deg, var(--gold-deep) 0 50%, #3b352b 50% 100%); }
+  .site-head nav { margin-left: auto; display: flex; gap: 14px; font-size: 11px; color: var(--muted); }
+  .site-head .search { width: 96px; height: 22px; border-radius: 11px; border: 1px solid #d8d4c8; font-size: 10px; color: #8d8a80; display: flex; align-items: center; padding: 0 9px; }
+  .site-body { display: grid; grid-template-columns: 1fr 188px; gap: 18px; padding: 14px 16px; }
+  .site-body h1 { margin: 0 0 3px; font-size: 18px; line-height: 1.15; letter-spacing: -0.01em; }
+  .site-body .by { font-size: 9.5px; color: var(--muted); margin-bottom: 8px; }
+  .site-body p { margin: 0 0 8px; font: 7.9px/1.55 "Source Serif 4", serif; color: #33312b; }
+  .embed { border-radius: 8px; box-shadow: var(--shadow-sm); background: #fff; overflow: hidden; }
+  .embed .frame { height: 118px; background: #2a2925; position: relative; }
+  .embed .frame img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); object-fit: contain; }
+  .embed .cap { padding: 5px 8px; font-size: 8px; color: var(--muted); }
+  .aside h3 { margin: 2px 0 8px; font: 700 8px/1 "Google Sans Flex", sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card { border-radius: 6px; background: #fff; box-shadow: var(--shadow-sm); overflow: hidden; }
+  .card .pic { height: 62px; background: #ece9e0 center / cover no-repeat; }
+  .card span { display: block; padding: 4px 6px 5px; font-size: 7.5px; font-weight: 700; line-height: 1.25; height: 26px; overflow: hidden; }
+  .map { margin-top: 10px; height: 74px; border-radius: 6px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; background: #e9e3d2 center 44% / 190% no-repeat; }
+  .map::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgb(255 255 255 / 0.15), rgb(255 255 255 / 0.15)); }
+  .pin { position: absolute; z-index: 1; width: 10px; height: 10px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--gold-deep); box-shadow: 0 0 0 2px #fff; }
+
+  svg.flow { position: absolute; inset: 0; width: 1600px; height: 1056px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="panel"></div>
+
+<svg class="flow" viewBox="0 0 1600 1056" aria-hidden="true">
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8c7a5e" />
+    </marker>
+  </defs>
+  <!-- The essay cites the source (note 1), which the letter answers (note 2). -->
+  <path d="M384 318 C 476 318, 470 236, 552 236" fill="none" stroke="#b39f7a" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 11" />
+  <path d="M1048 236 C 1130 236, 1124 318, 1222 318" fill="none" stroke="#b39f7a" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 11" />
+  <!-- The essay and the source go into Canopy, which builds the project. -->
+  <path d="M384 604 C 428 604, 404 668, 452 668" fill="none" stroke="#8c7a5e" stroke-width="6" stroke-linecap="round" marker-end="url(#head)" />
+  <!-- The letter goes into the project too, from the other side. -->
+  <path d="M1216 604 C 1172 604, 1196 668, 1148 668" fill="none" stroke="#8c7a5e" stroke-width="6" stroke-linecap="round" marker-end="url(#head)" />
+  <path d="M800 432 L 800 562" fill="none" stroke="#8c7a5e" stroke-width="6" stroke-linecap="round" marker-end="url(#head)" />
+</svg>
+
+<div class="label" style="left:800px;top:46px">Digitized Primary Source</div>
+<div class="window source">
+  <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">dc.library.northwestern.edu/items/f0e6bb1d</div></div>
+  <div class="head">
+    <div class="nu">N</div>
+    <div><div class="title">Hindostan</div><div class="meta">Pinkerton’s Modern Atlas · 1811 · Northwestern University Libraries</div></div>
+  </div>
+  <div class="viewer">
+    <img src="https://iiif.dc.library.northwestern.edu/iiif/3/f0e6bb1d-f5a4-4b20-ad08-1ee9db915c9f/full/!900,900/0/default.jpg" alt="">
+    <div class="zoom"><b>+</b><b>−</b></div>
+  </div>
+  <div class="caption"><span>Map · Engraving, hand-colored</span><span class="badge-iiif">IIIF</span></div>
+</div>
+
+<div class="sheet essay-back"></div>
+<div class="sheet essay">
+  <div class="journal"><span>An essay</span><span>Draft 3</span></div>
+  <h2>Corporate Empire and Cartographic Authority</h2>
+  <div class="by">On the East India Company and its maps</div>
+  <p>By the early nineteenth century, the East India Company had transformed from a trading enterprise into a territorial power, exercising corporate sovereignty across much of the Indian subcontinent. <span class="cite">Maps such as Pinkerton’s Hindostan helped naturalize that expansion<sup>1</sup></span> by translating diverse political landscapes into legible borders, routes, and regions that could be governed, taxed, and defended. The atlas format reinforced these claims by presenting Company influence as stable geography rather than contested rule.</p>
+  <p>This cartographic vision also reveals how knowledge production and imperial power worked together. By privileging standardized measurement, European place-name conventions, and administrative divisions, the map frames the subcontinent as a coherent space open to managerial control. Such representations supported both practical governance and public legitimacy, offering metropolitan readers an image of order and possession that obscured local authority, resistance, and the uneven realities of Company rule.</p>
+  <p>The surveyors themselves knew the borders were unsettled. <span class="cite">One wrote from Calcutta that the Rajpootana districts were “by no means settled”<sup>2</sup></span> and begged his correspondent not to print them as though they were, a caution the published atlases rarely kept.</p>
+  <div class="notes">1. “Hindostan,” in John Pinkerton, <i>A Modern Atlas</i> (1811). Northwestern University Libraries.<br>2. Letter to Mr Edgecombe, Calcutta, 14 March 1812. NU MS 127, box 4.</div>
+</div>
+<div class="label" style="left:220px;top:652px">Scholarly Essay</div>
+
+<div class="sheet letter">
+  <div class="date">Calcutta, 14th March 1812</div>
+  <div class="hand">Dear Mr Edgecombe,<br>
+  I have the honour to enclose the<br>
+  surveys of the Rajpootana districts,<br>
+  which the Company’s atlas leaves<br>
+  unfinished. The borders there are<br>
+  by no means settled, and I beg you<br>
+  not to print them as though they were.</div>
+  <div class="sign">Your obedient servant,<br>J. Hartley</div>
+  <div class="tag">NU · MS 127 · BOX 4</div>
+</div>
+<div class="label" style="left:1380px;top:652px">Cited Document</div>
+
+<div class="canopy">
+  <svg viewBox="0 0 500 500" aria-hidden="true"><circle cx="250" cy="250" r="250" fill="#3b352b"/><path d="M125,33.45C50.28,76.68,0,157.47,0,250s50.28,173.32,125,216.55c74.72-43.23,125-124.01,125-216.55S199.72,76.68,125,33.45Z" fill="#978365"/></svg>
+  Canopy IIIF
+</div>
+
+<div class="window project">
+  <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">art-and-empire.github.io/essays/corporate-empire</div></div>
+  <div class="site-head">
+    <div class="brand"><i></i>Art &amp; Empire</div>
+    <nav><span>Essays</span><span>Works</span><span>Map</span></nav>
+    <div class="search">Search…</div>
+  </div>
+  <div class="site-body">
+    <div>
+      <h1>Corporate Empire and Cartographic Authority</h1>
+      <div class="by">An essay with 12 works</div>
+      <p>By the early nineteenth century, the East India Company had transformed from a trading enterprise into a territorial power. Maps such as Pinkerton’s Hindostan helped naturalize that expansion by translating diverse political landscapes into legible borders, routes, and regions that could be governed, taxed, and defended.</p>
+      <div class="embed">
+        <div class="frame"><img src="https://iiif.dc.library.northwestern.edu/iiif/3/f0e6bb1d-f5a4-4b20-ad08-1ee9db915c9f/full/!700,700/0/default.jpg" alt=""></div>
+        <div class="cap">“Hindostan,” Pinkerton’s Modern Atlas, 1811</div>
+      </div>
+      <p style="margin-top:10px">This cartographic vision also reveals how knowledge production and imperial power worked together, framing the subcontinent as a coherent space open to managerial control.</p>
+    </div>
+    <div class="aside">
+      <h3>Works in this essay</h3>
+      <div class="grid">
+        <div class="card"><div class="pic" style="background-image:url(https://api.dc.library.northwestern.edu/api/v2/works/4bdb5a22-6c7f-498d-8e6e-e49ea9bc4778/thumbnail)"></div><span>The town &amp; pass of Boondi</span></div>
+        <div class="card"><div class="pic" style="background-image:url(https://api.dc.library.northwestern.edu/api/v2/works/d4c62d7f-f50d-4b29-85e0-5d380675bec7/thumbnail)"></div><span>View near Tonk</span></div>
+        <div class="card"><div class="pic" style="background-image:url(https://api.dc.library.northwestern.edu/api/v2/works/676d4b14-6324-4ada-9fc0-62b09001c121/thumbnail)"></div><span>Benarès</span></div>
+        <div class="card"><div class="pic" style="background-image:url(https://api.dc.library.northwestern.edu/api/v2/works/22d06881-9170-4ce5-96ef-4b6a006d00ce/thumbnail)"></div><span>The Residency, Hyderabad</span></div>
+      </div>
+      <div class="map" style="background-image:url(https://iiif.dc.library.northwestern.edu/iiif/3/f0e6bb1d-f5a4-4b20-ad08-1ee9db915c9f/full/!500,500/0/default.jpg)">
+        <span class="pin" style="left:38%;top:30%"></span><span class="pin" style="left:56%;top:52%"></span><span class="pin" style="left:30%;top:58%"></span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="label" style="left:800px;top:986px">Digital Scholarship Project</div>
+</body>
+</html>
