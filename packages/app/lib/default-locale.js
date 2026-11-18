@@ -17,6 +17,8 @@ module.exports = {
       show: 'Show',
       hide: 'Hide',
       view_work: 'View work',
+      view_all: 'View all',
+      widen_viewer: 'Widen the viewer',
       copy: 'Copy'
     },
     nouns: {
@@ -105,9 +107,7 @@ module.exports = {
       slide: '{index} of {total}',
       previous: 'Previous slide',
       next: 'Next slide',
-      go_to: 'Go to slide {index}',
-      stop: 'Pause the slideshow',
-      start: 'Play the slideshow'
+      go_to: 'Go to slide {index}'
     }
   }
 };

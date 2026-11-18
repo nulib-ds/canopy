@@ -124,7 +124,7 @@ This repo is the source for a separate template repository:
 
 ## Commits
 - A commit is authored by the person who makes it, and credits no AI tool: no `Co-Authored-By` trailer or "Generated with" line for one. The commit-msg hook and the Tests workflow refuse such a commit (`packages/helpers/check-commit-authors.js`), so it is never released.
-- Its message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72): `Release Canopy 2.0.0 as @nulib/canopy.`
+- Its message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72), saying what the change does rather than which release it goes out in: `Refine the hero, sliders, header and work page.` A pull request's title follows the same rule.
 
 ## Pull Requests
 - Keep PRs focused and small. Include rationale and test plan.

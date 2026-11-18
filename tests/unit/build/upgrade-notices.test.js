@@ -39,6 +39,21 @@ test('a 1.x site hears of the new name, Clover 3, Embla and tsx', () => {
   expect(notes[3]).toMatch(/runs Canopy through tsx \(build, dev\)/);
 });
 
+test('a 1.x site that names no colors hears they are gold on sand now, and how to keep its own', () => {
+  const none = upgradeNotices(site(V1, {'canopy.yml': 'title: A site\n'}));
+  expect(none[1]).toBe(
+    'canopy.yml names no accentColor or grayColor, so the site takes Canopy\'s: gold and sand since 2.0.2, ' +
+      'where it was indigo and slate. To keep those, set accentColor: indigo and grayColor: slate under ' +
+      'theme in canopy.yml. https://nulib-ds.github.io/canopy/docs/developers/upgrading.html',
+  );
+  const gray = upgradeNotices(site(V1, {'canopy.yml': 'theme:\n  accentColor: plum\n'}));
+  expect(gray[1]).toMatch(/^canopy\.yml names no grayColor, so the site takes Canopy's: sand since 2\.0\.2, where it was slate\./);
+  // Both named, or no canopy.yml to read: nothing.
+  const both = upgradeNotices(site(V1, {'canopy.yml': 'theme:\n  accentColor: plum\n  grayColor: mauve\n'}));
+  expect(both).toHaveLength(4);
+  expect(upgradeNotices(site(V1))).toHaveLength(4);
+});
+
 test('Clover 3 that a component of the site imports stays', () => {
   const dir = site(V1, {
     'app/components/Old.jsx': 'import Viewer from "@samvera/clover-iiif/viewer";\n',

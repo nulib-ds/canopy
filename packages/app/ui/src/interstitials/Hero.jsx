@@ -45,24 +45,6 @@ const NextArrowIcon = (props) => (
   </NavIconBase>
 );
 
-const PauseIcon = (props) => (
-  <NavIconBase {...props}>
-    <path d="M5.5 3.5V12.5M10.5 3.5V12.5" stroke="currentColor" strokeWidth="1.618" strokeLinecap="round" />
-  </NavIconBase>
-);
-
-const PlayIcon = (props) => (
-  <NavIconBase {...props}>
-    <path
-      d="M5.5 3.5L12 8L5.5 12.5Z"
-      fill="currentColor"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinejoin="round"
-    />
-  </NavIconBase>
-);
-
 const HERO_DEFAULT_SIZES_ATTR = "(min-width: 1024px) 1280px, 100vw";
 
 const basePath = (() => {
@@ -361,8 +343,8 @@ export default function Hero({
     .filter(Boolean)
     .join(" ");
 
-  // More than one slide is a carousel (WAI-ARIA APG, "Auto-Rotating Image Carousel"):
-  // each slide a named group, the first shown and the rest hidden until the runtime
+  // More than one slide is a carousel (WAI-ARIA APG, "Carousel"), which moves only when
+  // a visitor moves it: each slide a named group, the first shown and the rest hidden until the runtime
   // (lib/components/hero-slider-runtime.js) shows them, so without a script the page
   // has one featured work and no controls that do nothing.
   const total = orderedSlides.length;
@@ -482,35 +464,17 @@ export default function Hero({
     );
   };
 
-  // The carousel's controls, in reading order: the rotation control first (WCAG 2.2.2),
-  // the slides (silent while they rotate, `aria-live="off"`; the runtime makes them
-  // polite once rotation stops, so a visitor's own move is announced), then previous
-  // and next over the slide, and one button per slide below it. All hidden until the
+  // The carousel, in reading order: the slides (polite, as nothing moves them but the
+  // visitor, so the slide a visitor moves to is announced), then previous and next over
+  // the slide, and one button per slide below it. The controls are hidden until the
   // runtime shows them.
-  const stopLabel = getString("common.carousel.stop", "Pause the slideshow");
-  const startLabel = getString("common.carousel.start", "Play the slideshow");
   const renderCarousel = (options = {}) => (
     <>
-      {isCarousel ? (
-        <button
-          type="button"
-          className="canopy-interstitial__rotation"
-          aria-label={stopLabel}
-          aria-controls={slidesId}
-          data-label-stop={stopLabel}
-          data-label-start={startLabel}
-          data-rotation="on"
-          hidden
-        >
-          <PauseIcon className="canopy-interstitial__rotation-icon canopy-interstitial__rotation-icon--pause" />
-          <PlayIcon className="canopy-interstitial__rotation-icon canopy-interstitial__rotation-icon--play" />
-        </button>
-      ) : null}
       <div className="canopy-interstitial__slider">
         <div
           className="canopy-interstitial__slide-wrapper"
           id={slidesId}
-          aria-live={isCarousel ? "off" : undefined}
+          aria-live={isCarousel ? "polite" : undefined}
         >
           {orderedSlides.map((slide, idx) => renderSlide(slide, idx, options))}
         </div>

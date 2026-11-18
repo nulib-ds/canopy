@@ -107,7 +107,8 @@ describe('hydration placeholders', () => {
   test('Viewer hands Clover its props with Canopy defaults merged in', () => {
     // `clover-viewer`, Clover 3's root, for a site's 1.x styles (`version-parity.css`).
     expect(html.viewer).toMatch(
-      /^<div data-canopy-viewer="1" class="not-prose clover-viewer"><script/,
+      // The toggle a work page adds beside it takes its name from here (`viewer-runtime-entry.js`).
+      /^<div data-canopy-viewer="1" data-canopy-viewer-widen="Widen the viewer" class="not-prose clover-viewer"><script/,
     );
     expect(placeholderProps(html.viewer)).toEqual({
       iiifContent: MANIFEST.id,

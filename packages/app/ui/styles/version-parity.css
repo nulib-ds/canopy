@@ -95,6 +95,39 @@
   }
 
   /*
+   * The card's ring and shadow reach past the room Clover leaves around its items for
+   * their focus rings (`--clover-items-ring-room`), and the track, a scroll box, clipped
+   * them at its edges. The track takes more room and gives it back as margin, so the
+   * cards stay where they were: a rem above and below, for the whole shadow, and a pixel
+   * at the sides, for the ring of the cards at either end. No more, so nothing of a card
+   * scrolled out of view shows past the column's edge.
+   */
+  .canopy-slider {
+    --canopy-card-room-block: 1rem;
+    --canopy-card-room-inline: 1px;
+  }
+
+  .canopy-slider .clover-items-viewport {
+    margin-block: calc(-1 * (var(--clover-items-ring-room) + var(--canopy-card-room-block)));
+    margin-inline: calc(-1 * (var(--clover-items-ring-room) + var(--canopy-card-room-inline)));
+    padding-block: calc(var(--clover-items-ring-room) + var(--canopy-card-room-block));
+    padding-inline: calc(
+      var(--clover-items-ring-room) + var(--clover-items-inset, 0px) +
+        var(--canopy-card-room-inline)
+    );
+    scroll-padding-inline: calc(
+      var(--clover-items-ring-room) + var(--clover-items-inset, 0px) +
+        var(--canopy-card-room-inline)
+    );
+  }
+
+  /* Clover's shades at the track's ends, that show it scrolls: the cards' own edges do. */
+  .canopy-slider .clover-items-frame::before,
+  .canopy-slider .clover-items-frame::after {
+    content: none;
+  }
+
+  /*
    * 1.x `figcaption` and its `span`: the card's caption, padded, in the text's color, the
    * accent while its card is pointed at or focused. Its three lines are Clover 4's own
    * (`--clover-items-lines`), whose full title shows on hover and focus.

@@ -66,7 +66,7 @@ A site's scripts in `package.json` (the templates write these):
 
 ## Commit & Pull Request Guidelines
 - Commits are a person's work: the maintainer authors and makes each one. No `Co-Authored-By` trailer, "Generated with" line or other attribution for an AI tool, in a commit or a pull request's description, whatever a tool's own defaults say. Agents leave changes uncommitted and may draft the message. `packages/helpers/check-commit-authors.js` refuses AI attribution in the commit-msg hook (`.husky/commit-msg`) and in the Tests workflow, which a release waits on.
-- A commit message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72): e.g., `Release Canopy 2.0.0 as @nulib/canopy.` No prefix, no body.
+- A commit message is one short sentence in the imperative, ending with a period, that fits on one line in GitHub's commit list (about 50 characters, never past 72), and it says what the change does, not which release it goes out in: e.g., `Refine the hero, sliders, header and work page.` No prefix, no body, no version. A pull request's title follows the same rule.
 - Scope: small, focused commits.
 - PRs: include a clear description, linked issues, test plan/commands, and screenshots for UI changes.
 - Checks: ensure local tests/lint pass; request review when green.
@@ -84,7 +84,7 @@ A site's scripts in `package.json` (the templates write these):
 
 Available components:
 - `<Viewer iiifContent="…" />` — wraps Clover viewer; hydrates via `site/canopy-viewer.js`.
-- `<Interstitials.Hero … />` — hero interstitial that rotates featured manifests listed in `canopy.yml → featured`, pulls thumbnails from the IIIF cache, and hydrates via `site/canopy-hero-slider.js`. Supports props such as `headline`, `description`, `links`, `height`, `index`, `random`, and `background="theme" | "transparent"`.
+- `<Interstitials.Hero … />` — hero interstitial that shows the featured manifests listed in `canopy.yml → featured`, one at a time (nothing moves it but the visitor), pulls thumbnails from the IIIF cache, and hydrates via `site/canopy-hero-slider.js`. Supports props such as `headline`, `description`, `links`, `height`, `index`, `random`, and `background="theme" | "transparent"`.
 - `<RelatedItems top={3} iiifContent?="…" />` — facet-driven related sliders.
   - Without `iiifContent` (homepage): pick one top value per indexed facet label and render one slider per label.
   - With `iiifContent` (work pages): read the Manifest’s metadata, intersect with indexed facets, then pick one of the Manifest’s values at random for each label and render exactly one slider per label. Facets not present on the Manifest are skipped.

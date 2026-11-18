@@ -264,7 +264,7 @@ function resolveThemeAppearance() {
 
 function resolveThemeAccent() {
   if (cachedAccent) return cachedAccent;
-  cachedAccent = 'indigo';
+  cachedAccent = require('../ui/theme').DEFAULT_ACCENT;
   try {
     const { loadCanopyTheme } = require('../ui/theme');
     if (typeof loadCanopyTheme === 'function') {
@@ -448,7 +448,7 @@ function htmlShell({ title, body, cssHref, scriptHref, headExtra, bodyClass, lan
   const htmlAttrs = [];
   if (appearance === 'dark') htmlAttrs.push('class="dark"');
   if (appearance === 'auto') htmlAttrs.push('data-appearance="auto"');
-  htmlAttrs.push(`data-accent="${accent || 'indigo'}"`);
+  htmlAttrs.push(`data-accent="${accent || require('../ui/theme').DEFAULT_ACCENT}"`);
   const htmlAttr = htmlAttrs.length ? ` ${htmlAttrs.join(' ')}` : '';
   // `appearance: auto`: inline and ahead of the stylesheet, so the first paint is in the
   // visitor's appearance (lib/build/appearance.js).

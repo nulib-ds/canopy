@@ -31,7 +31,7 @@ const componentStyles = `
 .collection-example {
   position: relative;
   display: block;
-  padding: 1.618rem 0;
+  padding: clamp(var(--canopy-space-xl, 2.618rem), 6vw, var(--canopy-space-2xl, 4.236rem)) 0;
 }
 
 .collection-example__container {
@@ -44,7 +44,7 @@ const componentStyles = `
 .collection-example__grid {
   animation: collection-example-panel-in 0.8s forwards;
   display: flex;
-  gap: 2.618rem;
+  gap: clamp(var(--canopy-space-l, 1.618rem), 4vw, var(--canopy-space-2xl, 4.236rem));
   flex-wrap: nowrap;
   flex-direction: row-reverse;
   align-items: center;
@@ -67,10 +67,13 @@ const componentStyles = `
   text-align: center;
 }
 
+/* Two balanced lines, centered over the words under it, however wide the column. */
 .collection-example__heading {
   font-size: var(--canopy-text-title, 2rem);
   line-height: 1.1;
-  margin: 0;
+  margin: 0 auto;
+  max-width: 14em;
+  text-wrap: balance;
 }
 
 .collection-example__description {

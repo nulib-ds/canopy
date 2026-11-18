@@ -243,6 +243,30 @@ function accentHoverCss(scale, appearance) {
   )}%, ${far})`;
 }
 
+// A slide button's dot over the hero's ground (`_interstitial-hero.scss`, `--hero-dot-bg`):
+// the muted gray at 80%, the ground showing through (Mat, 2026-11-18: "more translucent"),
+// or as much nearer solid as this theme needs to hold 3:1 on the darkest of that ground,
+// accent 200 (WCAG 1.4.11). A browser lays a translucent color over what is under it in
+// sRGB, so this mixes there too. A black accent, whose 200 is a mid gray, needs 95%.
+const DOT_SHARE = 0.8;
+const NON_TEXT_CONTRAST = 3;
+function srgbOver(fg, bg, share) {
+  const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [x, y] = [channels(normalizeHex(fg)), channels(normalizeHex(bg))];
+  return `#${x
+    .map((v, i) => Math.round(v * share + y[i] * (1 - share)).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+function dotShare(brandScale, grayScale) {
+  const ground = brandScale && brandScale["200"];
+  const dot = grayScale && grayScale["800"];
+  if (!ground || !dot) return 1;
+  for (let pct = Math.round(DOT_SHARE * 100); pct < 100; pct += 1) {
+    if (contrast(srgbOver(dot, ground, pct / 100), ground) >= NON_TEXT_CONTRAST) return pct / 100;
+  }
+  return 1;
+}
+
 function buildVariablesMap(brandScale, grayScale, options = {}) {
   const appearance = scaleAppearance(options.appearance);
   const vars = {};
@@ -263,6 +287,9 @@ function buildVariablesMap(brandScale, grayScale, options = {}) {
     }
     if (grayScale["900"]) vars["--color-gray-default"] = grayScale["900"];
     if (grayScale["800"]) vars["--color-gray-muted"] = grayScale["800"];
+  }
+  if (brandScale && grayScale) {
+    vars["--canopy-dot-share"] = `${Math.round(dotShare(brandScale, grayScale) * 100)}%`;
   }
   if (brandScale) {
     for (const [prop, token] of Object.entries(CLOVER_ACCENT_TOKENS)) {
@@ -325,6 +352,8 @@ module.exports = {
   accentHover,
   accentHoverCss,
   appearanceVariablesToCss,
+  dotShare,
+  srgbOver,
   contrast,
   normalizePaletteName,
   normalizeAccentName,

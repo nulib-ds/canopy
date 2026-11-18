@@ -9,7 +9,7 @@ function ThemeStorageHydrator() {
     if (typeof document === 'undefined') return;
     const html = document.documentElement;
     const DEFAULT_APPEARANCE = html.classList.contains('dark') ? 'dark' : 'light';
-    const DEFAULT_ACCENT = (html.getAttribute('data-accent') || 'indigo').trim().toLowerCase() || 'indigo';
+    const DEFAULT_ACCENT = (html.getAttribute('data-accent') || 'gold').trim().toLowerCase() || 'gold';
 
     function parseStored() {
       try {

@@ -3,8 +3,8 @@ const {STORAGE_KEY, STORAGE_VERSION} = require("./theme-preview-storage");
 
 const FALLBACK_DEFAULTS = {
   appearance: "light",
-  accentColor: "indigo",
-  grayColor: "slate",
+  accentColor: "gold",
+  grayColor: "sand",
 };
 
 // Runs in the browser. Each palette's variables are precomputed by the
@@ -123,7 +123,7 @@ function themeShowcaseRuntime(STORAGE_KEY, STORAGE_VERSION) {
   }
 
   function updateHtmlAccent(accentName, fallback) {
-    const fallbackName = fallback || baseDefaults.accentColor || "indigo";
+    const fallbackName = fallback || baseDefaults.accentColor || "gold";
     const normalized = (accentName || "").toString().trim().toLowerCase();
     html.setAttribute("data-accent", normalized || fallbackName);
   }
@@ -235,7 +235,7 @@ function themeShowcaseRuntime(STORAGE_KEY, STORAGE_VERSION) {
 
     function apply() {
       const activeAppearance = state.appearance || defaults.appearance;
-      const activeAccentName = state.accent || defaults.accentColor || "indigo";
+      const activeAccentName = state.accent || defaults.accentColor || "gold";
       const accentVars = state.accent
         ? lookupVars(dataset, activeAppearance, "accent", state.accent)
         : null;

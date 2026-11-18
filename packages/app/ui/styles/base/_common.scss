@@ -13,6 +13,17 @@
     padding: 0.5rem 0;
   }
 
+  // A list's markers are the list's, and its items take them from it: bullets for `ul`,
+  // numbers for `ol`. A list that asks for none shows none, as Clover's slider track
+  // does. (Set on each item, a bullet beat that, and numbered lists showed bullets.)
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
   ol,
   ul {
     padding: 0.5rem 0;
@@ -20,7 +31,6 @@
 
     li {
       margin-bottom: 0.382rem;
-      list-style: disc;
     }
   }
 
@@ -54,11 +64,11 @@
     overflow-wrap: anywhere;
   }
 
-  // Reading text, as a magazine sets it (settings/_tokens.scss): a page's prose, the
-  // paragraphs, lists and quotes Markdown writes, which carry no class (a task list only
-  // Markdown's own), in the body serif and a step larger. Components keep the
-  // interface's sans, as does whatever a Clover part draws. A site's own `app/styles`
-  // base rules come later in the layer and win.
+  // Reading text: a page's prose, the paragraphs, lists and quotes Markdown writes,
+  // which carry no class (a task list only Markdown's own), in the body face and a step
+  // larger, across the whole width of what holds it, as the components beside it are.
+  // Components keep the interface's face, as does whatever a Clover part draws. A site's
+  // own `app/styles` base rules come later in the layer and win.
   main
     :where(p, ul, ol, blockquote):not([class]:not(.contains-task-list)):not(
       :where(
@@ -72,16 +82,6 @@
         *
     ) {
     @include type.body;
-    max-inline-size: var(--canopy-measure);
-  }
-
-  // A picture Markdown sets in a paragraph keeps the column's whole width, as a figure
-  // runs wider than a magazine's text.
-  main
-    :where(p):not([class]:not(.contains-task-list)):has(
-      > :is(img, picture, video, iframe, svg, a > img)
-    ) {
-    max-inline-size: none;
   }
 
   input,

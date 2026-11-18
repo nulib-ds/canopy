@@ -5,7 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const {templatePackageJson} = require('../../../packages/helpers/template/prepare-template');
+const {templatePackageJson, waitForPublished} = require('../../../packages/helpers/template/prepare-template');
 
 const REPO = path.resolve(__dirname, '../../..');
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
@@ -108,4 +108,21 @@ test('the release publishes to npm by trusted publishing, with no token', () => 
   );
   expect(setupNode.with['registry-url']).toBe('https://registry.npmjs.org');
   expect(text).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|always-auth/);
+});
+
+test('a template waits for npm to serve the version just published', () => {
+  const served = ['', '', '2.0.1'];
+  const slept = [];
+  const attempt = waitForPublished('@nulib/canopy', '2.0.1', {
+    view: () => served.shift(),
+    sleep: (seconds) => slept.push(seconds),
+    intervalSeconds: 15,
+    attempts: 5,
+  });
+  expect(attempt).toBe(3);
+  expect(slept).toEqual([15, 15]);
+  expect(() =>
+    waitForPublished('@nulib/canopy', '2.0.1', {view: () => '', sleep: () => {}, intervalSeconds: 15, attempts: 4}),
+  ).toThrow(/not served by npm after 1 minutes/);
+  expect(waitForPublished('@nulib/canopy', '', {view: () => '', sleep: () => {}})).toBe(0);
 });

@@ -151,6 +151,10 @@ Each fix is checked by `npm run test:a11y`; its known-failure entry is gone.
     first one shows alone, with no controls.
   - The motion check now tests what a carousel does, on a page clock, rather than a
     button's English name; `tests/a11y/specs/carousel.spec.mjs` checks the rest.
+  - Since 2.0.2 (November 18, 2026) the hero does not rotate: it moves only when a
+    visitor moves it, so it has nothing to pause, and the pause control is gone. Its
+    slides are polite from the start. `carousel.spec.mjs` checks that nothing moves on
+    its own; the motion check still fails a carousel that advances with no pause first.
 - **C3**, 3.1.2 (2.x Phase 4, November 14, 2026): the carousel's words, its role
   descriptions ("carousel", "slide") among them, and the hero's default "View work" link
   come from `common.carousel` and `common.actions.view_work` in `locale.yml`, with
@@ -159,6 +163,8 @@ Each fix is checked by `npm run test:a11y`; its known-failure entry is gone.
   their dots in accent step 7, 1.85:1 on the page in the default indigo. They take
   `--color-gray-muted` (4.5:1), and the current one the accent, drawn larger, so its
   state is not in its color alone (`_interstitial-hero.scss`). Found reading the code.
+  Since 2.0.2 the dots are that gray at 80%, the hero's ground showing through; 3.42:1
+  at worst (light, mauve on crimson), held by `tests/unit/a11y/contrast.test.js`.
 
 - **C4**, 1.4.3 (2.x Phase 3, November 14, 2026): each role's text step (level 800) is
   held at 4.5:1 by the build: the accent's on every gray's page and under its own level

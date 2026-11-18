@@ -34,8 +34,8 @@ function canopyConfig(site, iiif) {
     .filter((file) => fs.existsSync(file))
     .map((file) => yaml.load(fs.readFileSync(file, 'utf8')) || {})[0] || {};
   const theme = {
-    accentColor: 'indigo',
-    grayColor: 'slate',
+    accentColor: 'gold',
+    grayColor: 'sand',
     ...(own.theme || {}),
     appearance: site.appearance,
   };

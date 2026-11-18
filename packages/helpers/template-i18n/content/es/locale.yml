@@ -11,6 +11,8 @@ common:
     show: "Mostrar"
     hide: "Ocultar"
     view_work: "Ver obra"
+    view_all: "Ver todo"
+    widen_viewer: "Ampliar el visor"
     copy: "Copiar"
   nouns:
     search: "Buscar"
@@ -92,5 +94,3 @@ common:
     previous: "Diapositiva anterior"
     next: "Diapositiva siguiente"
     go_to: "Ir a la diapositiva {index}"
-    stop: "Pausar la presentación"
-    start: "Reproducir la presentación"

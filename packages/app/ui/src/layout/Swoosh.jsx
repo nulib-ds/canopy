@@ -1,11 +1,12 @@
 import React from 'react';
 
-// The brush stroke under a word or two (`--canopy-swoosh`): a hand-drawn swoosh in the
-// site's accent, drawn in once as the page loads, at once where motion is reduced. It is
-// decoration only: the words read as they are, to everyone.
+// `<Swoosh>` marked a word or two with a brush stroke in 2.0.0 and 2.0.1. Canopy draws
+// no stroke since 2.0.2 (Mat, 2026-11-18: "the marker under things is a Clover thing.
+// remove this in Canopy."), and the words read as they are. The component stays, so MDX
+// written with it keeps working (the MDX API is a contract, AGENTS.md); its class is
+// there for a site that styles one of its own.
 //
 //   ## Thoughtful and <Swoosh>flexible</Swoosh>.
-//   <Interstitials.Hero headline={<>Explore <Swoosh>the collection</Swoosh></>} />
 export default function Swoosh({ children, className = '', ...rest }) {
   if (children == null || children === '') return null;
   const classes = ['canopy-swoosh', className].filter(Boolean).join(' ');

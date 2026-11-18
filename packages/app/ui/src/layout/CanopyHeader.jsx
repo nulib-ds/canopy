@@ -61,6 +61,80 @@ function HeaderScript() {
 
   ready(trackHeaderHeight);
 
+  // The search at desktop widths: a button that opens into the field, the field gone back
+  // into the button when it is left empty. Run as the header is read, so the field never
+  // shows closed-to-open on load; without this script the field shows (the markup's own).
+  // - The button says it is a disclosure (aria-expanded, aria-controls); opening it puts
+  //   focus in the field.
+  // - Escape closes the suggestions first (the field's own script), then the field, and
+  //   focus goes back to the button. Leaving it empty, by Tab or a click, closes it too.
+  // - The shortcut (Cmd or Ctrl K) opens it before the field's script focuses it.
+  // - On the search page the field is the page's own, driving its results, so it stays
+  //   open there, with no button.
+  function setupDesktopSearch() {
+    var box = doc.querySelector('.canopy-header [data-canopy-header-search]');
+    if (!box) return;
+    var toggle = box.querySelector('.canopy-header__search-toggle');
+    var input = box.querySelector('[data-canopy-search-form-input]');
+    if (!toggle || !input) return;
+
+    function isOpen() {
+      return box.getAttribute('data-expanded') === 'true';
+    }
+    function setOpen(open, focusTarget) {
+      box.setAttribute('data-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (focusTarget && focusTarget.focus) {
+        try { focusTarget.focus(); } catch (_) {}
+      }
+    }
+    function suggesting() {
+      var teaser = box.querySelector('.canopy-search-teaser');
+      return !!(teaser && !teaser.hidden && !teaser.classList.contains('is-empty'));
+    }
+    function onSearchPage() {
+      try {
+        if (window.CanopySearchPage) return true;
+        return /\\/search(\\/index\\.html)?\\/?$/.test(String(window.location.pathname || ''));
+      } catch (_) {
+        return false;
+      }
+    }
+
+    if (onSearchPage()) return;
+    toggle.hidden = false;
+    box.setAttribute('data-canopy-header-search', 'ready');
+    setOpen(Boolean(input.value));
+
+    toggle.addEventListener('click', function () {
+      setOpen(true, input);
+    });
+
+    box.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' || !isOpen() || suggesting()) return;
+      event.preventDefault();
+      setOpen(false, toggle);
+    }, true);
+
+    box.addEventListener('focusout', function () {
+      setTimeout(function () {
+        if (!isOpen() || input.value || box.contains(doc.activeElement)) return;
+        setOpen(false);
+      }, 0);
+    });
+
+    doc.addEventListener('keydown', function (event) {
+      if (!(event.metaKey || event.ctrlKey) || (event.key !== 'k' && event.key !== 'K')) return;
+      if (isOpen()) return;
+      try {
+        if (!window.matchMedia(desktopBreakpointQuery()).matches) return;
+      } catch (_) {}
+      setOpen(true);
+    }, true);
+  }
+
+  setupDesktopSearch();
+
   ready(function () {
     var header = doc.querySelector('.canopy-header');
     if (!header) return;
@@ -479,6 +553,9 @@ export default function CanopyHeader(props = {}) {
     context && context.navigation ? context.navigation : null;
   const contextSite = context && context.site ? context.site : null;
   const pageData = context && context.page ? context.page : null;
+  // The search page's field is the page's own, which drives its results: it shows there,
+  // with no button to open it, in any language and at any route (`lib/search/search.js`).
+  const isSearchPage = Boolean(pageData && pageData.type === "search");
   const contextSiteTitle =
     contextSite && typeof contextSite.title === "string"
       ? contextSite.title.trim()
@@ -614,13 +691,50 @@ export default function CanopyHeader(props = {}) {
           />
         </div>
 
-        <div className="canopy-header__desktop-search">
-          <SearchPanel
-            label={resolvedSearchLabel}
-            hotkey={searchHotkey}
-            placeholder={resolvedSearchPlaceholder}
-            searchPath={normalizedSearchRoute}
-          />
+        {/* At desktop widths, a button that opens into the search field (the header's
+            script, `setupDesktopSearch`); without the script the field shows. */}
+        <div
+          className="canopy-header__desktop-search"
+          data-canopy-header-search={isSearchPage ? undefined : ""}
+          data-expanded="true"
+        >
+          {isSearchPage ? null : (
+          <button
+            type="button"
+            className="canopy-header__search-toggle"
+            aria-expanded="true"
+            aria-controls="canopy-header-search-field"
+            hidden
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-3.8-3.8M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+              />
+            </svg>
+            <span>{resolvedSearchLabel}</span>
+          </button>
+          )}
+          <div
+            id="canopy-header-search-field"
+            className="canopy-header__search-field"
+          >
+            <SearchPanel
+              label={resolvedSearchLabel}
+              hotkey={searchHotkey}
+              placeholder={resolvedSearchPlaceholder}
+              searchPath={normalizedSearchRoute}
+            />
+          </div>
         </div>
 
         <nav
